@@ -1,9 +1,22 @@
-import * as functions from 'firebase-functions';
+import * as functions from 'firebase-functions'
+import * as admin from 'firebase-admin'
 
-// // Start writing Firebase Functions
-// // https://firebase.google.com/docs/functions/typescript
-//
-// export const helloWorld = functions.https.onRequest((request, response) => {
-//   functions.logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+admin.initializeApp();
+
+import * as express from 'express'
+import * as cors from 'cors'
+import { routes } from './routes'
+
+import { supportRoute } from './config/db';
+import { sendSupportMessage } from './controllers/support'
+
+const app = express()
+app.use(express.json())
+app.use(cors({ origin: true }))
+routes(app)
+
+export const support = functions.region('asia-east2').firestore
+.document(`${supportRoute}/{addKey}`)
+.onCreate(snap => {
+    return sendSupportMessage(snap)
+})

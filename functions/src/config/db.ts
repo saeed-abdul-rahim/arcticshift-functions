@@ -11,6 +11,7 @@ import {
     COLLECTIONS,
     PRODUCTTYPES,
     ATTRIBUTES,
+    ATTRIBUTEVALUES,
     ORDERS,
     TAXES,
     SALES,
@@ -34,6 +35,7 @@ export const productTypesRef = ref.collection(PRODUCTTYPES)
 export const categoriesRef = ref.collection(CATEGORIES)
 export const collectionsRef = ref.collection(COLLECTIONS)
 export const attributesRef = ref.collection(ATTRIBUTES)
+export const attributeValuesRef = ref.collection(ATTRIBUTEVALUES)
 export const taxesRef = ref.collection(TAXES)
 export const ordersRef = ref.collection(ORDERS)
 export const salesRef = ref.collection(SALES)

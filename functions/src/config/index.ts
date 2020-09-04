@@ -1,5 +1,5 @@
 import * as functions from 'firebase-functions'
-import Razorpay from 'razorpay'
+import { Razorpay } from 'razorpay-typescript'
 
 export const TITLE = 'PROLR'
 export const URL = {
@@ -14,7 +14,9 @@ export const URL = {
 // export const refreshToken = functions.config().service.refresh
 // export const accessToken = functions.config().service.access
 
-export const RAZORPAY = new Razorpay({
-    key_id: functions.config().razorpay.id,
-    key_secret: functions.config().razorpay.secret
+export const razorpay: Razorpay = new Razorpay({
+    authKey: {   
+        key_id: functions.config().razorpay.id,
+        key_secret: functions.config().razorpay.secret
+    }
 })
