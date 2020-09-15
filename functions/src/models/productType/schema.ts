@@ -1,5 +1,6 @@
 import { TimestampInterface, TimestampType } from '../common/schema'
 import { Timestamp } from '../common'
+import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface ProductTypeInterface extends TimestampInterface {
     shopId: string
@@ -29,7 +30,7 @@ export class ProductType extends Timestamp implements ProductTypeInterface {
         this.shopId = data.shopId ? data.shopId : ''
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
         this.name = data.name ? data.name : ''
-        this.attributeId = data.attributeId ? data.attributeId : []
+        this.attributeId = data.attributeId ? uniqueArr(data.attributeId) : []
         this.taxId = data.taxId ? data.taxId : ''
     }
 

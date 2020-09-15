@@ -1,36 +1,45 @@
-import { CommonInterface, CommonType } from '../common/schema'
+import { CommonInterface, CommonType, Address, Tax } from '../common/schema'
 import { Common } from '../common'
+import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface ShopInterface extends CommonInterface {
     shopId: string
     name: string
-    city: string
-    fullLocation: string
-    sinceDate: number
+    address: Address | null
+    shopInvite: string[]
+    access: string[]
+    weightUnit: string
+    tax: Tax | null
 }
 
 export type ShopType = CommonType & {
     shopId: string
     name?: string
-    city?: string
-    fullLocation?: string
-    sinceDate?: number
+    address?: Address | null
+    shopInvite?: string[]
+    access?: string[]
+    weightUnit?: string
+    tax?: Tax | null
 }
 
 export class Shop extends Common implements ShopInterface {
     shopId: string
     name: string
-    city: string
-    fullLocation: string
-    sinceDate: number
+    address: Address | null
+    shopInvite: string[]
+    access: string[]
+    weightUnit: string
+    tax: Tax | null
 
     constructor(data: ShopType) {
         super(data)
         this.shopId = data.shopId
         this.name = data.name ? data.name : ''
-        this.city = data.city ? data.city : ''
-        this.fullLocation = data.fullLocation ? data.fullLocation : ''
-        this.sinceDate = data.sinceDate ? data.sinceDate : 0
+        this.address = data.address ? data.address : null
+        this.shopInvite = data.shopInvite ? uniqueArr(data.shopInvite) : []
+        this.access = data.access ? data.access : []
+        this.weightUnit = data.weightUnit ? data.weightUnit : ''
+        this.tax = data.tax ? data.tax : null
     }
 
     get(): ShopInterface {
@@ -38,10 +47,11 @@ export class Shop extends Common implements ShopInterface {
             ...super.get(),
             shopId: this.shopId,
             name: this.name,
-            city: this.city,
-            fullLocation: this.fullLocation,
-            sinceDate: this.sinceDate,
-            status: this.status
+            address: this.address,
+            shopInvite: this.shopInvite,
+            access: this.access,
+            weightUnit: this.weightUnit,
+            tax: this.tax
         }
     }
 

@@ -23,31 +23,39 @@ export async function add(collection: CollectionType): Promise<string> {
     }
 }
 
-export async function set(collectionTypeId: string, collection: CollectionType): Promise<boolean> {
+export async function set(collectionId: string, collection: CollectionType): Promise<boolean> {
     try {
         const dataToInsert = new Collection(collection).get()
         dataToInsert.updatedAt = Date.now()
-        await collectionsRef.doc(collectionTypeId).set(dataToInsert)
+        await collectionsRef.doc(collectionId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
     }
 }
 
-export async function update(collectionTypeId: string, collection: CollectionType): Promise<boolean> {
+export async function update(collectionId: string, collection: CollectionType): Promise<boolean> {
     try {
-        await collectionsRef.doc(collectionTypeId).update({ ...collection, updatedAt: Date.now() })
+        await collectionsRef.doc(collectionId).update({ ...collection, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
     }
 }
 
-export async function remove(collectionTypeId: string): Promise<boolean> {
+export async function remove(collectionId: string): Promise<boolean> {
     try {
-        await collectionsRef.doc(collectionTypeId).delete()
+        await collectionsRef.doc(collectionId).delete()
         return true
     } catch (err) {
         throw err
+    }
+}
+
+export async function getRef(id?: string) {
+    if (id) {
+        return collectionsRef.doc(id)
+    } else {
+        return collectionsRef
     }
 }

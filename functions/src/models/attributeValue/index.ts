@@ -51,3 +51,11 @@ export async function remove(attributeValueId: string): Promise<boolean> {
         throw err
     }
 }
+
+export async function getRef(id?: string) {
+    if (id) {
+        return attributeValuesRef.doc(id)
+    } else {
+        return attributeValuesRef
+    }
+}

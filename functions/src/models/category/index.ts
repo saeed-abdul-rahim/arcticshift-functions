@@ -23,31 +23,39 @@ export async function add(category: CategoryType): Promise<string> {
     }
 }
 
-export async function set(categoryTypeId: string, category: CategoryType): Promise<boolean> {
+export async function set(categoryId: string, category: CategoryType): Promise<boolean> {
     try {
         const dataToInsert = new Category(category).get()
         dataToInsert.updatedAt = Date.now()
-        await categoriesRef.doc(categoryTypeId).set(dataToInsert)
+        await categoriesRef.doc(categoryId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
     }
 }
 
-export async function update(categoryTypeId: string, category: CategoryType): Promise<boolean> {
+export async function update(categoryId: string, category: CategoryType): Promise<boolean> {
     try {
-        await categoriesRef.doc(categoryTypeId).update({ ...category, updatedAt: Date.now() })
+        await categoriesRef.doc(categoryId).update({ ...category, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
     }
 }
 
-export async function remove(categoryTypeId: string): Promise<boolean> {
+export async function remove(categoryId: string): Promise<boolean> {
     try {
-        await categoriesRef.doc(categoryTypeId).delete()
+        await categoriesRef.doc(categoryId).delete()
         return true
     } catch (err) {
         throw err
+    }
+}
+
+export async function getRef(id?: string) {
+    if (id) {
+        return categoriesRef.doc(id)
+    } else {
+        return categoriesRef
     }
 }

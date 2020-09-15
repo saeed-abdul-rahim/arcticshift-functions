@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import * as group from "../models/group"
+import * as shop from "../models/shop"
 import { Role } from '../models/common/schema'
 import { forbidden } from '../responseHandler/errorHandler';
 
@@ -7,19 +7,19 @@ export function isAuthorized(opts: { hasRole?: Array<Role>, allowSameUser?: bool
    return async (req: Request, res: Response, next: Function) => {
         const { claims, uid } = res.locals
         const { id } = req.params
-        const { groupid } = req.headers
-        res.locals = { ...res.locals, groupId: groupid }
+        const { shopId } = req.headers
+        res.locals = { ...res.locals, groupId: shopId }
         if (opts.allowSameUser && id && uid === id)
             return next();
         else if (!claims)
             return forbidden(res);
-        else if(!groupid)
+        else if(!shopId)
             return forbidden(res);
-        else if (groupid && typeof groupid === "string" && opts.hasRole) {
-            const groupData = await group.get(groupid)
+        else if (shopId && typeof shopId === "string" && opts.hasRole) {
+            const shopData = await shop.get(shopId)
             opts.hasRole.map(role => {
-                if (groupData[role].includes(uid)) {
-                    res.locals = { ...res.locals, role, groupData }
+                if (shopData[role].includes(uid)) {
+                    res.locals = { ...res.locals, role, shopData }
                     return next();
                 }
             })

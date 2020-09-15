@@ -33,3 +33,11 @@ export async function update(shop: ShopType): Promise<boolean> {
         throw err
     }
 }
+
+export async function getRef(id?: string) {
+    if (id) {
+        return shopsRef.doc(id)
+    } else {
+        return shopsRef
+    }
+}

@@ -8,11 +8,11 @@ export const URL = {
     home: '/',
     logo: '/assets/icons/icon-72x72.png'
 }
-// export const gmail = functions.config().gmail.email
-// export const clientId = functions.config().service.id
-// export const clientSecret = functions.config().service.secret
-// export const refreshToken = functions.config().service.refresh
-// export const accessToken = functions.config().service.access
+export const gmail = functions.config().gmail.email
+export const clientId = functions.config().service.id
+export const clientSecret = functions.config().service.secret
+export const refreshToken = functions.config().service.refresh
+export const accessToken = functions.config().service.access
 
 export const razorpay: Razorpay = new Razorpay({
     authKey: {   

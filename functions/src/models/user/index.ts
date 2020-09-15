@@ -13,12 +13,12 @@ export async function get(uid: string): Promise<UserInterface> {
     }
 }
 
-export async function set(uid: string, user: UserType): Promise<boolean> {
+export async function set(uid: string, user: UserType): Promise<UserInterface> {
     try {
         const dataToInsert = new User(user).get()
         dataToInsert.updatedAt = Date.now()
         await usersRef.doc(uid).set(dataToInsert)
-        return true
+        return dataToInsert
     } catch (err) {
         throw err
     }
@@ -82,5 +82,13 @@ async function getOneByCondition(field: string, value: string): Promise<UserInte
         return new User(data).get()
     } catch (err) {
         throw err;
+    }
+}
+
+export async function getRef(id?: string) {
+    if (id) {
+        return usersRef.doc(id)
+    } else {
+        return usersRef
     }
 }

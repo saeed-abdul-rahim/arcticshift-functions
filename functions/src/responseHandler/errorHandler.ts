@@ -9,6 +9,10 @@ export function badRequest(res: Response, message: any) {
     return res.status(400).send(getErrorResponse(message))
 }
 
+export function missingParam(res: Response, message: any) {
+    return res.status(400).send(getErrorResponse(`${message} Required`))
+}
+
 export function notAllowed(res: Response, message: any) {
     return res.status(405).send(getErrorResponse(message))
 }

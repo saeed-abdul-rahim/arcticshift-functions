@@ -1,9 +1,10 @@
-import { TimestampInterface, TimestampType, Status } from '../common/schema'
+import { TimestampInterface, TimestampType, Status, Condition, ContentStorage, Tax } from '../common/schema'
 import { Timestamp } from '../common'
+import { uniqueArr } from '../../utils/uniqueArr'
 
 type Thumbnail = {
     size: string
-    url: string
+    image: ContentStorage | null
 }
 
 type Price = {
@@ -11,23 +12,31 @@ type Price = {
     value: string
 }
 
+type Attribute = {
+    [key: string]: boolean
+} | null
+
 export interface ProductInterface extends TimestampInterface {
     shopId: string
     productId: string
     name: string
     description: string
+    keywords: string[]
     url: string
-    imageUrl: string
+    image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attributeId: string
-    attributeValueId: string[]
+    attribute: Attribute
+    attributeValue: Attribute
     categoryId: string
     collectionId: string[]
     prices: Price[]
-    tax: number
-    variants: string[]
+    price: number
+    tax: Tax | null
+    variantId: string[]
     status: Status
+    like: number
+    rating: number
 }
 
 export type ProductType = TimestampType & {
@@ -35,18 +44,22 @@ export type ProductType = TimestampType & {
     productId?: string
     name?: string
     description?: string
+    keywords?: string[]
     url?: string
-    imageUrl?: string
+    image?: ContentStorage | null
     thumbnailUrls?: Thumbnail[]
     productTypeId?: string
-    attributeId?: string
-    attributeValueId?: string[]
+    attribute?: Attribute
+    attributeValue?: Attribute
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
-    tax?: number
-    variants?: string[]
+    price?: number
+    tax?: Tax | null
+    variantId?: string[]
     status?: Status
+    like?: number
+    rating?: number
 }
 
 export class Product extends Timestamp implements ProductInterface {
@@ -54,18 +67,22 @@ export class Product extends Timestamp implements ProductInterface {
     productId: string
     name: string
     description: string
+    keywords: string[]
     url: string
-    imageUrl: string
+    image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attributeId: string
-    attributeValueId: string[]
+    attribute: Attribute
+    attributeValue: Attribute
     categoryId: string
     collectionId: string[]
     prices: Price[]
-    tax: number
-    variants: string[]
+    price: number
+    tax: Tax | null
+    variantId: string[]
     status: Status
+    like: number
+    rating: number
 
     constructor(data: ProductType) {
         super(data)
@@ -73,18 +90,22 @@ export class Product extends Timestamp implements ProductInterface {
         this.productId = data.productId ? data.productId : ''
         this.name = data.name ? data.name : ''
         this.description = data.description ? data.description : ''
+        this.keywords = data.keywords ? data.keywords : []
         this.url = data.url ? data.url : ''
-        this.imageUrl = data.imageUrl ? data.imageUrl : ''
+        this.image = data.image ? data.image : null
         this.thumbnailUrls = data.thumbnailUrls ? data.thumbnailUrls : []
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
-        this.attributeId = data.attributeId ? data.attributeId : ''
-        this.attributeValueId = data.attributeValueId ? data.attributeValueId : []
+        this.attribute = data.attribute ? data.attribute : null
+        this.attributeValue = data.attributeValue ? data.attributeValue : null
         this.categoryId = data.categoryId ? data.categoryId : ''
-        this.collectionId = data.collectionId ? data.collectionId : []
+        this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
-        this.tax = data.tax ? data.tax : 0
-        this.variants = data.variants ? data.variants : []
+        this.price = data.price ? data.price : 0
+        this.tax = data.tax ? data.tax : null
+        this.variantId = data.variantId ? uniqueArr(data.variantId) : []
         this.status = data.status ? data.status : 'active'
+        this.like = data.like ? data.like : 0
+        this.rating = data.rating ? data.rating : 0
     }
 
     get(): ProductInterface {
@@ -94,19 +115,27 @@ export class Product extends Timestamp implements ProductInterface {
             productId: this.productId,
             name: this.name,
             description: this.description,
+            keywords: this.keywords,
             url: this.url,
-            imageUrl: this.imageUrl,
+            image: this.image,
             thumbnailUrls: this.thumbnailUrls,
             productTypeId: this.productTypeId,
-            attributeId: this.attributeId,
-            attributeValueId: this.attributeValueId,
+            attribute: this.attribute,
+            attributeValue: this.attributeValue,
             categoryId: this.categoryId,
             collectionId: this.collectionId,
             prices: this.prices,
+            price: this.price,
             tax: this.tax,
-            variants: this.variants,
-            status: this.status
+            variantId: this.variantId,
+            status: this.status,
+            like: this.like,
+            rating: this.rating
         }
     }
 
+}
+
+export type ProductCondition = Condition & {
+    field: keyof ProductType
 }

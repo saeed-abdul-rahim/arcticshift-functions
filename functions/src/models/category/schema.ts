@@ -1,5 +1,6 @@
-import { TimestampInterface, TimestampType } from '../common/schema'
+import { TimestampInterface, TimestampType, ContentStorage } from '../common/schema'
 import { Timestamp } from '../common'
+import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface CategoryInterface extends TimestampInterface {
     shopId: string
@@ -7,22 +8,22 @@ export interface CategoryInterface extends TimestampInterface {
     parentCategoryId: string
     name: string
     description: string
-    imageUrl: string[]
+    images: ContentStorage[]
     subCategoryId: string[]
     parentCategoryIds: string[]
-    productCount: number
+    productId: string[]
 }
 
 export type CategoryType = TimestampType & {
-    shopId: string
+    shopId?: string
     categoryId?: string
     parentCategoryId?: string
     name?: string
     description?: string
-    imageUrl?: string[]
+    images?: ContentStorage[]
     subCategoryId?: string[]
     parentCategoryIds?: string[]
-    productCount?: number
+    productId?: string[]
 }
 
 export class Category extends Timestamp implements CategoryInterface {
@@ -31,10 +32,10 @@ export class Category extends Timestamp implements CategoryInterface {
     parentCategoryId: string
     name: string
     description: string
-    imageUrl: string[]
+    images: ContentStorage[]
     subCategoryId: string[]
     parentCategoryIds: string[]
-    productCount: number
+    productId: string[]
 
     constructor(data: CategoryType) {
         super(data)
@@ -43,10 +44,10 @@ export class Category extends Timestamp implements CategoryInterface {
         this.parentCategoryId = data.parentCategoryId ? data.parentCategoryId : ''
         this.name = data.name ? data.name : ''
         this.description = data.description ? data.description : ''
-        this.imageUrl = data.imageUrl ? data.imageUrl : []
-        this.subCategoryId = data.subCategoryId ? data.subCategoryId : []
-        this.parentCategoryIds = data.parentCategoryIds ? data.parentCategoryIds : []
-        this.productCount = data.productCount ? data.productCount : 0
+        this.images = data.images ? data.images : []
+        this.subCategoryId = data.subCategoryId ? uniqueArr(data.subCategoryId) : []
+        this.parentCategoryIds = data.parentCategoryIds ? uniqueArr(data.parentCategoryIds) : []
+        this.productId = data.productId ? data.productId : []
     }
 
     get(): CategoryInterface {
@@ -57,10 +58,10 @@ export class Category extends Timestamp implements CategoryInterface {
             parentCategoryId: this.parentCategoryId,
             name: this.name,
             description: this.description,
-            imageUrl: this.imageUrl,
+            images: this.images,
             subCategoryId: this.subCategoryId,
             parentCategoryIds: this.parentCategoryIds,
-            productCount: this.productCount
+            productId: this.productId
         }
     }
 

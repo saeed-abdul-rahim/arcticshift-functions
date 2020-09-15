@@ -11,6 +11,6 @@ export const sendSupportMessage = async (snap: any) => {
         }
         await sendMail(mailOptions)
     } catch (err) {
-        console.log(err)
+        console.error(`${err.code} -  ${err.message}`)
     }
 }

@@ -51,3 +51,11 @@ export async function remove(productTypeId: string): Promise<boolean> {
         throw err
     }
 }
+
+export async function getRef(id?: string) {
+    if (id) {
+        return productTypesRef.doc(id)
+    } else {
+        return productTypesRef
+    }
+}

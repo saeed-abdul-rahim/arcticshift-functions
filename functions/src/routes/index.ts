@@ -1,9 +1,9 @@
 import { Application } from 'express'
 
 import { userHandler } from './user'
-// import { tierHandler } from './tier'
+import { shopHandler } from './shop'
 
 export function routes(app: Application) {
     userHandler(app)
-    // tierHandler(app)
+    shopHandler(app)
 }

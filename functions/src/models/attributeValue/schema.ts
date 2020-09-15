@@ -10,8 +10,8 @@ export interface AttributeValueInterface extends TimestampInterface {
 }
 
 export type AttributeValueType = TimestampType & {
-    shopId: string
-    attributeId: string
+    shopId?: string
+    attributeId?: string
     code?: string
     name?: string
     attributeValueId?: string
@@ -27,7 +27,7 @@ export class AttributeValue extends Timestamp implements AttributeValueInterface
     constructor(data: AttributeValueType) {
         super(data)
         this.shopId = data.shopId ? data.shopId : ''
-        this.attributeId = data.attributeId
+        this.attributeId = data.attributeId ? data.attributeId : ''
         this.code = data.code ? data.code : ''
         this.name = data.name ? data.name : ''
         this.attributeValueId = data.attributeValueId ? data.attributeValueId : ''

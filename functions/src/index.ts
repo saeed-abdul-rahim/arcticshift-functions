@@ -20,3 +20,5 @@ export const support = functions.region('asia-east2').firestore
 .onCreate(snap => {
     return sendSupportMessage(snap)
 })
+
+export const api = functions.region('asia-east2').https.onRequest(app)

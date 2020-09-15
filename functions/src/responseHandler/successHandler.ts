@@ -9,6 +9,10 @@ export function successResponse(res: Response, data: any) {
     return success(res, data);
 }
 
+export function successDeleted(res: Response) {
+    return success(res, 'Deleted Successfully')
+}
+
 export function successUpdated(res: Response) {
     return success(res, 'Updated Successfully')
 }
