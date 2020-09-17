@@ -12,6 +12,8 @@ export interface CategoryInterface extends TimestampInterface {
     subCategoryId: string[]
     parentCategoryIds: string[]
     productId: string[]
+    saleDiscountId: string
+    voucherId: string
 }
 
 export type CategoryType = TimestampType & {
@@ -24,6 +26,8 @@ export type CategoryType = TimestampType & {
     subCategoryId?: string[]
     parentCategoryIds?: string[]
     productId?: string[]
+    saleDiscountId?: string
+    voucherId?: string
 }
 
 export class Category extends Timestamp implements CategoryInterface {
@@ -36,6 +40,8 @@ export class Category extends Timestamp implements CategoryInterface {
     subCategoryId: string[]
     parentCategoryIds: string[]
     productId: string[]
+    saleDiscountId: string
+    voucherId: string
 
     constructor(data: CategoryType) {
         super(data)
@@ -48,6 +54,8 @@ export class Category extends Timestamp implements CategoryInterface {
         this.subCategoryId = data.subCategoryId ? uniqueArr(data.subCategoryId) : []
         this.parentCategoryIds = data.parentCategoryIds ? uniqueArr(data.parentCategoryIds) : []
         this.productId = data.productId ? data.productId : []
+        this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
+        this.voucherId = data.voucherId ? data.voucherId : ''
     }
 
     get(): CategoryInterface {
@@ -61,7 +69,9 @@ export class Category extends Timestamp implements CategoryInterface {
             images: this.images,
             subCategoryId: this.subCategoryId,
             parentCategoryIds: this.parentCategoryIds,
-            productId: this.productId
+            productId: this.productId,
+            saleDiscountId: this.saleDiscountId,
+            voucherId: this.voucherId
         }
     }
 

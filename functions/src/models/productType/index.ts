@@ -1,5 +1,6 @@
 import { productTypesRef } from '../../config/db'
-import { ProductTypeInterface, ProductTypeType, ProductType } from './schema'
+import { setCondition } from '../common'
+import { ProductTypeInterface, ProductTypeType, ProductType, ProductTypeCondition } from './schema'
 
 export async function get(productTypeId: string): Promise<ProductTypeInterface> {
     try {
@@ -10,6 +11,22 @@ export async function get(productTypeId: string): Promise<ProductTypeInterface> 
         return new ProductType(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getByCondition(conditions: ProductTypeCondition[]): Promise<ProductTypeInterface[] | null> {
+    try {
+        const ref = setCondition(productTypesRef, conditions)
+        const doc = await ref.get()
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as ProductTypeInterface
+            data.productTypeId = d.id
+            data = new ProductType(data).get()
+            return data
+        })
+    } catch (err) {
+        throw err;
     }
 }
 

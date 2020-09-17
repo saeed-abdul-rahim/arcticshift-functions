@@ -1,4 +1,4 @@
-import { CommonInterface, CommonType, Address, Tax } from '../common/schema'
+import { CommonInterface, CommonType, Address, Condition } from '../common/schema'
 import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
@@ -9,7 +9,7 @@ export interface ShopInterface extends CommonInterface {
     shopInvite: string[]
     access: string[]
     weightUnit: string
-    tax: Tax | null
+    taxId: string
 }
 
 export type ShopType = CommonType & {
@@ -19,7 +19,7 @@ export type ShopType = CommonType & {
     shopInvite?: string[]
     access?: string[]
     weightUnit?: string
-    tax?: Tax | null
+    taxId?: string
 }
 
 export class Shop extends Common implements ShopInterface {
@@ -29,7 +29,7 @@ export class Shop extends Common implements ShopInterface {
     shopInvite: string[]
     access: string[]
     weightUnit: string
-    tax: Tax | null
+    taxId: string
 
     constructor(data: ShopType) {
         super(data)
@@ -39,7 +39,7 @@ export class Shop extends Common implements ShopInterface {
         this.shopInvite = data.shopInvite ? uniqueArr(data.shopInvite) : []
         this.access = data.access ? data.access : []
         this.weightUnit = data.weightUnit ? data.weightUnit : ''
-        this.tax = data.tax ? data.tax : null
+        this.taxId = data.taxId ? data.taxId : ''
     }
 
     get(): ShopInterface {
@@ -51,8 +51,12 @@ export class Shop extends Common implements ShopInterface {
             shopInvite: this.shopInvite,
             access: this.access,
             weightUnit: this.weightUnit,
-            tax: this.tax
+            taxId: this.taxId
         }
     }
 
+}
+
+export type ShopCondition = Condition & {
+    field: keyof ShopType
 }

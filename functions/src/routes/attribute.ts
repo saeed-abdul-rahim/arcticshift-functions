@@ -1,9 +1,9 @@
 import { Application } from 'express'
 
+import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
 import * as attribute from '../controllers/attribute'
-import routes from '../config/routes'
 
 export function attributeHandler(app: Application) {
 

@@ -1,10 +1,18 @@
 export type Role = 'admin' | 'staff'
 export type Status = 'active' | 'inactive'
+export type ValueType = 'fixed' | 'percent'
+
+export type CatalogType = {
+    productId?: string[]
+    categoryId?: string[]
+    collectionId?: string[]
+}
+export type CatalogTypeKey = keyof CatalogType
 
 export type Tax = {
     name: string
     value: number
-    type: 'fixed' | 'percent'
+    type: ValueType
 }
 
 export type ContentStorage = {

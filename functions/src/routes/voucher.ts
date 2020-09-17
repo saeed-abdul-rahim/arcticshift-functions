@@ -3,46 +3,40 @@ import { Application } from 'express'
 import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
-import * as category from '../controllers/category'
+import * as voucher from '../controllers/voucher'
 
-export function categoryHandler(app: Application) {
+export function voucherHandler(app: Application) {
 
-    const categoryRoute = routes.category
+    const voucherRoute = routes.voucher
 
-    app.post(categoryRoute,
+    app.post(voucherRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.create
+        voucher.create
     )
 
-    app.patch(categoryRoute,
+    app.patch(`${voucherRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.update
+        voucher.removeCatalog
     )
 
-    app.put(categoryRoute,
+    app.patch(voucherRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.addProduct
+        voucher.update
     )
 
-    app.delete(`${categoryRoute}/:cid/product/:pid`,
+    app.put(`${voucherRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.removeProduct
+        voucher.addCatalog
     )
 
-    app.delete(`${categoryRoute}/:id/image`,
+    app.delete(`${voucherRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.removeImage
-    )
-
-    app.delete(`${categoryRoute}/:id`,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.remove
+        voucher.remove
     )
 
 }

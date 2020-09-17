@@ -1,14 +1,12 @@
-import { TimestampInterface, TimestampType, Datetime } from '../common/schema'
+import { TimestampInterface, TimestampType, Datetime, ValueType } from '../common/schema'
 import { Timestamp } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type SalesDiscountTypeType = 'percentage' | 'fixed' | ''
-
-export interface SalesDiscountInterface extends TimestampInterface {
+export interface SaleDiscountInterface extends TimestampInterface {
     shopId: string
     saleDiscountId: string
     name: string
-    type: SalesDiscountTypeType
+    valueType: ValueType
     value: number
     categoryId: string[]
     collectionId: string[]
@@ -17,11 +15,11 @@ export interface SalesDiscountInterface extends TimestampInterface {
     endDate: Datetime | null
 }
 
-export type SalesDiscountType = TimestampType & {
+export type SaleDiscountType = TimestampType & {
     shopId: string
     saleDiscountId?: string
     name?: string
-    type?: SalesDiscountTypeType
+    valueType?: ValueType
     value?: number
     categoryId?: string[]
     collectionId?: string[]
@@ -30,11 +28,11 @@ export type SalesDiscountType = TimestampType & {
     endDate?: Datetime | null
 }
 
-export class SalesDiscount extends Timestamp implements SalesDiscountInterface {
+export class SaleDiscount extends Timestamp implements SaleDiscountInterface {
     shopId: string
     saleDiscountId: string
     name: string
-    type: SalesDiscountTypeType
+    valueType: ValueType
     value: number
     categoryId: string[]
     collectionId: string[]
@@ -42,12 +40,12 @@ export class SalesDiscount extends Timestamp implements SalesDiscountInterface {
     startDate: Datetime | null
     endDate: Datetime | null
 
-    constructor(data: SalesDiscountType) {
+    constructor(data: SaleDiscountType) {
         super(data)
         this.shopId = data.shopId ? data.shopId : ''
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
         this.name = data.name ? data.name : ''
-        this.type = data.type ? data.type : ''
+        this.valueType = data.valueType ? data.valueType : 'fixed'
         this.value = data.value ? data.value : 0
         this.categoryId = data.categoryId ? uniqueArr(data.categoryId) : []
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
@@ -56,13 +54,13 @@ export class SalesDiscount extends Timestamp implements SalesDiscountInterface {
         this.endDate = data.endDate ? data.endDate : null
     }
 
-    get(): SalesDiscountInterface {
+    get(): SaleDiscountInterface {
         return {
             ...super.get(),
             shopId: this.shopId,
             saleDiscountId: this.saleDiscountId,
             name: this.name,
-            type: this.type,
+            valueType: this.valueType,
             value: this.value,
             categoryId: this.categoryId,
             collectionId: this.collectionId,

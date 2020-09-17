@@ -5,11 +5,13 @@ import {
     TimestampInterface,
     TimestampType,
     Status,
-    Condition
+    Condition,
+    ValueType, Datetime
 } from './schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export const roles: Role[] = ['admin', 'staff']
+export const valueTypes: ValueType[] = [ 'fixed', 'percent' ]
 
 export class Timestamp implements TimestampInterface {
     createdAt: number
@@ -58,4 +60,13 @@ export function setCondition(collectionRef: FirebaseFirestore.CollectionReferenc
         ref = ref.where(field, type, value)
     })
     return ref
+}
+
+export function isValidDateTime(datetime: Datetime) {
+    const { date, time, zone } = datetime
+    if (date && time && zone) {
+        return datetime
+    } else {
+        return null
+    }
 }

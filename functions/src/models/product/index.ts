@@ -31,16 +31,18 @@ export async function getOneByCondition(conditions: ProductCondition[]): Promise
 export async function getByCondition(conditions: ProductCondition[]): Promise<ProductInterface[] | null> {
     try {
         const ref = setCondition(productsRef, conditions)
-        const doc = await ref.get()
-        if (doc.empty) return null
-        return doc.docs.map(d => {
-            let data = d.data() as ProductInterface
-            data.productId = d.id
-            data = new Product(data).get()
-            return data
-        })
+        return await getAll(ref)
     } catch (err) {
         throw err;
+    }
+}
+
+export async function getByAttribute(attributeId: string): Promise<ProductInterface[] | null> {
+    try {
+        const ref = productsRef.where(`attribute.${attributeId}`, '==', true)
+        return await getAll(ref)
+    } catch (err) {
+        throw err
     }
 }
 
@@ -89,4 +91,15 @@ export async function getRef(id?: string) {
     } else {
         return productsRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as ProductInterface
+        data.productId = d.id
+        data = new Product(data).get()
+        return data
+    })
 }

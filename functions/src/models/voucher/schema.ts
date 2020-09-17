@@ -1,19 +1,23 @@
-import { TimestampInterface, TimestampType, Datetime } from '../common/schema'
-import { Timestamp } from '../common'
+import { TimestampInterface, TimestampType, Datetime, ValueType } from '../common/schema'
+import { Timestamp, valueTypes } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type VoucherTypeType = 'percentage' | 'fixed' | 'shipping' | ''
+type VoucherTypeType = ValueType | 'shipping'
+type MinimumRequirementType = 'orderValue' | 'quantity'
 
 type MinimumRequirement = {
-    type: 'orderValue' | 'quantity'
+    type: MinimumRequirementType
     value: number
 } | null
+
+export const voucherValueTypes: VoucherTypeType[] = [ ...valueTypes, 'shipping' ]
+export const minimumRequirementTypes: MinimumRequirementType[] = [ 'orderValue', 'quantity' ]
 
 export interface VoucherInterface extends TimestampInterface {
     shopId: string
     voucherId: string
     code: string
-    type: VoucherTypeType
+    valueType: VoucherTypeType
     value: number
     entireOrder: boolean
     oncePerOrder: boolean
@@ -31,7 +35,7 @@ export type VoucherType = TimestampType & {
     shopId: string
     voucherId?: string
     code?: string
-    type?: VoucherTypeType
+    valueType?: VoucherTypeType
     value?: number
     entireOrder?: boolean
     oncePerOrder?: boolean
@@ -49,7 +53,7 @@ export class Voucher extends Timestamp implements VoucherInterface {
     shopId: string
     voucherId: string
     code: string
-    type: VoucherTypeType
+    valueType: VoucherTypeType
     value: number
     entireOrder: boolean
     oncePerOrder: boolean
@@ -67,7 +71,7 @@ export class Voucher extends Timestamp implements VoucherInterface {
         this.shopId = data.shopId ? data.shopId : ''
         this.voucherId = data.voucherId ? data.voucherId : ''
         this.code = data.code ? data.code : ''
-        this.type = data.type ? data.type : ''
+        this.valueType = data.valueType ? data.valueType : 'fixed'
         this.value = data.value ? data.value : 0
         this.entireOrder = data.entireOrder ? data.entireOrder : true
         this.oncePerOrder = data.oncePerOrder ? data.oncePerOrder : false
@@ -87,7 +91,7 @@ export class Voucher extends Timestamp implements VoucherInterface {
             shopId: this.shopId,
             voucherId: this.voucherId,
             code: this.code,
-            type: this.type,
+            valueType: this.valueType,
             value: this.value,
             entireOrder: this.entireOrder,
             oncePerOrder: this.oncePerOrder,

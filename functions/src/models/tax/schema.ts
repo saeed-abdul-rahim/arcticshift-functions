@@ -1,14 +1,16 @@
-import { TimestampInterface, TimestampType } from '../common/schema'
+import { TimestampInterface, TimestampType, ValueType } from '../common/schema'
 import { Timestamp } from '../common'
 
-type TaxValueType = 'fixed' | 'percent' | ''
+type TaxObjectType = 'shop' | 'shipping' | 'product' | ''
+export const taxTypes: TaxObjectType[] = [ 'shop', 'shipping', 'product' ]
 
 export interface TaxInterface extends TimestampInterface {
     shopId: string
     taxId: string
     name: string
     value: number
-    type: TaxValueType
+    valueType: ValueType
+    type: TaxObjectType
 }
 
 export type TaxType = TimestampType & {
@@ -16,7 +18,8 @@ export type TaxType = TimestampType & {
     taxId?: string
     name?: string
     value?: number
-    type?: TaxValueType
+    valueType?: ValueType
+    type?: TaxObjectType
 }
 
 export class Tax extends Timestamp implements TaxInterface {
@@ -24,7 +27,8 @@ export class Tax extends Timestamp implements TaxInterface {
     taxId: string
     name: string
     value: number
-    type: TaxValueType
+    valueType: ValueType
+    type: TaxObjectType
 
     constructor(data: TaxType) {
         super(data)
@@ -32,6 +36,7 @@ export class Tax extends Timestamp implements TaxInterface {
         this.taxId = data.taxId ? data.taxId : ''
         this.name = data.name ? data.name : ''
         this.value = data.value ? data.value : 0
+        this.valueType = data.valueType ? data.valueType : 'fixed'
         this.type = data.type ? data.type : ''
     }
 
@@ -42,6 +47,7 @@ export class Tax extends Timestamp implements TaxInterface {
             taxId: this.taxId,
             name: this.name,
             value: this.value,
+            valueType: this.valueType,
             type: this.type
         }
     }

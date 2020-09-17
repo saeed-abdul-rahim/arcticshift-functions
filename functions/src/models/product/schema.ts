@@ -12,7 +12,7 @@ type Price = {
     value: string
 }
 
-type Attribute = {
+type AttributeValue = {
     [key: string]: boolean
 } | null
 
@@ -26,21 +26,23 @@ export interface ProductInterface extends TimestampInterface {
     image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attribute: Attribute
-    attributeValue: Attribute
+    attribute: AttributeValue
+    attributeValue: AttributeValue
     categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
     tax: Tax | null
     variantId: string[]
+    saleDiscountId: string
+    voucherId: string
     status: Status
     like: number
     rating: number
 }
 
 export type ProductType = TimestampType & {
-    shopId: string
+    shopId?: string
     productId?: string
     name?: string
     description?: string
@@ -49,14 +51,16 @@ export type ProductType = TimestampType & {
     image?: ContentStorage | null
     thumbnailUrls?: Thumbnail[]
     productTypeId?: string
-    attribute?: Attribute
-    attributeValue?: Attribute
+    attribute?: AttributeValue
+    attributeValue?: AttributeValue
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
     price?: number
     tax?: Tax | null
     variantId?: string[]
+    saleDiscountId?: string
+    voucherId?: string
     status?: Status
     like?: number
     rating?: number
@@ -72,14 +76,16 @@ export class Product extends Timestamp implements ProductInterface {
     image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attribute: Attribute
-    attributeValue: Attribute
+    attribute: AttributeValue
+    attributeValue: AttributeValue
     categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
     tax: Tax | null
     variantId: string[]
+    saleDiscountId: string
+    voucherId: string
     status: Status
     like: number
     rating: number
@@ -103,6 +109,8 @@ export class Product extends Timestamp implements ProductInterface {
         this.price = data.price ? data.price : 0
         this.tax = data.tax ? data.tax : null
         this.variantId = data.variantId ? uniqueArr(data.variantId) : []
+        this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
+        this.voucherId = data.voucherId ? data.voucherId : ''
         this.status = data.status ? data.status : 'active'
         this.like = data.like ? data.like : 0
         this.rating = data.rating ? data.rating : 0
@@ -128,6 +136,8 @@ export class Product extends Timestamp implements ProductInterface {
             price: this.price,
             tax: this.tax,
             variantId: this.variantId,
+            saleDiscountId: this.saleDiscountId,
+            voucherId: this.voucherId,
             status: this.status,
             like: this.like,
             rating: this.rating

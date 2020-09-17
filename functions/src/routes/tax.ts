@@ -3,28 +3,28 @@ import { Application } from 'express'
 import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
-import * as variant from '../controllers/variant'
+import * as tax from '../controllers/tax'
 
-export function variantHandler(app: Application) {
+export function taxHandler(app: Application) {
 
-    const variantRoute = routes.variant
+    const taxRoute = routes.tax
 
-    app.post(variantRoute,
+    app.post(taxRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        variant.create
+        tax.create
     )
 
-    app.patch(variantRoute,
+    app.patch(taxRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        variant.update
+        tax.update
     )
 
-    app.delete(`${variantRoute}/:id`,
+    app.delete(`${taxRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        variant.remove
+        tax.remove
     )
 
 }

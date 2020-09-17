@@ -11,6 +11,8 @@ export interface CollectionInterface extends TimestampInterface {
     productId: string[]
     featureOnHomePage: boolean
     hidden: boolean
+    saleDiscountId: string
+    voucherId: string
 }
 
 export type CollectionType = TimestampType & {
@@ -22,6 +24,8 @@ export type CollectionType = TimestampType & {
     productId?: string[]
     featureOnHomePage?: boolean
     hidden?: boolean
+    saleDiscountId?: string
+    voucherId?: string
 }
 
 export class Collection extends Timestamp implements CollectionInterface {
@@ -33,6 +37,8 @@ export class Collection extends Timestamp implements CollectionInterface {
     productId: string[]
     featureOnHomePage: boolean
     hidden: boolean
+    saleDiscountId: string
+    voucherId: string
 
     constructor(data: CollectionType) {
         super(data)
@@ -44,6 +50,8 @@ export class Collection extends Timestamp implements CollectionInterface {
         this.productId = data.productId ? uniqueArr(data.productId) : []
         this.featureOnHomePage = data.featureOnHomePage ? data.featureOnHomePage : false
         this.hidden = data.hidden ? data.hidden : false
+        this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
+        this.voucherId = data.voucherId ? data.voucherId : ''
     }
 
     get(): CollectionInterface {
@@ -56,7 +64,9 @@ export class Collection extends Timestamp implements CollectionInterface {
             images: this.images,
             productId: this.productId,
             featureOnHomePage: this.featureOnHomePage,
-            hidden: this.hidden
+            hidden: this.hidden,
+            saleDiscountId: this.saleDiscountId,
+            voucherId: this.voucherId
         }
     }
 

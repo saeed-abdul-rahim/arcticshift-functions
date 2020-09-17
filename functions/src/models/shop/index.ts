@@ -1,5 +1,6 @@
 import { shopsRef } from '../../config/db'
-import { ShopInterface, ShopType, Shop } from './schema'
+import { setCondition } from '../common'
+import { ShopInterface, ShopType, Shop, ShopCondition } from './schema'
 
 export async function get(shopId: string): Promise<ShopInterface> {
     try {
@@ -10,6 +11,22 @@ export async function get(shopId: string): Promise<ShopInterface> {
         return new Shop(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getByCondition(conditions: ShopCondition[]): Promise<ShopInterface[] | null> {
+    try {
+        const ref = setCondition(shopsRef, conditions)
+        const doc = await ref.get()
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as ShopInterface
+            data.shopId = d.id
+            data = new Shop(data).get()
+            return data
+        })
+    } catch (err) {
+        throw err;
     }
 }
 

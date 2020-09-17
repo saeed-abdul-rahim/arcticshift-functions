@@ -1,4 +1,4 @@
-import { TimestampInterface, TimestampType } from '../common/schema'
+import { Condition, TimestampInterface, TimestampType } from '../common/schema'
 import { Timestamp } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
@@ -19,6 +19,7 @@ export interface ShippingInterface extends TimestampInterface {
     priceBased: Rate
     weightBased: Rate
     warehouseId: string[]
+    taxId: string
 }
 
 export type ShippingType = TimestampType & {
@@ -29,6 +30,7 @@ export type ShippingType = TimestampType & {
     priceBased?: Rate
     weightBased?: Rate
     warehouseId?: string[]
+    taxId?: string
 }
 
 export class Shipping extends Timestamp implements ShippingInterface {
@@ -39,6 +41,7 @@ export class Shipping extends Timestamp implements ShippingInterface {
     priceBased: Rate
     weightBased: Rate
     warehouseId: string[]
+    taxId: string
 
     constructor(data: ShippingType) {
         super(data)
@@ -49,6 +52,7 @@ export class Shipping extends Timestamp implements ShippingInterface {
         this.priceBased = data.priceBased ? data.priceBased : null
         this.weightBased = data.weightBased ? data.weightBased : null
         this.warehouseId = data.warehouseId ? uniqueArr(data.warehouseId) : []
+        this.taxId = data.taxId ? data.taxId : ''
     }
 
     get(): ShippingInterface {
@@ -60,8 +64,13 @@ export class Shipping extends Timestamp implements ShippingInterface {
             countries: this.countries,
             priceBased: this.priceBased,
             weightBased: this.weightBased,
-            warehouseId: this.warehouseId
+            warehouseId: this.warehouseId,
+            taxId: this.taxId
         }
     }
 
+}
+
+export type ShippingCondition = Condition & {
+    field: keyof ShippingType
 }

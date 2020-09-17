@@ -13,6 +13,7 @@ const routes = {
     giftCard: `${v1}/gift-card`,
     checkout: `${v1}/checkout`,
     shop: `${v1}/shop`,
+    tax: `${v1}/tax`,
     webhook: `${v1}/webhook`,
 }
 export default routes

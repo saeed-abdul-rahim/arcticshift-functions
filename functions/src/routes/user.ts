@@ -1,9 +1,9 @@
 import { Application } from 'express'
 
+import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
 import * as user from '../controllers/user'
-import routes from '../config/routes'
 
 export function userHandler(app: Application) {
 

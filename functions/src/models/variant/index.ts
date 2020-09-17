@@ -31,16 +31,18 @@ export async function getOneByCondition(conditions: VariantCondition[]): Promise
 export async function getByCondition(conditions: VariantCondition[]): Promise<VariantInterface[] | null> {
     try {
         const ref = setCondition(variantsRef, conditions)
-        const doc = await ref.get()
-        if (doc.empty) return null
-        return doc.docs.map(d => {
-            let data = d.data() as VariantInterface
-            data.variantId = d.id
-            data = new Variant(data).get()
-            return data
-        })
+        return await getAll(ref)
     } catch (err) {
         throw err;
+    }
+}
+
+export async function getByAttribute(attributeId: string): Promise<VariantInterface[] | null> {
+    try {
+        const ref = variantsRef.where(`attribute.${attributeId}`, '==', true)
+        return await getAll(ref)
+    } catch (err) {
+        throw err
     }
 }
 
@@ -89,4 +91,15 @@ export async function getRef(id?: string) {
     } else {
         return variantsRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as VariantInterface
+        data.productId = d.id
+        data = new Variant(data).get()
+        return data
+    })
 }

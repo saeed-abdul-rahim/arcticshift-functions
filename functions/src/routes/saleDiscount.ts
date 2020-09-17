@@ -3,46 +3,40 @@ import { Application } from 'express'
 import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
-import * as category from '../controllers/category'
+import * as saleDiscount from '../controllers/saleDiscount'
 
-export function categoryHandler(app: Application) {
+export function saleDiscountHandler(app: Application) {
 
-    const categoryRoute = routes.category
+    const saleDiscountRoute = routes.saleDiscount
 
-    app.post(categoryRoute,
+    app.post(saleDiscountRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.create
+        saleDiscount.create
     )
 
-    app.patch(categoryRoute,
+    app.patch(`${saleDiscountRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.update
+        saleDiscount.removeCatalog
     )
 
-    app.put(categoryRoute,
+    app.patch(saleDiscountRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.addProduct
+        saleDiscount.update
     )
 
-    app.delete(`${categoryRoute}/:cid/product/:pid`,
+    app.put(`${saleDiscountRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.removeProduct
+        saleDiscount.addCatalog
     )
 
-    app.delete(`${categoryRoute}/:id/image`,
+    app.delete(`${saleDiscountRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.removeImage
-    )
-
-    app.delete(`${categoryRoute}/:id`,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.remove
+        saleDiscount.remove
     )
 
 }
