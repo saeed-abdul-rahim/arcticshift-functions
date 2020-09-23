@@ -15,9 +15,10 @@ export async function get(collectionId: string): Promise<CollectionInterface> {
 
 export async function add(collection: CollectionType): Promise<string> {
     try {
-        const dataToInsert = new Collection(collection).get()
-        const data = await collectionsRef.add(dataToInsert)
-        return data.id
+        const id = collectionsRef.doc().id
+        collection.collectionId = id
+        await set(id, collection)
+        return id
     } catch (err) {
         throw err
     }

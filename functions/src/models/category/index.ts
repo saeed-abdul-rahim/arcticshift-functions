@@ -15,9 +15,10 @@ export async function get(categoryId: string): Promise<CategoryInterface> {
 
 export async function add(category: CategoryType): Promise<string> {
     try {
-        const dataToInsert = new Category(category).get()
-        const data = await categoriesRef.add(dataToInsert)
-        return data.id
+        const id = categoriesRef.doc().id
+        category.categoryId = id
+        await set(id, category)
+        return id
     } catch (err) {
         throw err
     }

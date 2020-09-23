@@ -15,9 +15,10 @@ export async function get(giftCardId: string): Promise<GiftCardInterface> {
 
 export async function add(giftCard: GiftCardType): Promise<string> {
     try {
-        const dataToInsert = new GiftCard(giftCard).get()
-        const data = await giftCardsRef.add(dataToInsert)
-        return data.id
+        const id = giftCardsRef.doc().id
+        giftCard.giftCardId = id
+        await set(id, giftCard)
+        return id
     } catch (err) {
         throw err
     }

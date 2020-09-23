@@ -15,9 +15,10 @@ export async function get(orderId: string): Promise<OrderInterface> {
 
 export async function add(order: OrderType): Promise<string> {
     try {
-        const dataToInsert = new Order(order).get()
-        const data = await ordersRef.add(dataToInsert)
-        return data.id
+        const id = ordersRef.doc().id
+        order.orderId = id
+        await set(id, order)
+        return id
     } catch (err) {
         throw err
     }

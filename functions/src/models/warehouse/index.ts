@@ -25,9 +25,10 @@ export async function getByCondition(conditions: WarehouseCondition[]): Promise<
 
 export async function add(warehouse: WarehouseType): Promise<string> {
     try {
-        const dataToInsert = new Warehouse(warehouse).get()
-        const data = await warehouseRef.add(dataToInsert)
-        return data.id
+        const id = warehouseRef.doc().id
+        warehouse.warehouseId = id
+        await set(id, warehouse)
+        return id
     } catch (err) {
         throw err
     }

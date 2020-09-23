@@ -15,9 +15,10 @@ export async function get(saleDiscountId: string): Promise<SaleDiscountInterface
 
 export async function add(saleDiscount: SaleDiscountType): Promise<string> {
     try {
-        const dataToInsert = new SaleDiscount(saleDiscount).get()
-        const data = await saleDiscountsRef.add(dataToInsert)
-        return data.id
+        const id = saleDiscountsRef.doc().id
+        saleDiscount.saleDiscountId = id
+        await set(id, saleDiscount)
+        return id
     } catch (err) {
         throw err
     }

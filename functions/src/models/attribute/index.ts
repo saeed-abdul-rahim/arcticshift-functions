@@ -15,9 +15,10 @@ export async function get(attributeId: string): Promise<AttributeInterface> {
 
 export async function add(attribute: AttributeType): Promise<string> {
     try {
-        const dataToInsert = new Attribute(attribute).get()
-        const data = await attributesRef.add(dataToInsert)
-        return data.id
+        const id = attributesRef.doc().id
+        attribute.attributeId = id
+        await set(id, attribute)
+        return id
     } catch (err) {
         throw err
     }

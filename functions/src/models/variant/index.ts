@@ -39,9 +39,10 @@ export async function getByCondition(conditions: VariantCondition[]): Promise<Va
 
 export async function add(variant: VariantType): Promise<string> {
     try {
-        const dataToInsert = new Variant(variant).get()
-        const data = await variantsRef.add(dataToInsert)
-        return data.id
+        const id = variantsRef.doc().id
+        variant.variantId = id
+        await set(id, variant)
+        return id
     } catch (err) {
         throw err
     }

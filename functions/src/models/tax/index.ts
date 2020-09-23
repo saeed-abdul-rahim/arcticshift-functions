@@ -15,9 +15,10 @@ export async function get(taxId: string): Promise<TaxInterface> {
 
 export async function add(tax: TaxType): Promise<string> {
     try {
-        const dataToInsert = new Tax(tax).get()
-        const data = await taxesRef.add(dataToInsert)
-        return data.id
+        const id = taxesRef.doc().id
+        tax.taxId = id
+        await set(id, tax)
+        return id
     } catch (err) {
         throw err
     }

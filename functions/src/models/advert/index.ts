@@ -15,9 +15,10 @@ export async function get(advertId: string): Promise<AdvertInterface> {
 
 export async function add(advert: AdvertType): Promise<string> {
     try {
-        const dataToInsert = new Advert(advert).get()
-        const data = await advertsRef.add(dataToInsert)
-        return data.id
+        const id = advertsRef.doc().id
+        advert.advertId = id
+        await set(id, advert)
+        return id
     } catch (err) {
         throw err
     }

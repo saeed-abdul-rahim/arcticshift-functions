@@ -39,9 +39,10 @@ export async function getByCondition(conditions: ProductCondition[]): Promise<Pr
 
 export async function add(product: ProductType): Promise<string> {
     try {
-        const dataToInsert = new Product(product).get()
-        const data = await productsRef.add(dataToInsert)
-        return data.id
+        const id = productsRef.doc().id
+        product.productId = id
+        await set(id, product)
+        return id
     } catch (err) {
         throw err
     }

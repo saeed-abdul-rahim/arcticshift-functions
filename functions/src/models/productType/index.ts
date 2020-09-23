@@ -30,11 +30,12 @@ export async function getByCondition(conditions: ProductTypeCondition[]): Promis
     }
 }
 
-export async function add(product: ProductTypeType): Promise<string> {
+export async function add(productType: ProductTypeType): Promise<string> {
     try {
-        const dataToInsert = new ProductType(product).get()
-        const data = await productTypesRef.add(dataToInsert)
-        return data.id
+        const id = productTypesRef.doc().id
+        productType.productTypeId = id
+        await set(id, productType)
+        return id
     } catch (err) {
         throw err
     }

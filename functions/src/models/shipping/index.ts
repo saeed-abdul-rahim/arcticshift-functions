@@ -25,9 +25,10 @@ export async function getByCondition(conditions: ShippingCondition[]): Promise<S
 
 export async function add(shipping: ShippingType): Promise<string> {
     try {
-        const dataToInsert = new Shipping(shipping).get()
-        const data = await shippingsRef.add(dataToInsert)
-        return data.id
+        const id = shippingsRef.doc().id
+        shipping.shippingId = id
+        await set(id, shipping)
+        return id
     } catch (err) {
         throw err
     }

@@ -15,9 +15,10 @@ export async function get(voucherId: string): Promise<VoucherInterface> {
 
 export async function add(voucher: VoucherType): Promise<string> {
     try {
-        const dataToInsert = new Voucher(voucher).get()
-        const data = await vouchersRef.add(dataToInsert)
-        return data.id
+        const id = vouchersRef.doc().id
+        voucher.voucherId = id
+        await set(id, voucher)
+        return id
     } catch (err) {
         throw err
     }

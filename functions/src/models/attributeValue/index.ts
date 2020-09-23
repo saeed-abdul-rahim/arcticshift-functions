@@ -15,9 +15,10 @@ export async function get(attributeValueId: string): Promise<AttributeValueInter
 
 export async function add(attributeValue: AttributeValueType): Promise<string> {
     try {
-        const dataToInsert = new AttributeValue(attributeValue).get()
-        const data = await attributeValuesRef.add(dataToInsert)
-        return data.id
+        const id = attributeValuesRef.doc().id
+        attributeValue.attributeValueId = id
+        await set(id, attributeValue)
+        return id
     } catch (err) {
         throw err
     }
