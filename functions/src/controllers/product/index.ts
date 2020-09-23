@@ -86,11 +86,17 @@ export async function remove(req: Request, res: Response) {
         }
         if (categoryId) {
             try {
-                const categoryData = await category.get(categoryId)
-                const { productId: catProductId } = categoryData
-                await category.update(categoryId, {
-                    productId: catProductId.filter(p => p !== productId)
-                })
+                await Promise.all(categoryId.map(async catId => {
+                    const categoryData = await category.get(catId)
+                    const { productId: catProductId } = categoryData
+                    try {
+                        await category.update(catId, {
+                            productId: catProductId.filter(p => p !== productId)
+                        })
+                    } catch (err) {
+                        console.error(err)
+                    }
+                }))
             } catch (err) {
                 console.error(err)
             }

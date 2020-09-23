@@ -14,7 +14,7 @@ export interface ProductInterface extends CommonInterface {
     productTypeId: string
     attribute: AttributeValue
     attributeValue: AttributeValue
-    categoryId: string
+    categoryId: string[]
     collectionId: string[]
     prices: Price[]
     price: number
@@ -39,7 +39,7 @@ export type ProductType = CommonType & {
     productTypeId?: string
     attribute?: AttributeValue
     attributeValue?: AttributeValue
-    categoryId?: string
+    categoryId?: string[]
     collectionId?: string[]
     prices?: Price[]
     price?: number
@@ -64,7 +64,7 @@ export class Product extends Common implements ProductInterface {
     productTypeId: string
     attribute: AttributeValue
     attributeValue: AttributeValue
-    categoryId: string
+    categoryId: string[]
     collectionId: string[]
     prices: Price[]
     price: number
@@ -89,7 +89,7 @@ export class Product extends Common implements ProductInterface {
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
         this.attribute = data.attribute ? data.attribute : null
         this.attributeValue = data.attributeValue ? data.attributeValue : null
-        this.categoryId = data.categoryId ? data.categoryId : ''
+        this.categoryId = data.categoryId ? data.categoryId : []
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0

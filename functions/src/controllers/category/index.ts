@@ -74,12 +74,16 @@ export async function remove(req: Request, res: Response) {
                     } catch (_) {}
                 }))
                 await category.remove(subId)
-            } catch (_) {}
+            } catch (err) {
+                console.error(err)
+            }
         }))
         await Promise.all(images.map(async img => {
             try {
                 await storage.remove(img.path)
-            } catch (_) {}
+            } catch (err) {
+                console.error(err)
+            }
         }))
         await category.remove(categoryId)
         return successDeleted(res)
@@ -114,8 +118,6 @@ export async function removeImage(req: Request, res: Response) {
 
 export async function addProduct(req: Request, res: Response) {
     try {
-        const { shopData }: { [shopData: string]: ShopType } = res.locals
-        const { shopId } = shopData
         const { categoryId, productId }: { categoryId: string, productId: string } = req.body
         if (!categoryId) {
             return missingParam(res, 'Category ID')
@@ -123,12 +125,16 @@ export async function addProduct(req: Request, res: Response) {
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
-        await product.get(productId)
+        const productData = await product.get(productId)
         const categoryData = await category.get(categoryId)
-        const { productId: productIds } = categoryData
-        productIds.unshift(productId)
-        await category.update(categoryId, { productId: productIds })
-        await product.update(productId, { shopId, categoryId })
+        const { parentCategoryId } = categoryData
+        categoryData.productId.unshift(categoryId)
+        productData.categoryId.unshift(categoryId)
+        if (parentCategoryId) {
+            productData.categoryId.unshift(parentCategoryId)
+        }
+        await category.set(categoryId, categoryData)
+        await product.set(productId, productData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -138,18 +144,20 @@ export async function addProduct(req: Request, res: Response) {
 
 export async function removeProduct(req: Request, res: Response) {
     try {
-        const { shopData }: { [shopData: string]: ShopType } = res.locals
-        const { shopId } = shopData
         const { cid: categoryId, pid: productId } = req.params
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
-        await product.get(productId)
+        const productData = await product.get(productId)
         const categoryData = await category.get(categoryId)
-        let { productId: productIds } = categoryData
-        productIds = productIds.filter(pid => pid !== productId)
-        await category.update(categoryId, { productId: productIds })
-        await product.update(productId, { shopId, categoryId: '' })
+        const { subCategoryId } = categoryData
+        productData.categoryId.filter(cid => cid !== categoryId)
+        categoryData.productId.filter(pid => pid !== productId)
+        if (subCategoryId && subCategoryId.length > 0) {
+            subCategoryId.forEach(subId => productData.categoryId.filter(cid => cid !== subId))
+        }
+        await category.set(categoryId, categoryData)
+        await product.set(productId, productData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
