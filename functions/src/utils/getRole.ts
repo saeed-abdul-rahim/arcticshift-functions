@@ -1,7 +1,7 @@
 import { roles } from '../models/common';
-import { Role, CommonInterface } from '../models/common/schema';
+import { Role, AuthTypeImp } from '../models/common/schema';
 
-export function getRole(data: CommonInterface, id: string): Role {
+export function getRole(data: AuthTypeImp, id: string): Role {
     try{
         const role = roles.find(r => {
             if (data[r].includes(id)) return r
