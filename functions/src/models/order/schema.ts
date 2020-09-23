@@ -18,8 +18,7 @@ type Payment = {
 
 export interface OrderInterface extends CommonInterface {
     shopId: string
-    email: string
-    phone: string
+    userId: string
     orderId: string
     orderNo: number
     orderStatus: OrderStatus
@@ -39,8 +38,7 @@ export interface OrderInterface extends CommonInterface {
 
 export type OrderType = CommonType & {
     shopId: string
-    email?: string
-    phone?: string
+    userId?: string
     orderId?: string
     orderNo?: number
     orderStatus?: OrderStatus
@@ -60,8 +58,7 @@ export type OrderType = CommonType & {
 
 export class Order extends Common implements OrderInterface {
     shopId: string
-    email: string
-    phone: string
+    userId: string
     orderId: string
     orderNo: number
     orderStatus: OrderStatus
@@ -81,8 +78,7 @@ export class Order extends Common implements OrderInterface {
     constructor(data: OrderType) {
         super(data)
         this.shopId = data.shopId ? data.shopId : ''
-        this.email = data.email ? data.email : ''
-        this.phone = data.phone ? data.phone : ''
+        this.userId = data.userId ? data.userId : ''
         this.orderId = data.orderId ? data.orderId : ''
         this.orderNo = data.orderNo ? data.orderNo : 0
         this.orderStatus = data.orderStatus ? data.orderStatus : ''
@@ -104,8 +100,7 @@ export class Order extends Common implements OrderInterface {
         return {
             ...super.get(),
             shopId: this.shopId,
-            email: this.email,
-            phone: this.phone,
+            userId: this.userId,
             orderId: this.orderId,
             orderNo: this.orderNo,
             orderStatus: this.orderStatus,
