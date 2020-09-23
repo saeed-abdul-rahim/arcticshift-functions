@@ -1,8 +1,8 @@
-import { CommonInterface, CommonType, Address, Condition } from '../common/schema'
+import { CommonInterface, CommonType, Address, Condition, AuthTypeImp, AuthType } from '../common/schema'
 import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-export interface ShopInterface extends CommonInterface {
+export interface ShopInterface extends CommonInterface, AuthTypeImp {
     shopId: string
     name: string
     address: Address | null
@@ -12,7 +12,7 @@ export interface ShopInterface extends CommonInterface {
     taxId: string
 }
 
-export type ShopType = CommonType & {
+export type ShopType = CommonType & AuthType & {
     shopId: string
     name?: string
     address?: Address | null
@@ -24,6 +24,8 @@ export type ShopType = CommonType & {
 
 export class Shop extends Common implements ShopInterface {
     shopId: string
+    admin: string[]
+    staff: string[]
     name: string
     address: Address | null
     shopInvite: string[]
@@ -34,6 +36,8 @@ export class Shop extends Common implements ShopInterface {
     constructor(data: ShopType) {
         super(data)
         this.shopId = data.shopId
+        this.admin = data.admin ? uniqueArr(data.admin) : []
+        this.staff = data.staff ? uniqueArr(data.staff) : []
         this.name = data.name ? data.name : ''
         this.address = data.address ? data.address : null
         this.shopInvite = data.shopInvite ? uniqueArr(data.shopInvite) : []
@@ -46,6 +50,8 @@ export class Shop extends Common implements ShopInterface {
         return {
             ...super.get(),
             shopId: this.shopId,
+            admin: this.admin,
+            staff: this.staff,
             name: this.name,
             address: this.address,
             shopInvite: this.shopInvite,

@@ -1,22 +1,8 @@
-import { TimestampInterface, TimestampType, Status, Condition, ContentStorage, Tax } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, Status, Condition, ContentStorage, Tax } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type Thumbnail = {
-    size: string
-    image: ContentStorage | null
-}
-
-type Price = {
-    name: string
-    value: string
-}
-
-type AttributeValue = {
-    [key: string]: boolean
-} | null
-
-export interface ProductInterface extends TimestampInterface {
+export interface ProductInterface extends CommonInterface {
     shopId: string
     productId: string
     name: string
@@ -41,7 +27,7 @@ export interface ProductInterface extends TimestampInterface {
     rating: number
 }
 
-export type ProductType = TimestampType & {
+export type ProductType = CommonType & {
     shopId?: string
     productId?: string
     name?: string
@@ -66,7 +52,7 @@ export type ProductType = TimestampType & {
     rating?: number
 }
 
-export class Product extends Timestamp implements ProductInterface {
+export class Product extends Common implements ProductInterface {
     shopId: string
     productId: string
     name: string
@@ -147,5 +133,22 @@ export class Product extends Timestamp implements ProductInterface {
 }
 
 export type ProductCondition = Condition & {
-    field: keyof ProductType
+    field: ProductFields
+    parentFields?: (keyof ProductType)[]
 }
+
+type ProductFields = keyof (ProductType & Thumbnail & Price & AttributeValue)
+
+type Thumbnail = {
+    size: string
+    image: ContentStorage | null
+}
+
+type Price = {
+    name: string
+    value: string
+}
+
+type AttributeValue = {
+    [key: string]: boolean
+} | null

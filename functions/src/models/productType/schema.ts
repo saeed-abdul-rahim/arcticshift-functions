@@ -1,8 +1,8 @@
-import { Condition, TimestampInterface, TimestampType } from '../common/schema'
-import { Timestamp } from '../common'
+import { Condition, CommonInterface, CommonType } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-export interface ProductTypeInterface extends TimestampInterface {
+export interface ProductTypeInterface extends CommonInterface {
     shopId: string
     productTypeId: string
     name: string
@@ -11,7 +11,7 @@ export interface ProductTypeInterface extends TimestampInterface {
     taxId: string
 }
 
-export type ProductTypeType = TimestampType & {
+export type ProductTypeType = CommonType & {
     shopId: string
     productTypeId?: string
     name?: string
@@ -20,7 +20,7 @@ export type ProductTypeType = TimestampType & {
     taxId?: string
 }
 
-export class ProductType extends Timestamp implements ProductTypeInterface {
+export class ProductType extends Common implements ProductTypeInterface {
     shopId: string
     productTypeId: string
     name: string

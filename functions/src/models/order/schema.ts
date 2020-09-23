@@ -1,5 +1,5 @@
-import { TimestampInterface, TimestampType, Address } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, Address } from '../common/schema'
+import { Common } from '../common'
 
 type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
 type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
@@ -16,7 +16,7 @@ type Payment = {
     amount: number
 }
 
-export interface OrderInterface extends TimestampInterface {
+export interface OrderInterface extends CommonInterface {
     shopId: string
     email: string
     phone: string
@@ -37,7 +37,7 @@ export interface OrderInterface extends TimestampInterface {
     payment: Payment[]
 }
 
-export type OrderType = TimestampType & {
+export type OrderType = CommonType & {
     shopId: string
     email?: string
     phone?: string
@@ -58,7 +58,7 @@ export type OrderType = TimestampType & {
     payment?: Payment[]
 }
 
-export class Order extends Timestamp implements OrderInterface {
+export class Order extends Common implements OrderInterface {
     shopId: string
     email: string
     phone: string

@@ -1,8 +1,8 @@
-import { TimestampInterface, TimestampType, ContentStorage } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-export interface CollectionInterface extends TimestampInterface {
+export interface CollectionInterface extends CommonInterface {
     shopId: string
     collectionId: string
     name: string
@@ -10,12 +10,11 @@ export interface CollectionInterface extends TimestampInterface {
     images: ContentStorage[]
     productId: string[]
     featureOnHomePage: boolean
-    hidden: boolean
     saleDiscountId: string
     voucherId: string
 }
 
-export type CollectionType = TimestampType & {
+export type CollectionType = CommonType & {
     shopId?: string
     collectionId?: string
     name?: string
@@ -23,12 +22,11 @@ export type CollectionType = TimestampType & {
     images?: ContentStorage[]
     productId?: string[]
     featureOnHomePage?: boolean
-    hidden?: boolean
     saleDiscountId?: string
     voucherId?: string
 }
 
-export class Collection extends Timestamp implements CollectionInterface {
+export class Collection extends Common implements CollectionInterface {
     shopId: string
     collectionId: string
     name: string
@@ -36,7 +34,6 @@ export class Collection extends Timestamp implements CollectionInterface {
     images: ContentStorage[]
     productId: string[]
     featureOnHomePage: boolean
-    hidden: boolean
     saleDiscountId: string
     voucherId: string
 
@@ -49,7 +46,6 @@ export class Collection extends Timestamp implements CollectionInterface {
         this.images = data.images ? data.images : []
         this.productId = data.productId ? uniqueArr(data.productId) : []
         this.featureOnHomePage = data.featureOnHomePage ? data.featureOnHomePage : false
-        this.hidden = data.hidden ? data.hidden : false
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
         this.voucherId = data.voucherId ? data.voucherId : ''
     }
@@ -64,10 +60,16 @@ export class Collection extends Timestamp implements CollectionInterface {
             images: this.images,
             productId: this.productId,
             featureOnHomePage: this.featureOnHomePage,
-            hidden: this.hidden,
             saleDiscountId: this.saleDiscountId,
             voucherId: this.voucherId
         }
     }
 
 }
+
+export type CollectionCondition = Condition & {
+    field: CollectionFields
+    parentFields?: (keyof CollectionType)[]
+}
+
+type CollectionFields = keyof (CollectionType & ContentStorage)

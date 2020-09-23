@@ -1,5 +1,6 @@
 import { warehouseRef } from '../../config/db'
-import { WarehouseInterface, WarehouseType, Warehouse } from './schema'
+import { setCondition } from '../common'
+import { WarehouseInterface, WarehouseType, Warehouse, WarehouseCondition } from './schema'
 
 export async function get(warehouseId: string): Promise<WarehouseInterface> {
     try {
@@ -10,6 +11,15 @@ export async function get(warehouseId: string): Promise<WarehouseInterface> {
         return new Warehouse(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getByCondition(conditions: WarehouseCondition[]): Promise<WarehouseInterface[] | null> {
+    try {
+        const ref = setCondition(warehouseRef, conditions)
+        return await getAll(ref)
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -58,4 +68,15 @@ export async function getRef(id?: string) {
     } else {
         return warehouseRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as WarehouseInterface
+        data.warehouseId = d.id
+        data = new Warehouse(data).get()
+        return data
+    })
 }

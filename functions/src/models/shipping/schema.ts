@@ -1,17 +1,8 @@
-import { Condition, TimestampInterface, TimestampType } from '../common/schema'
-import { Timestamp } from '../common'
+import { Condition, CommonInterface, CommonType } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type Rate = {
-    name: string
-    minValue?: number
-    maxValue?: number
-    price?: number
-    noValueLimit?: boolean
-    freeShipping?: boolean
-} | null
-
-export interface ShippingInterface extends TimestampInterface {
+export interface ShippingInterface extends CommonInterface {
     shopId: string
     shippingId: string
     name: string
@@ -22,7 +13,7 @@ export interface ShippingInterface extends TimestampInterface {
     taxId: string
 }
 
-export type ShippingType = TimestampType & {
+export type ShippingType = CommonType & {
     shopId: string
     shippingId?: string
     name?: string
@@ -33,7 +24,7 @@ export type ShippingType = TimestampType & {
     taxId?: string
 }
 
-export class Shipping extends Timestamp implements ShippingInterface {
+export class Shipping extends Common implements ShippingInterface {
     shopId: string
     shippingId: string
     name: string
@@ -72,5 +63,17 @@ export class Shipping extends Timestamp implements ShippingInterface {
 }
 
 export type ShippingCondition = Condition & {
-    field: keyof ShippingType
+    field: ShippingFields
+    parentFields?: (keyof ShippingType)[]
 }
+
+type ShippingFields = keyof (ShippingType & Rate)
+
+type Rate = {
+    name: string
+    minValue?: number
+    maxValue?: number
+    price?: number
+    noValueLimit?: boolean
+    freeShipping?: boolean
+} | null

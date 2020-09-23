@@ -1,12 +1,7 @@
-import { TimestampInterface, TimestampType } from '../common/schema'
-import { Timestamp } from '../common'
+import { Condition, CommonInterface, CommonType } from '../common/schema'
+import { Common } from '../common'
 
-type WarehouseInventory = {
-    warehouseId: string
-    quantity: number
-}
-
-export interface InventoryInterface extends TimestampInterface {
+export interface InventoryInterface extends CommonInterface {
     shopId: string
     variantId: string
     warehouse: WarehouseInventory[]
@@ -14,7 +9,7 @@ export interface InventoryInterface extends TimestampInterface {
     bookedQuantity: number
 }
 
-export type InventoryType = TimestampType & {
+export type InventoryType = CommonType & {
     shopId: string
     variantId: string
     warehouse: WarehouseInventory[]
@@ -22,7 +17,7 @@ export type InventoryType = TimestampType & {
     bookedQuantity?: number
 }
 
-export class Inventory extends Timestamp implements InventoryInterface {
+export class Inventory extends Common implements InventoryInterface {
     shopId: string
     variantId: string
     warehouse: WarehouseInventory[]
@@ -49,4 +44,16 @@ export class Inventory extends Timestamp implements InventoryInterface {
         }
     }
 
+}
+
+export type InventoryCondition = Condition & {
+    field: InventoryFields
+    parentFields?: (keyof InventoryType)[]
+}
+
+type InventoryFields = keyof (InventoryType & WarehouseInventory)
+
+type WarehouseInventory = {
+    warehouseId: string
+    quantity: number
 }

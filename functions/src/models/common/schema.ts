@@ -24,11 +24,20 @@ export type Condition = {
     field: string | FirebaseFirestore.FieldPath,
     type: FirebaseFirestore.WhereFilterOp,
     value: any
+    parentFields?: string[]
 }
 
 export type SignInType = {
     email?: string
     phone?: string
+}
+
+export type AuthType = {
+    [key in Role]?: string[]
+}
+
+export type AuthTypeImp = {
+    [key in Role]: string[]
 }
 
 export type TimestampType = {
@@ -41,19 +50,11 @@ export interface TimestampInterface {
     updatedAt?: number
 }
 
-export type AuthType = {
-    [key in Role]?: string[]
-};
-
-export type AuthTypeImp = {
-    [key in Role]: string[]
-};
-
-export type CommonType = AuthType & TimestampType & {
+export type CommonType = TimestampType & {
     status?: Status
 }
 
-export interface CommonInterface extends AuthTypeImp, TimestampInterface {
+export interface CommonInterface extends TimestampInterface {
     status: Status
 }
 

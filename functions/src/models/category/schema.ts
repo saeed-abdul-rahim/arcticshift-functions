@@ -1,8 +1,8 @@
-import { TimestampInterface, TimestampType, ContentStorage } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-export interface CategoryInterface extends TimestampInterface {
+export interface CategoryInterface extends CommonInterface {
     shopId: string
     categoryId: string
     parentCategoryId: string
@@ -16,7 +16,7 @@ export interface CategoryInterface extends TimestampInterface {
     voucherId: string
 }
 
-export type CategoryType = TimestampType & {
+export type CategoryType = CommonType & {
     shopId?: string
     categoryId?: string
     parentCategoryId?: string
@@ -30,7 +30,7 @@ export type CategoryType = TimestampType & {
     voucherId?: string
 }
 
-export class Category extends Timestamp implements CategoryInterface {
+export class Category extends Common implements CategoryInterface {
     shopId: string
     categoryId: string
     parentCategoryId: string
@@ -76,3 +76,10 @@ export class Category extends Timestamp implements CategoryInterface {
     }
 
 }
+
+export type CategoryCondition = Condition & {
+    field: CategoryFields
+    parentFields?: (keyof CategoryType)[]
+}
+
+type CategoryFields = keyof (CategoryType & ContentStorage)

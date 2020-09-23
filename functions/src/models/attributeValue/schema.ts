@@ -1,7 +1,7 @@
-import { TimestampInterface, TimestampType } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType } from '../common/schema'
+import { Common } from '../common'
 
-export interface AttributeValueInterface extends TimestampInterface {
+export interface AttributeValueInterface extends CommonInterface {
     shopId: string
     attributeId: string
     code: string
@@ -9,7 +9,7 @@ export interface AttributeValueInterface extends TimestampInterface {
     attributeValueId: string
 }
 
-export type AttributeValueType = TimestampType & {
+export type AttributeValueType = CommonType & {
     shopId?: string
     attributeId?: string
     code?: string
@@ -17,7 +17,7 @@ export type AttributeValueType = TimestampType & {
     attributeValueId?: string
 }
 
-export class AttributeValue extends Timestamp implements AttributeValueInterface {
+export class AttributeValue extends Common implements AttributeValueInterface {
     shopId: string
     attributeId: string
     code: string

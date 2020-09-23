@@ -1,7 +1,7 @@
-import { TimestampInterface, TimestampType, Address } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, Address, Condition } from '../common/schema'
+import { Common } from '../common'
 
-export interface WarehouseInterface extends TimestampInterface {
+export interface WarehouseInterface extends CommonInterface {
     shopId: string
     warehouseId: string
     name: string
@@ -9,7 +9,7 @@ export interface WarehouseInterface extends TimestampInterface {
     shippingId: string
 }
 
-export type WarehouseType = TimestampType & {
+export type WarehouseType = CommonType & {
     shopId: string
     warehouseId?: string
     name?: string
@@ -17,7 +17,7 @@ export type WarehouseType = TimestampType & {
     shippingId?: string
 }
 
-export class Warehouse extends Timestamp implements WarehouseInterface {
+export class Warehouse extends Common implements WarehouseInterface {
     shopId: string
     warehouseId: string
     name: string
@@ -45,3 +45,10 @@ export class Warehouse extends Timestamp implements WarehouseInterface {
     }
 
 }
+
+export type WarehouseCondition = Condition & {
+    field: WarehouseFields
+    parentFields?: (keyof WarehouseType)[]
+}
+
+type WarehouseFields = keyof (WarehouseType & Address)

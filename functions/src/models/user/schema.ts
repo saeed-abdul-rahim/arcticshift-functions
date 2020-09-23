@@ -1,17 +1,10 @@
-import { CommonInterface, CommonType, Address, ContentStorage } from '../common/schema'
+import { CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType } from '../common/schema'
 import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type Gender = 'Male' | 'Female' | 'Transgender' | ''
 export const genders: Gender[] = [ 'Male', 'Female', 'Transgender' ]
 
-type PaymentMethod = {
-    type: 'razorpay' | 'stripe' | 'paypal' | 'gpay' | 'klarna' | 'lazypay'
-    id: string
-    paymentMethodIds: string[]
-}
-
-export interface UserInterface extends CommonInterface {
+export interface UserInterface extends CommonInterface, AuthTypeImp {
     uid: string
     name: string
     email: string
@@ -34,7 +27,7 @@ export interface UserInterface extends CommonInterface {
     likes: string[]
 }
 
-export type UserType = CommonType & {
+export type UserType = CommonType & AuthType & {
     uid: string
     name?: string
     email?: string
@@ -70,6 +63,8 @@ export class User extends Common implements UserInterface {
     shopId: string[]
     shopInvite: string[]
     access: string[]
+    admin: string[]
+    staff: string[]
     paymentMethods: PaymentMethod[]
     voucherId: string[]
     orderId: string[]
@@ -93,6 +88,8 @@ export class User extends Common implements UserInterface {
         this.shopId = data.shopId ? uniqueArr(data.shopId) : []
         this.shopInvite = data.shopInvite ? uniqueArr(data.shopInvite) : []
         this.access = data.access ? uniqueArr(data.access) : []
+        this.admin = data.admin ? uniqueArr(data.admin) : []
+        this.staff = data.staff ? uniqueArr(data.staff) : []
         this.paymentMethods = data.paymentMethods ? data.paymentMethods : []
         this.voucherId = data.voucherId ? uniqueArr(data.voucherId) : []
         this.orderId = data.orderId ? uniqueArr(data.orderId) : []
@@ -118,6 +115,8 @@ export class User extends Common implements UserInterface {
             shopId: this.shopId,
             shopInvite: this.shopInvite,
             access: this.access,
+            admin: this.admin,
+            staff: this.staff,
             paymentMethods: this.paymentMethods,
             voucherId: this.voucherId,
             orderId: this.orderId,
@@ -130,3 +129,11 @@ export class User extends Common implements UserInterface {
     }
 
 }
+
+type PaymentMethod = {
+    type: 'razorpay' | 'stripe' | 'paypal' | 'gpay' | 'klarna' | 'lazypay'
+    id: string
+    paymentMethodIds: string[]
+}
+
+type Gender = 'Male' | 'Female' | 'Transgender' | ''

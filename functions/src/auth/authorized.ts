@@ -7,16 +7,16 @@ export function isAuthorized(opts: { hasRole?: Array<Role>, allowSameUser?: bool
    return async (req: Request, res: Response, next: Function) => {
         const { claims, uid } = res.locals
         const { id } = req.params
-        const { shopId } = req.headers
-        res.locals = { ...res.locals, groupId: shopId }
+        const { shopid } = req.headers
+        res.locals = { ...res.locals, shopId: shopid }
         if (opts.allowSameUser && id && uid === id)
             return next();
         else if (!claims)
             return forbidden(res);
-        else if(!shopId)
+        else if(!shopid)
             return forbidden(res);
-        else if (shopId && typeof shopId === "string" && opts.hasRole) {
-            const shopData = await shop.get(shopId)
+        else if (shopid && typeof shopid === "string" && opts.hasRole) {
+            const shopData = await shop.get(shopid)
             opts.hasRole.map(role => {
                 if (shopData[role].includes(uid)) {
                     res.locals = { ...res.locals, role, shopData }

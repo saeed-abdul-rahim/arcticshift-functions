@@ -37,15 +37,6 @@ export async function getByCondition(conditions: ProductCondition[]): Promise<Pr
     }
 }
 
-export async function getByAttribute(attributeId: string): Promise<ProductInterface[] | null> {
-    try {
-        const ref = productsRef.where(`attribute.${attributeId}`, '==', true)
-        return await getAll(ref)
-    } catch (err) {
-        throw err
-    }
-}
-
 export async function add(product: ProductType): Promise<string> {
     try {
         const dataToInsert = new Product(product).get()

@@ -1,27 +1,8 @@
-import { TimestampInterface, TimestampType, Status, Condition, ContentStorage } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, Condition, ContentStorage } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-type Thumbnail = {
-    size: string
-    image: ContentStorage | null
-}
-
-type Price = {
-    name: string
-    value: string
-}
-
-type Attribute = {
-    [key: string]: boolean
-} | null
-
-type WarehouseInventory = {
-    warehouseId: string
-    quantity: number
-}
-
-export interface VariantInterface extends TimestampInterface {
+export interface VariantInterface extends CommonInterface {
     shopId: string
     productId: string
     variantId: string
@@ -33,14 +14,13 @@ export interface VariantInterface extends TimestampInterface {
     image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attribute: Attribute
-    attributeValue: Attribute
+    attribute: AttributeValue
+    attributeValue: AttributeValue
     categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
     variantIds: string[]
-    status: Status
     like: number
     rating: number
     trackInventory: boolean
@@ -49,7 +29,7 @@ export interface VariantInterface extends TimestampInterface {
     bookedQuantity: number
 }
 
-export type VariantType = TimestampType & {
+export type VariantType = CommonType & {
     shopId: string
     productId?: string
     variantId?: string
@@ -61,14 +41,13 @@ export type VariantType = TimestampType & {
     image?: ContentStorage | null
     thumbnailUrls?: Thumbnail[]
     productTypeId?: string
-    attribute?: Attribute
-    attributeValue?: Attribute
+    attribute?: AttributeValue
+    attributeValue?: AttributeValue
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
     price?: number
     variantIds?: string[]
-    status?: Status
     like?: number
     rating?: number
     trackInventory?: boolean
@@ -77,7 +56,7 @@ export type VariantType = TimestampType & {
     bookedQuantity?: number
 }
 
-export class Variant extends Timestamp implements VariantInterface {
+export class Variant extends Common implements VariantInterface {
     shopId: string
     productId: string
     variantId: string
@@ -89,14 +68,13 @@ export class Variant extends Timestamp implements VariantInterface {
     image: ContentStorage | null
     thumbnailUrls: Thumbnail[]
     productTypeId: string
-    attribute: Attribute
-    attributeValue: Attribute
+    attribute: AttributeValue
+    attributeValue: AttributeValue
     categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
     variantIds: string[]
-    status: Status
     like: number
     rating: number
     trackInventory: boolean
@@ -124,7 +102,6 @@ export class Variant extends Timestamp implements VariantInterface {
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0
         this.variantIds = data.variantIds ? uniqueArr(data.variantIds) : []
-        this.status = data.status ? data.status : 'active'
         this.like = data.like ? data.like : 0
         this.rating = data.rating ? data.rating : 0
         this.trackInventory = data.trackInventory ? data.trackInventory : false
@@ -154,7 +131,6 @@ export class Variant extends Timestamp implements VariantInterface {
             prices: this.prices,
             price: this.price,
             variantIds: this.variantIds,
-            status: this.status,
             like: this.like,
             rating: this.rating,
             trackInventory: this.trackInventory,
@@ -167,5 +143,27 @@ export class Variant extends Timestamp implements VariantInterface {
 }
 
 export type VariantCondition = Condition & {
-    field: keyof VariantType
+    field: VariantFields
+    parentFields?: (keyof VariantType)[]
+}
+
+type VariantFields = keyof (VariantType & Thumbnail & Price & AttributeValue)
+
+type Thumbnail = {
+    size: string
+    image: ContentStorage | null
+}
+
+type Price = {
+    name: string
+    value: string
+}
+
+type AttributeValue = {
+    [key: string]: boolean
+} | null
+
+type WarehouseInventory = {
+    warehouseId: string
+    quantity: number
 }

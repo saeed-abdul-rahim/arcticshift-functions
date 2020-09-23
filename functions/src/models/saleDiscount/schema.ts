@@ -1,8 +1,8 @@
-import { TimestampInterface, TimestampType, Datetime, ValueType } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
+import { Common } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
-export interface SaleDiscountInterface extends TimestampInterface {
+export interface SaleDiscountInterface extends CommonInterface {
     shopId: string
     saleDiscountId: string
     name: string
@@ -15,7 +15,7 @@ export interface SaleDiscountInterface extends TimestampInterface {
     endDate: Datetime | null
 }
 
-export type SaleDiscountType = TimestampType & {
+export type SaleDiscountType = CommonType & {
     shopId: string
     saleDiscountId?: string
     name?: string
@@ -28,7 +28,7 @@ export type SaleDiscountType = TimestampType & {
     endDate?: Datetime | null
 }
 
-export class SaleDiscount extends Timestamp implements SaleDiscountInterface {
+export class SaleDiscount extends Common implements SaleDiscountInterface {
     shopId: string
     saleDiscountId: string
     name: string

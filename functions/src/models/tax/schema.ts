@@ -1,10 +1,10 @@
-import { TimestampInterface, TimestampType, ValueType } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType, ValueType } from '../common/schema'
+import { Common } from '../common'
 
 type TaxObjectType = 'shop' | 'shipping' | 'product' | ''
 export const taxTypes: TaxObjectType[] = [ 'shop', 'shipping', 'product' ]
 
-export interface TaxInterface extends TimestampInterface {
+export interface TaxInterface extends CommonInterface {
     shopId: string
     taxId: string
     name: string
@@ -13,7 +13,7 @@ export interface TaxInterface extends TimestampInterface {
     type: TaxObjectType
 }
 
-export type TaxType = TimestampType & {
+export type TaxType = CommonType & {
     shopId?: string
     taxId?: string
     name?: string
@@ -22,7 +22,7 @@ export type TaxType = TimestampType & {
     type?: TaxObjectType
 }
 
-export class Tax extends Timestamp implements TaxInterface {
+export class Tax extends Common implements TaxInterface {
     shopId: string
     taxId: string
     name: string

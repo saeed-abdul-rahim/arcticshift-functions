@@ -37,15 +37,6 @@ export async function getByCondition(conditions: VariantCondition[]): Promise<Va
     }
 }
 
-export async function getByAttribute(attributeId: string): Promise<VariantInterface[] | null> {
-    try {
-        const ref = variantsRef.where(`attribute.${attributeId}`, '==', true)
-        return await getAll(ref)
-    } catch (err) {
-        throw err
-    }
-}
-
 export async function add(variant: VariantType): Promise<string> {
     try {
         const dataToInsert = new Variant(variant).get()

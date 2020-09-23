@@ -8,7 +8,6 @@ import {
     Condition,
     ValueType, Datetime
 } from './schema'
-import { uniqueArr } from '../../utils/uniqueArr'
 
 export const roles: Role[] = ['admin', 'staff']
 export const valueTypes: ValueType[] = [ 'fixed', 'percent' ]
@@ -31,22 +30,16 @@ export class Timestamp implements TimestampInterface {
 }
 
 export class Common extends Timestamp implements CommonInterface {
-    admin: string[]
-    staff: string[]
     status: Status
 
     constructor(data: CommonType) {
         super(data)
-        this.admin = data.admin ? uniqueArr(data.admin) : []
-        this.staff = data.staff ? uniqueArr(data.staff) : []
         this.status = data.status ? data.status : 'active'
     }
 
     get(): CommonInterface {
         return {
             ...super.get(),
-            admin: this.admin,
-            staff: this.staff,
             status: this.status
         }
     }
@@ -56,8 +49,13 @@ export class Common extends Timestamp implements CommonInterface {
 export function setCondition(collectionRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, conditions: Condition[]) {
     let ref: FirebaseFirestore.Query = collectionRef
     conditions.forEach(condition => {
-        const { field, type, value } = condition
-        ref = ref.where(field, type, value)
+        const { field, type, value, parentFields } = condition
+        if (parentFields && parentFields.length > 0) {
+            const whereField = parentFields.join('.') + field
+            ref = ref.where(whereField, type, value)
+        } else {
+            ref = ref.where(field, type, value)
+        }
     })
     return ref
 }

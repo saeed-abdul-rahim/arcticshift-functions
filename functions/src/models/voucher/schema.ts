@@ -1,5 +1,5 @@
-import { TimestampInterface, TimestampType, Datetime, ValueType } from '../common/schema'
-import { Timestamp, valueTypes } from '../common'
+import { CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
+import { Common, valueTypes } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 type VoucherTypeType = ValueType | 'shipping'
@@ -13,7 +13,7 @@ type MinimumRequirement = {
 export const voucherValueTypes: VoucherTypeType[] = [ ...valueTypes, 'shipping' ]
 export const minimumRequirementTypes: MinimumRequirementType[] = [ 'orderValue', 'quantity' ]
 
-export interface VoucherInterface extends TimestampInterface {
+export interface VoucherInterface extends CommonInterface {
     shopId: string
     voucherId: string
     code: string
@@ -31,7 +31,7 @@ export interface VoucherInterface extends TimestampInterface {
     endDate: Datetime | null
 }
 
-export type VoucherType = TimestampType & {
+export type VoucherType = CommonType & {
     shopId: string
     voucherId?: string
     code?: string
@@ -49,7 +49,7 @@ export type VoucherType = TimestampType & {
     endDate?: Datetime | null
 }
 
-export class Voucher extends Timestamp implements VoucherInterface {
+export class Voucher extends Common implements VoucherInterface {
     shopId: string
     voucherId: string
     code: string

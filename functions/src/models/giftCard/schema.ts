@@ -1,7 +1,7 @@
-import { TimestampInterface, TimestampType, Status } from '../common/schema'
-import { Timestamp } from '../common'
+import { CommonInterface, CommonType } from '../common/schema'
+import { Common } from '../common'
 
-export interface GiftCardInterface extends TimestampInterface {
+export interface GiftCardInterface extends CommonInterface {
     shopId: string
     giftCardId: string
     userId: string
@@ -10,10 +10,9 @@ export interface GiftCardInterface extends TimestampInterface {
     lastUsed: number
     initialBalance: number
     currentBalance: number
-    status: Status
 }
 
-export type GiftCardType = TimestampType & {
+export type GiftCardType = CommonType & {
     shopId: string
     giftCardId?: string
     userId?: string
@@ -22,10 +21,9 @@ export type GiftCardType = TimestampType & {
     lastUsed?: number
     initialBalance?: number
     currentBalance?: number
-    status?: Status
 }
 
-export class GiftCard extends Timestamp implements GiftCardInterface {
+export class GiftCard extends Common implements GiftCardInterface {
     shopId: string
     giftCardId: string
     userId: string
@@ -34,7 +32,6 @@ export class GiftCard extends Timestamp implements GiftCardInterface {
     lastUsed: number
     initialBalance: number
     currentBalance: number
-    status: Status
 
     constructor(data: GiftCardType) {
         super(data)
@@ -46,7 +43,6 @@ export class GiftCard extends Timestamp implements GiftCardInterface {
         this.lastUsed = data.lastUsed ? data.lastUsed : -1
         this.initialBalance = data.initialBalance ? data.initialBalance : 0
         this.currentBalance = data.currentBalance ? data.currentBalance : 0
-        this.status = data.status ? data.status : 'active'
     }
 
     get(): GiftCardInterface {
@@ -59,8 +55,7 @@ export class GiftCard extends Timestamp implements GiftCardInterface {
             code: this.code,
             lastUsed: this.lastUsed,
             initialBalance: this.initialBalance,
-            currentBalance: this.currentBalance,
-            status: this.status
+            currentBalance: this.currentBalance
         }
     }
 

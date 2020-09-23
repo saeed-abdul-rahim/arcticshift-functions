@@ -17,14 +17,7 @@ export async function get(shippingId: string): Promise<ShippingInterface> {
 export async function getByCondition(conditions: ShippingCondition[]): Promise<ShippingInterface[] | null> {
     try {
         const ref = setCondition(shippingsRef, conditions)
-        const doc = await ref.get()
-        if (doc.empty) return null
-        return doc.docs.map(d => {
-            let data = d.data() as ShippingInterface
-            data.shippingId = d.id
-            data = new Shipping(data).get()
-            return data
-        })
+        return await getAll(ref)
     } catch (err) {
         throw err;
     }
@@ -75,4 +68,15 @@ export async function getRef(id?: string) {
     } else {
         return shippingsRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as ShippingInterface
+        data.shippingId = d.id
+        data = new Shipping(data).get()
+        return data
+    })
 }
