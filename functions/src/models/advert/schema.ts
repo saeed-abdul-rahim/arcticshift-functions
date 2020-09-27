@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, Datetime } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, Datetime } from '../common/schema'
 
 export interface AdvertInterface extends CommonInterface {
     shopId: string

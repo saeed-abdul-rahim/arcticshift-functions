@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, Status, Condition, ContentStorage, Tax } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, Status, Condition, ContentStorage, Tax } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface ProductInterface extends CommonInterface {

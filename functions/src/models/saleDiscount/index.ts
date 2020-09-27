@@ -1,4 +1,5 @@
 import { saleDiscountsRef } from '../../config/db'
+import { decrementSaleDiscount, incrementSaleDiscount } from '../analytics/saleDiscount'
 import { SaleDiscountInterface, SaleDiscountType, SaleDiscount } from './schema'
 
 export async function get(saleDiscountId: string): Promise<SaleDiscountInterface> {
@@ -18,6 +19,7 @@ export async function add(saleDiscount: SaleDiscountType): Promise<string> {
         const id = saleDiscountsRef.doc().id
         saleDiscount.saleDiscountId = id
         await set(id, saleDiscount)
+        await incrementSaleDiscount()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(saleDiscountId: string, saleDiscount: SaleDiscountT
 export async function remove(saleDiscountId: string): Promise<boolean> {
     try {
         await saleDiscountsRef.doc(saleDiscountId).delete()
+        await decrementSaleDiscount()
         return true
     } catch (err) {
         throw err

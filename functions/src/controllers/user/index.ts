@@ -1,16 +1,18 @@
 import { Request, Response } from 'express'
 import * as admin from 'firebase-admin'
-import * as shop from '../../models/shop'
-import * as user from '../../models/user'
-import * as claims from '../../models/userClaims'
 import * as storage from '../../storage'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successCreated, successUpdated } from '../../responseHandler/successHandler'
-import { Role, isOfTypeAddress } from '../../models/common/schema'
+
+import * as shop from '../../models/shop'
+import * as user from '../../models/user'
+import * as claims from '../../models/userClaims'
+import { isOfTypeAddress } from '../../models/common'
+import { ShopType } from '../../models/shop/schema'
+import { Role } from '../../models/common/schema'
 import { UserType, genders } from '../../models/user/schema'
 import { randomString } from '../../utils/randomString'
 import { sendMail } from '../../mail'
-import { ShopType } from '../../models/shop/schema'
 
 export async function signUp(req: Request, res: Response) {
     try {

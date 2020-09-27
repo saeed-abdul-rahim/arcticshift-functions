@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface CollectionInterface extends CommonInterface {

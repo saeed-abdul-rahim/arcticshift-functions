@@ -1,5 +1,5 @@
-import { CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
-import { Common, valueTypes } from '../common'
+import { Common, CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
+import { valueTypes } from '../common'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 type VoucherTypeType = ValueType | 'shipping'

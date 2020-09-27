@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export const genders: Gender[] = [ 'Male', 'Female', 'Transgender' ]

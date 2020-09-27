@@ -20,7 +20,7 @@ export function userHandler(app: Application) {
         user.createStaff
     )
 
-    app.patch(`${userRoute}`,
+    app.patch(userRoute,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.update

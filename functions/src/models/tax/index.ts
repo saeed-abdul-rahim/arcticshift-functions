@@ -1,5 +1,5 @@
 import { taxesRef } from '../../config/db'
-import { TaxInterface, TaxType, Tax } from './schema'
+import { TaxInterface, TaxType, Tax, TaxObjectType } from './schema'
 
 export async function get(taxId: string): Promise<TaxInterface> {
     try {
@@ -60,3 +60,5 @@ export async function getRef(id?: string) {
         return taxesRef
     }
 }
+
+export const taxTypes: TaxObjectType[] = [ 'shop', 'shipping', 'product' ]

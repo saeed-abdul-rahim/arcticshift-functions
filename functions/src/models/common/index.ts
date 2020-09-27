@@ -1,49 +1,11 @@
-import {
-    Role,
-    CommonInterface,
-    CommonType,
-    TimestampInterface,
-    TimestampType,
-    Status,
-    Condition,
-    ValueType, Datetime
-} from './schema'
+import * as admin from 'firebase-admin'
+import { Role, Condition, ValueType, Datetime, AddressKey } from './schema'
 
 export const roles: Role[] = ['admin', 'staff']
-export const valueTypes: ValueType[] = [ 'fixed', 'percent' ]
+export const valueTypes: ValueType[] = ['fixed', 'percent']
 
-export class Timestamp implements TimestampInterface {
-    createdAt: number
-    updatedAt: number
-
-    constructor(data: TimestampType) {
-        this.createdAt = data.createdAt && data.createdAt !== 0 ? data.createdAt : Date.now()
-        this.updatedAt = data.updatedAt && data.updatedAt !== 0 ? data.updatedAt : Date.now()
-    }
-
-    get(): TimestampInterface {
-        return {
-            createdAt: this.createdAt,
-            updatedAt: this.updatedAt
-        }
-    }
-}
-
-export class Common extends Timestamp implements CommonInterface {
-    status: Status
-
-    constructor(data: CommonType) {
-        super(data)
-        this.status = data.status ? data.status : 'active'
-    }
-
-    get(): CommonInterface {
-        return {
-            ...super.get(),
-            status: this.status
-        }
-    }
-
+export function isOfTypeAddress (keyInput: string): keyInput is AddressKey {
+    return ['name', 'company', 'phone', 'email', 'line1', 'line2', 'city', 'zip', 'area', 'country'].includes(keyInput);
 }
 
 export function setCondition(collectionRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, conditions: Condition[]) {
@@ -67,4 +29,8 @@ export function isValidDateTime(datetime: Datetime) {
     } else {
         return null
     }
+}
+
+export function incrementValue(value: number) {
+    return admin.firestore.FieldValue.increment(value)
 }

@@ -1,3 +1,7 @@
+import * as admin from 'firebase-admin'
+
+export type FieldValue = admin.firestore.FieldValue
+
 export type Role = 'admin' | 'staff'
 export type Status = 'active' | 'inactive'
 export type ValueType = 'fixed' | 'percent'
@@ -78,6 +82,37 @@ export type Address = {
 }
 
 export type AddressKey = keyof Address
-export function isOfTypeAddress (keyInput: string): keyInput is AddressKey {
-    return ['name', 'company', 'phone', 'email', 'line1', 'line2', 'city', 'zip', 'area', 'country'].includes(keyInput);
+
+export class Timestamp implements TimestampInterface {
+    createdAt: number
+    updatedAt: number
+
+    constructor(data: TimestampType) {
+        this.createdAt = data.createdAt && data.createdAt !== 0 ? data.createdAt : Date.now()
+        this.updatedAt = data.updatedAt && data.updatedAt !== 0 ? data.updatedAt : Date.now()
+    }
+
+    get(): TimestampInterface {
+        return {
+            createdAt: this.createdAt,
+            updatedAt: this.updatedAt
+        }
+    }
+}
+
+export class Common extends Timestamp implements CommonInterface {
+    status: Status
+
+    constructor(data: CommonType) {
+        super(data)
+        this.status = data.status ? data.status : 'active'
+    }
+
+    get(): CommonInterface {
+        return {
+            ...super.get(),
+            status: this.status
+        }
+    }
+
 }

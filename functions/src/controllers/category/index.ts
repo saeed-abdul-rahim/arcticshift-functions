@@ -5,7 +5,7 @@ import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { CategoryType } from '../../models/category/schema'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated, successDeleted } from '../../responseHandler/successHandler'
+import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -31,7 +31,7 @@ export async function create(req: Request, res: Response) {
                 console.error(err)
             }
         }
-        return successCreated(res)
+        return successResponse(res, { id: categoryId })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

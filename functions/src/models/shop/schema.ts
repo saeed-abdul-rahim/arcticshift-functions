@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, Address, Condition, AuthTypeImp, AuthType } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, Address, Condition, AuthTypeImp, AuthType } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface ShopInterface extends CommonInterface, AuthTypeImp {

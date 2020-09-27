@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType } from '../common/schema'
 
 export interface AttributeValueInterface extends CommonInterface {
     shopId: string

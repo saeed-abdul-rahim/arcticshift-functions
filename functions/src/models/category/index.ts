@@ -1,4 +1,5 @@
 import { categoriesRef } from '../../config/db'
+import { decrementCategory, incrementCategory } from '../analytics/category'
 import { CategoryInterface, CategoryType, Category } from './schema'
 
 export async function get(categoryId: string): Promise<CategoryInterface> {
@@ -18,6 +19,7 @@ export async function add(category: CategoryType): Promise<string> {
         const id = categoriesRef.doc().id
         category.categoryId = id
         await set(id, category)
+        await incrementCategory()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(categoryId: string, category: CategoryType): Promis
 export async function remove(categoryId: string): Promise<boolean> {
     try {
         await categoriesRef.doc(categoryId).delete()
+        await decrementCategory()
         return true
     } catch (err) {
         throw err

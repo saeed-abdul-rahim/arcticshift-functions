@@ -1,4 +1,5 @@
 import { vouchersRef } from '../../config/db'
+import { decrementVoucher, incrementVoucher } from '../analytics/voucher'
 import { VoucherInterface, VoucherType, Voucher } from './schema'
 
 export async function get(voucherId: string): Promise<VoucherInterface> {
@@ -18,6 +19,7 @@ export async function add(voucher: VoucherType): Promise<string> {
         const id = vouchersRef.doc().id
         voucher.voucherId = id
         await set(id, voucher)
+        await incrementVoucher()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(voucherId: string, voucher: VoucherType): Promise<b
 export async function remove(voucherId: string): Promise<boolean> {
     try {
         await vouchersRef.doc(voucherId).delete()
+        await decrementVoucher()
         return true
     } catch (err) {
         throw err

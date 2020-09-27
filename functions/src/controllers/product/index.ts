@@ -7,7 +7,7 @@ import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { ProductType } from '../../models/product/schema'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated } from '../../responseHandler/successHandler'
+import { successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
 
 export async function create(req: Request, res: Response) {
@@ -25,8 +25,8 @@ export async function create(req: Request, res: Response) {
             keywords,
             shopId
         }
-        await product.add(data)
-        return successCreated(res)
+        const id = await product.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

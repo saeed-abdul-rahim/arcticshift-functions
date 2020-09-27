@@ -1,4 +1,5 @@
 import { collectionsRef } from '../../config/db'
+import { decrementCollection, incrementCollection } from '../analytics/collection'
 import { CollectionInterface, CollectionType, Collection } from './schema'
 
 export async function get(collectionId: string): Promise<CollectionInterface> {
@@ -18,6 +19,7 @@ export async function add(collection: CollectionType): Promise<string> {
         const id = collectionsRef.doc().id
         collection.collectionId = id
         await set(id, collection)
+        await incrementCollection()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(collectionId: string, collection: CollectionType): 
 export async function remove(collectionId: string): Promise<boolean> {
     try {
         await collectionsRef.doc(collectionId).delete()
+        await decrementCollection()
         return true
     } catch (err) {
         throw err

@@ -1,8 +1,8 @@
 import { Request, Response } from 'express'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated, successDeleted } from '../../responseHandler/successHandler'
+import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { ShopType } from '../../models/shop/schema'
-import { TaxType, taxTypes } from '../../models/tax/schema'
+import { TaxType } from '../../models/tax/schema'
 import * as tax from '../../models/tax'
 import * as shop from '../../models/shop'
 import * as shipping from '../../models/shipping'
@@ -31,8 +31,8 @@ export async function create(req: Request, res: Response) {
             ...data,
             shopId
         }
-        await tax.add(data)
-        return successCreated(res)
+        const id = await tax.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -56,7 +56,7 @@ export async function update(req: Request, res: Response) {
         if (valueType && valueTypes.includes(valueType)) {
             taxData.valueType = valueType
         }
-        if (type && taxTypes.includes(type)) {
+        if (type && tax.taxTypes.includes(type)) {
             taxData.type = type
         }
         await tax.set(taxId, taxData)

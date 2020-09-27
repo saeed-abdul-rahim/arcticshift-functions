@@ -1,8 +1,6 @@
-import { CommonInterface, CommonType, ValueType } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, ValueType } from '../common/schema'
 
-type TaxObjectType = 'shop' | 'shipping' | 'product' | ''
-export const taxTypes: TaxObjectType[] = [ 'shop', 'shipping', 'product' ]
+export type TaxObjectType = 'shop' | 'shipping' | 'product' | ''
 
 export interface TaxInterface extends CommonInterface {
     shopId: string

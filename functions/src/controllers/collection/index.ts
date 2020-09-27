@@ -5,7 +5,7 @@ import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { CollectionType } from '../../models/collection/schema'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated, successDeleted } from '../../responseHandler/successHandler'
+import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -20,8 +20,8 @@ export async function create(req: Request, res: Response) {
             ...data,
             shopId
         }
-        await collection.add(data)
-        return successCreated(res)
+        const id = await collection.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

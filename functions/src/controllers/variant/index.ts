@@ -5,7 +5,7 @@ import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { VariantType } from '../../models/variant/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated } from '../../responseHandler/successHandler'
+import { successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
 
 export async function create(req: Request, res: Response) {
@@ -40,7 +40,7 @@ export async function create(req: Request, res: Response) {
         const variantId = await variant.add(data)
         productData.variantId.push(variantId)
         await product.set(productId, productData)
-        return successCreated(res)
+        return successResponse(res, { id: variantId })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

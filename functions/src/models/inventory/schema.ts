@@ -1,5 +1,4 @@
-import { Condition, CommonInterface, CommonType } from '../common/schema'
-import { Common } from '../common'
+import { Common, Condition, CommonInterface, CommonType } from '../common/schema'
 
 export interface InventoryInterface extends CommonInterface {
     shopId: string

@@ -1,4 +1,5 @@
 import { attributesRef } from '../../config/db'
+import { decrementAttribute, incrementAttribute } from '../analytics/attribute'
 import { AttributeInterface, AttributeType, Attribute } from './schema'
 
 export async function get(attributeId: string): Promise<AttributeInterface> {
@@ -18,6 +19,7 @@ export async function add(attribute: AttributeType): Promise<string> {
         const id = attributesRef.doc().id
         attribute.attributeId = id
         await set(id, attribute)
+        await incrementAttribute()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(attributeId: string, attribute: AttributeType): Pro
 export async function remove(attributeId: string): Promise<boolean> {
     try {
         await attributesRef.doc(attributeId).delete()
+        await decrementAttribute()
         return true
     } catch (err) {
         throw err

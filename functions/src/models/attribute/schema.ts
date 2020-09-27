@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface AttributeInterface extends CommonInterface {

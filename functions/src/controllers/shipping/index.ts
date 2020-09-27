@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated } from '../../responseHandler/successHandler'
+import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { ShopType } from '../../models/shop/schema'
 import { ShippingType } from '../../models/shipping/schema'
 import * as shipping from '../../models/shipping'
@@ -19,8 +19,8 @@ export async function create(req: Request, res: Response) {
             ...data,
             shopId
         }
-        await shipping.add(data)
-        return successCreated(res)
+        const id = await shipping.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -68,7 +68,7 @@ export async function remove(req: Request, res: Response) {
             }))
         }
         await shipping.remove(shippingId)
-        return successUpdated(res)
+        return successDeleted(res)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

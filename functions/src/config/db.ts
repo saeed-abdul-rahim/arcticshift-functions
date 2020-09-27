@@ -24,37 +24,53 @@ import {
     PAGES,
     NAVIGATION,
     SUPPORT,
-    INVENTORY
+    INVENTORY, ANALYTICS
 } from './constants'
 
 const db = admin.firestore()
-const ref = db.collection(DBVERSION).doc(DBNAME)
 
 export const batch = admin.firestore().batch()
 export const transaction = admin.firestore().runTransaction
 
-export const usersRef = ref.collection(USERS)
-export const addressesRef = ref.collection(ADDRESSES)
-export const shopsRef = ref.collection(SHOPS)
-export const productsRef = ref.collection(PRODUCTS)
-export const variantsRef = ref.collection(VARIANTS)
-export const productTypesRef = ref.collection(PRODUCTTYPES)
-export const categoriesRef = ref.collection(CATEGORIES)
-export const collectionsRef = ref.collection(COLLECTIONS)
-export const attributesRef = ref.collection(ATTRIBUTES)
-export const attributeValuesRef = ref.collection(ATTRIBUTEVALUES)
-export const taxesRef = ref.collection(TAXES)
-export const ordersRef = ref.collection(ORDERS)
-export const saleDiscountsRef = ref.collection(SALEDISCOUNTS)
-export const vouchersRef = ref.collection(VOUCHERS)
-export const giftCardsRef = ref.collection(GIFTCARDS)
-export const shippingsRef = ref.collection(SHIPPING)
-export const warehouseRef = ref.collection(WAREHOUSE)
-export const inventoryRef = ref.collection(INVENTORY)
-export const advertsRef = ref.collection(ADVERTS)
-export const pagesRef = ref.collection(PAGES)
-export const navigationRef = ref.collection(NAVIGATION)
-export const supportRef = ref.collection(SUPPORT)
+export const dbRef = db.collection(DBVERSION).doc(DBNAME)
+
+export const usersRef = dbRef.collection(USERS)
+export const addressesRef = dbRef.collection(ADDRESSES)
+export const shopsRef = dbRef.collection(SHOPS)
+export const productsRef = dbRef.collection(PRODUCTS)
+export const variantsRef = dbRef.collection(VARIANTS)
+export const productTypesRef = dbRef.collection(PRODUCTTYPES)
+export const categoriesRef = dbRef.collection(CATEGORIES)
+export const collectionsRef = dbRef.collection(COLLECTIONS)
+export const attributesRef = dbRef.collection(ATTRIBUTES)
+export const attributeValuesRef = dbRef.collection(ATTRIBUTEVALUES)
+export const taxesRef = dbRef.collection(TAXES)
+export const ordersRef = dbRef.collection(ORDERS)
+export const saleDiscountsRef = dbRef.collection(SALEDISCOUNTS)
+export const vouchersRef = dbRef.collection(VOUCHERS)
+export const giftCardsRef = dbRef.collection(GIFTCARDS)
+export const shippingsRef = dbRef.collection(SHIPPING)
+export const warehouseRef = dbRef.collection(WAREHOUSE)
+export const inventoryRef = dbRef.collection(INVENTORY)
+export const advertsRef = dbRef.collection(ADVERTS)
+export const pagesRef = dbRef.collection(PAGES)
+export const navigationRef = dbRef.collection(NAVIGATION)
+export const supportRef = dbRef.collection(SUPPORT)
+
+export const analyticsRef = dbRef.collection(ANALYTICS)
+export const productAnalyticsRef = dbRef.collection(ANALYTICS).doc(PRODUCTS)
+export const categoryAnalyticsRef = dbRef.collection(ANALYTICS).doc(CATEGORIES)
+export const collectionAnalyticsRef = dbRef.collection(ANALYTICS).doc(COLLECTIONS)
+export const attributeAnalyticsRef = dbRef.collection(ANALYTICS).doc(ATTRIBUTES)
+export const productTypeAnalyticsRef = dbRef.collection(ANALYTICS).doc(PRODUCTTYPES)
+export const saleDiscountAnalyticsRef = dbRef.collection(ANALYTICS).doc(SALEDISCOUNTS)
+export const voucherAnalyticsRef = dbRef.collection(ANALYTICS).doc(VOUCHERS)
+export const giftCardAnalyticsRef = dbRef.collection(ANALYTICS).doc(GIFTCARDS)
+export const orderAnalyticsRef = dbRef.collection(ANALYTICS).doc(ORDERS)
+export const userAnalyticsRef = dbRef.collection(ANALYTICS).doc(USERS)
+export const shippingAnalyticsRef = dbRef.collection(ANALYTICS).doc(SHIPPING)
+export const warehouseAnalyticsRef = dbRef.collection(ANALYTICS).doc(WAREHOUSE)
+export const advertAnalyticsRef = dbRef.collection(ANALYTICS).doc(ADVERTS)
 
 const DBROUTE = `${DBVERSION}/${DBNAME}`
 export const supportRoute = `${DBROUTE}/${SUPPORT}`

@@ -1,4 +1,5 @@
 import { shippingsRef } from '../../config/db'
+import { decrementShipping, incrementShipping } from '../analytics/shipping'
 import { setCondition } from '../common'
 import { ShippingInterface, ShippingType, Shipping, ShippingCondition } from './schema'
 
@@ -28,6 +29,7 @@ export async function add(shipping: ShippingType): Promise<string> {
         const id = shippingsRef.doc().id
         shipping.shippingId = id
         await set(id, shipping)
+        await incrementShipping()
         return id
     } catch (err) {
         throw err
@@ -57,6 +59,7 @@ export async function update(shippingId: string, shipping: ShippingType): Promis
 export async function remove(shippingId: string): Promise<boolean> {
     try {
         await shippingsRef.doc(shippingId).delete()
+        await decrementShipping()
         return true
     } catch (err) {
         throw err

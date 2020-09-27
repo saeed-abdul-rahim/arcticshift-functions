@@ -4,7 +4,7 @@ import * as attributeValue from '../../models/attributeValue'
 import { ShopType } from '../../models/shop/schema'
 import { AttributeType } from '../../models/attribute/schema'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated, successDeleted } from '../../responseHandler/successHandler'
+import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { AttributeValue } from '../../models/attributeValue/schema'
 
 export async function create(req: Request, res: Response) {
@@ -23,8 +23,8 @@ export async function create(req: Request, res: Response) {
             ...data,
             shopId
         }
-        await attribute.add(data)
-        return successCreated(res)
+        const id = await attribute.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

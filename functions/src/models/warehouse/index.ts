@@ -1,4 +1,5 @@
 import { warehouseRef } from '../../config/db'
+import { decrementWarehouse, incrementWarehouse } from '../analytics/warehouse'
 import { setCondition } from '../common'
 import { WarehouseInterface, WarehouseType, Warehouse, WarehouseCondition } from './schema'
 
@@ -28,6 +29,7 @@ export async function add(warehouse: WarehouseType): Promise<string> {
         const id = warehouseRef.doc().id
         warehouse.warehouseId = id
         await set(id, warehouse)
+        await incrementWarehouse()
         return id
     } catch (err) {
         throw err
@@ -57,6 +59,7 @@ export async function update(warehouseId: string, warehouse: WarehouseType): Pro
 export async function remove(warehouseId: string): Promise<boolean> {
     try {
         await warehouseRef.doc(warehouseId).delete()
+        await decrementWarehouse()
         return true
     } catch (err) {
         throw err

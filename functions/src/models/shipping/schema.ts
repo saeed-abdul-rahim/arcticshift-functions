@@ -1,5 +1,4 @@
-import { Condition, CommonInterface, CommonType } from '../common/schema'
-import { Common } from '../common'
+import { Common, Condition, CommonInterface, CommonType } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface ShippingInterface extends CommonInterface {

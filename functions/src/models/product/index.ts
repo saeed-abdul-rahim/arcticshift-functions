@@ -1,6 +1,7 @@
 import { productsRef } from '../../config/db'
 import { ProductInterface, ProductType, Product, ProductCondition } from './schema'
 import { setCondition } from '../common'
+import { decrementProduct, incrementProduct } from '../analytics/product'
 
 export async function get(productId: string): Promise<ProductInterface> {
     try {
@@ -42,6 +43,7 @@ export async function add(product: ProductType): Promise<string> {
         const id = productsRef.doc().id
         product.productId = id
         await set(id, product)
+        await incrementProduct()
         return id
     } catch (err) {
         throw err
@@ -71,6 +73,7 @@ export async function update(productId: string, product: ProductType): Promise<b
 export async function remove(productId: string): Promise<boolean> {
     try {
         await productsRef.doc(productId).delete()
+        await decrementProduct()
         return true
     } catch (err) {
         throw err

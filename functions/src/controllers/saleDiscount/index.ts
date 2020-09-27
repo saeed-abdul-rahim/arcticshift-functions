@@ -1,6 +1,6 @@
 import { Request, Response } from 'express'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successCreated, successUpdated, successDeleted } from '../../responseHandler/successHandler'
+import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { valueTypes } from '../../models/common'
 import { ShopType } from '../../models/shop/schema'
 import { SaleDiscountType } from '../../models/saleDiscount/schema'
@@ -30,8 +30,8 @@ export async function create(req: Request, res: Response) {
             ...data,
             shopId
         }
-        await saleDiscount.add(data)
-        return successCreated(res)
+        const id = await saleDiscount.add(data)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(err)
         return serverError(res, err)

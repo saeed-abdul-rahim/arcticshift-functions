@@ -1,4 +1,5 @@
 import { ordersRef } from '../../config/db'
+import { decrementOrder, incrementOrder } from '../analytics/order'
 import { OrderInterface, OrderType, Order } from './schema'
 
 export async function get(orderId: string): Promise<OrderInterface> {
@@ -18,6 +19,7 @@ export async function add(order: OrderType): Promise<string> {
         const id = ordersRef.doc().id
         order.orderId = id
         await set(id, order)
+        await incrementOrder()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(orderId: string, order: OrderType): Promise<boolean
 export async function remove(orderId: string): Promise<boolean> {
     try {
         await ordersRef.doc(orderId).delete()
+        await decrementOrder()
         return true
     } catch (err) {
         throw err

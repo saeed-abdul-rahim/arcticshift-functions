@@ -1,4 +1,5 @@
 import { giftCardsRef } from '../../config/db'
+import { decrementGiftCard, incrementGiftCard } from '../analytics/giftCard'
 import { GiftCardInterface, GiftCardType, GiftCard } from './schema'
 
 export async function get(giftCardId: string): Promise<GiftCardInterface> {
@@ -18,6 +19,7 @@ export async function add(giftCard: GiftCardType): Promise<string> {
         const id = giftCardsRef.doc().id
         giftCard.giftCardId = id
         await set(id, giftCard)
+        await incrementGiftCard()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(giftCardId: string, giftCard: GiftCardType): Promis
 export async function remove(giftCardId: string): Promise<boolean> {
     try {
         await giftCardsRef.doc(giftCardId).delete()
+        await decrementGiftCard()
         return true
     } catch (err) {
         throw err

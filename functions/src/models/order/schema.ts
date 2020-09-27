@@ -1,5 +1,4 @@
-import { CommonInterface, CommonType, Address } from '../common/schema'
-import { Common } from '../common'
+import { Common, CommonInterface, CommonType, Address } from '../common/schema'
 
 type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
 type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
@@ -19,6 +18,7 @@ type Payment = {
 export interface OrderInterface extends CommonInterface {
     shopId: string
     userId: string
+    customerName: string
     orderId: string
     orderNo: number
     orderStatus: OrderStatus
@@ -39,6 +39,7 @@ export interface OrderInterface extends CommonInterface {
 export type OrderType = CommonType & {
     shopId: string
     userId?: string
+    customerName?: string
     orderId?: string
     orderNo?: number
     orderStatus?: OrderStatus
@@ -59,6 +60,7 @@ export type OrderType = CommonType & {
 export class Order extends Common implements OrderInterface {
     shopId: string
     userId: string
+    customerName: string
     orderId: string
     orderNo: number
     orderStatus: OrderStatus
@@ -79,6 +81,7 @@ export class Order extends Common implements OrderInterface {
         super(data)
         this.shopId = data.shopId ? data.shopId : ''
         this.userId = data.userId ? data.userId : ''
+        this.customerName = data.customerName ? data.customerName : ''
         this.orderId = data.orderId ? data.orderId : ''
         this.orderNo = data.orderNo ? data.orderNo : 0
         this.orderStatus = data.orderStatus ? data.orderStatus : ''
@@ -101,6 +104,7 @@ export class Order extends Common implements OrderInterface {
             ...super.get(),
             shopId: this.shopId,
             userId: this.userId,
+            customerName: this.customerName,
             orderId: this.orderId,
             orderNo: this.orderNo,
             orderStatus: this.orderStatus,
