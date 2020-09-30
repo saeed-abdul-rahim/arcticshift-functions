@@ -15,6 +15,12 @@ export function collectionHandler(app: Application) {
         collection.create
     )
 
+    app.patch(`${collectionRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        collection.removeImage
+    )
+
     app.patch(collectionRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),

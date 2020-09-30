@@ -1,6 +1,8 @@
 import * as functions from 'firebase-functions'
 import { Razorpay } from 'razorpay-typescript'
 
+const { config } = functions
+
 export const TITLE = 'PROLR'
 export const URL = {
     base: 'https://articshift-7f9cd.web.app',
@@ -8,15 +10,16 @@ export const URL = {
     home: '/',
     logo: '/assets/icons/icon-72x72.png'
 }
-export const gmail = functions.config().gmail.email
-export const clientId = functions.config().service.id
-export const clientSecret = functions.config().service.secret
-export const refreshToken = functions.config().service.refresh
-export const accessToken = functions.config().service.access
+export const appId = config().app.id
+export const gmail = config().gmail.email
+export const clientId = config().service.id
+export const clientSecret = config().service.secret
+export const refreshToken = config().service.refresh
+export const accessToken = config().service.access
 
 export const razorpay: Razorpay = new Razorpay({
     authKey: {   
-        key_id: functions.config().razorpay.id,
-        key_secret: functions.config().razorpay.secret
+        key_id: config().razorpay.id,
+        key_secret: config().razorpay.secret
     }
 })

@@ -22,6 +22,13 @@ export type Tax = {
 export type ContentStorage = {
     path: string
     url: string
+    name?: string
+    dimension?: number
+}
+
+export type Content = {
+    content: ContentStorage
+    thumbnails: ContentStorage[]
 }
 
 export type Condition = {

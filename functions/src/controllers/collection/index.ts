@@ -4,7 +4,7 @@ import * as collection from '../../models/collection'
 import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { CollectionType } from '../../models/collection/schema'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 
 export async function create(req: Request, res: Response) {
@@ -57,7 +57,7 @@ export async function remove(req: Request, res: Response) {
         const { images } = collectionData
         await Promise.all(images.map(async img => {
             try {
-                await storage.remove(img.path)
+                await storage.remove(img.content.path)
             } catch (_) {}
         }))
         await collection.remove(collectionId)
@@ -70,21 +70,21 @@ export async function remove(req: Request, res: Response) {
 
 export async function removeImage(req: Request, res: Response) {
     try {
-        const { data }: { [data: string]: CollectionType } = req.body
-        const { collectionId, images } = data
-        if (!collectionId) {
-            return missingParam(res, 'ID')
-        }
-        if (!images) {
-            return missingParam(res, 'Image')
-        }
+        const { id: collectionId } = req.params
+        const { path }: { path: string } = req.body
         const collectionData = await collection.get(collectionId)
-        await Promise.all(images.map(async img => storage.remove(img.path)))
-        images.forEach(img => 
-            collectionData.images = collectionData.images.filter(i => i.path !== img.path)
-        )
-        await collection.set(collectionId, collectionData)
-        return successDeleted(res)
+        let { images } = collectionData
+        const image = images.find(img => img.content.path === path)
+        if (image) {
+            const { content, thumbnails } = image
+            await storage.remove(content.path)
+            await storage.removeMultiple(thumbnails)
+            images = images.filter(img => img.content.path !== path)
+            await collection.update(collectionId, { images })
+            return successDeleted(res)
+        } else {
+            return badRequest(res, 'Image not found')
+        }
     } catch (err) {
         console.error(err)
         return serverError(res, err)

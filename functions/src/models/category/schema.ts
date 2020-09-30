@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
+import { Common, CommonInterface, CommonType, Condition, Content } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface CategoryInterface extends CommonInterface {
@@ -7,7 +7,7 @@ export interface CategoryInterface extends CommonInterface {
     parentCategoryId: string
     name: string
     description: string
-    images: ContentStorage[]
+    images: Content[]
     subCategoryId: string[]
     parentCategoryIds: string[]
     productId: string[]
@@ -21,7 +21,7 @@ export type CategoryType = CommonType & {
     parentCategoryId?: string
     name?: string
     description?: string
-    images?: ContentStorage[]
+    images?: Content[]
     subCategoryId?: string[]
     parentCategoryIds?: string[]
     productId?: string[]
@@ -35,7 +35,7 @@ export class Category extends Common implements CategoryInterface {
     parentCategoryId: string
     name: string
     description: string
-    images: ContentStorage[]
+    images: Content[]
     subCategoryId: string[]
     parentCategoryIds: string[]
     productId: string[]
@@ -81,4 +81,4 @@ export type CategoryCondition = Condition & {
     parentFields?: (keyof CategoryType)[]
 }
 
-type CategoryFields = keyof (CategoryType & ContentStorage)
+type CategoryFields = keyof (CategoryType & Content)

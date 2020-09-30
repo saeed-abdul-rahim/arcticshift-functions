@@ -6,8 +6,8 @@ import * as collection from '../../models/collection'
 import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { ProductType } from '../../models/product/schema'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successResponse, successUpdated } from '../../responseHandler/successHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
+import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
 
 export async function create(req: Request, res: Response) {
@@ -58,31 +58,56 @@ export async function update(req: Request, res: Response) {
     }
 }
 
+export async function removeImage(req: Request, res: Response) {
+    try {
+        const { id: productId } = req.params
+        const { path }: { path: string } = req.body
+        const productData = await product.get(productId)
+        let { images } = productData
+        const image = images.find(img => img.content.path === path)
+        if (image) {
+            const { content, thumbnails } = image
+            await storage.remove(content.path)
+            await storage.removeMultiple(thumbnails)
+            images = images.filter(img => img.content.path !== path)
+            await product.update(productId, { images })
+            return successDeleted(res)
+        } else {
+            return badRequest(res, 'Image not found')
+        }
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
 export async function remove(req: Request, res: Response) {
     try {
         const { id: productId } = req.params
         const productData = await product.get(productId)
-        const { image, variantId, thumbnailUrls, categoryId, collectionId } = productData
-        if (image) {
-            try {
-                const { path } = image
-                await storage.remove(path)
-            } catch (err) {
-                console.error(err)
-            }
-        }
-        if (thumbnailUrls) {
-            try {
-                await Promise.all(thumbnailUrls.map(async thumbnail => {
-                    const { image: thumbImage } = thumbnail
-                    if (thumbImage) {
-                        const { path: thumbPath } = thumbImage
-                        await storage.remove(thumbPath)
+        const { images, variantId, categoryId, collectionId } = productData
+        if (images) {
+            await Promise.all(images.map(async img => {
+                const { content, thumbnails } = img
+                if (content) {
+                    try {
+                        const { path } = content
+                        await storage.remove(path)
+                    } catch (err) {
+                        console.error(err)
                     }
-                }))
-            } catch (err) {
-                console.error(err)
-            }
+                }
+                if (thumbnails) {
+                    try {
+                        await Promise.all(thumbnails.map(async thumbnail => {
+                            const { path: thumbPath } = thumbnail
+                            await storage.remove(thumbPath)
+                        }))
+                    } catch (err) {
+                        console.error(err)
+                    }
+                }
+            }))
         }
         if (categoryId) {
             try {

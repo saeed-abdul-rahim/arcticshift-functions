@@ -4,7 +4,7 @@ import * as category from '../../models/category'
 import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { CategoryType } from '../../models/category/schema'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 
 export async function create(req: Request, res: Response) {
@@ -70,7 +70,7 @@ export async function remove(req: Request, res: Response) {
                 const subCategoryData = await category.get(subId)
                 await Promise.all(subCategoryData.images.map(async img => {
                     try {
-                        await storage.remove(img.path)
+                        await storage.remove(img.content.path)
                     } catch (_) {}
                 }))
                 await category.remove(subId)
@@ -80,7 +80,7 @@ export async function remove(req: Request, res: Response) {
         }))
         await Promise.all(images.map(async img => {
             try {
-                await storage.remove(img.path)
+                await storage.remove(img.content.path)
             } catch (err) {
                 console.error(err)
             }
@@ -95,21 +95,21 @@ export async function remove(req: Request, res: Response) {
 
 export async function removeImage(req: Request, res: Response) {
     try {
-        const { data }: { [data: string]: CategoryType } = req.body
-        const { categoryId, images } = data
-        if (!categoryId) {
-            return missingParam(res, 'ID')
-        }
-        if (!images) {
-            return missingParam(res, 'Image')
-        }
+        const { id: categoryId } = req.params
+        const { path }: { path: string } = req.body
         const categoryData = await category.get(categoryId)
-        await Promise.all(images.map(async img => storage.remove(img.path)))
-        images.forEach(img => 
-            categoryData.images = categoryData.images.filter(i => i.path !== img.path)
-        )
-        await category.set(categoryId, categoryData)
-        return successDeleted(res)
+        let { images } = categoryData
+        const image = images.find(img => img.content.path === path)
+        if (image) {
+            const { content, thumbnails } = image
+            await storage.remove(content.path)
+            await storage.removeMultiple(thumbnails)
+            images = images.filter(img => img.content.path !== path)
+            await category.update(categoryId, { images })
+            return successDeleted(res)
+        } else {
+            return badRequest(res, 'Image not found')
+        }
     } catch (err) {
         console.error(err)
         return serverError(res, err)

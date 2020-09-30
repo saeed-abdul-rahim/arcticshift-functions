@@ -15,6 +15,12 @@ export function productHandler(app: Application) {
         product.create
     )
 
+    app.patch(`${productRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        product.removeImage
+    )
+
     app.patch(productRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),

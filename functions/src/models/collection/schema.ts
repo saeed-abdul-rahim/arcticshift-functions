@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, ContentStorage, Condition } from '../common/schema'
+import { Common, CommonInterface, CommonType, Content, Condition } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface CollectionInterface extends CommonInterface {
@@ -6,7 +6,7 @@ export interface CollectionInterface extends CommonInterface {
     collectionId: string
     name: string
     description: string
-    images: ContentStorage[]
+    images: Content[]
     productId: string[]
     featureOnHomePage: boolean
     saleDiscountId: string
@@ -18,7 +18,7 @@ export type CollectionType = CommonType & {
     collectionId?: string
     name?: string
     description?: string
-    images?: ContentStorage[]
+    images?: Content[]
     productId?: string[]
     featureOnHomePage?: boolean
     saleDiscountId?: string
@@ -30,7 +30,7 @@ export class Collection extends Common implements CollectionInterface {
     collectionId: string
     name: string
     description: string
-    images: ContentStorage[]
+    images: Content[]
     productId: string[]
     featureOnHomePage: boolean
     saleDiscountId: string
@@ -71,4 +71,4 @@ export type CollectionCondition = Condition & {
     parentFields?: (keyof CollectionType)[]
 }
 
-type CollectionFields = keyof (CollectionType & ContentStorage)
+type CollectionFields = keyof (CollectionType & Content)

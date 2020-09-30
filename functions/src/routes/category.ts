@@ -15,6 +15,12 @@ export function categoryHandler(app: Application) {
         category.create
     )
 
+    app.patch(`${categoryRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        category.removeImage
+    )
+
     app.patch(categoryRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
