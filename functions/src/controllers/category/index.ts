@@ -6,6 +6,7 @@ import { ShopType } from '../../models/shop/schema'
 import { CategoryType } from '../../models/category/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
+import { addProductToCategory, removeProductFromCategory } from './helper'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -127,14 +128,9 @@ export async function addProduct(req: Request, res: Response) {
         }
         const productData = await product.get(productId)
         const categoryData = await category.get(categoryId)
-        const { parentCategoryId } = categoryData
-        categoryData.productId.unshift(categoryId)
-        productData.categoryId.unshift(categoryId)
-        if (parentCategoryId) {
-            productData.categoryId.unshift(parentCategoryId)
-        }
-        await category.set(categoryId, categoryData)
-        await product.set(productId, productData)
+        const { newCategoryData, newProductData } = await addProductToCategory(productData, categoryData)
+        await category.set(categoryId, newCategoryData)
+        await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -150,14 +146,9 @@ export async function removeProduct(req: Request, res: Response) {
         }
         const productData = await product.get(productId)
         const categoryData = await category.get(categoryId)
-        const { subCategoryId } = categoryData
-        productData.categoryId.filter(cid => cid !== categoryId)
-        categoryData.productId.filter(pid => pid !== productId)
-        if (subCategoryId && subCategoryId.length > 0) {
-            subCategoryId.forEach(subId => productData.categoryId.filter(cid => cid !== subId))
-        }
-        await category.set(categoryId, categoryData)
-        await product.set(productId, productData)
+        const { newCategoryData, newProductData } = await removeProductFromCategory(productData, categoryData)
+        await category.set(categoryId, newCategoryData)
+        await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)

@@ -9,14 +9,22 @@ import { ProductType } from '../../models/product/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
+import { removeProductFromCategory } from '../category/helper'
+import { organizeProduct, updateOrganizeProduct } from './helper'
 
 export async function create(req: Request, res: Response) {
     try {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         let { data }: { data: ProductType } = req.body
-        const { name } = data
+        const { name, productTypeId, price } = data
         if (!name) {
             return missingParam(res, 'Name')
+        }
+        if (!productTypeId) {
+            return missingParam(res, 'Product Type')
+        }
+        if (!price) {
+            return missingParam(res, 'Price')
         }
         const keywords = createKeywords(name)
         const { shopId } = shopData
@@ -25,8 +33,10 @@ export async function create(req: Request, res: Response) {
             keywords,
             shopId
         }
-        const id = await product.add(data)
-        return successResponse(res, { id })
+        const productData = await product.add(data)
+        const { productId } = productData
+        await organizeProduct(productData)
+        return successResponse(res, { id: productId })
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -50,7 +60,8 @@ export async function update(req: Request, res: Response) {
             ...data,
             keywords
         }
-        await product.set(productId, data)
+        const productData = await product.set(productId, data)
+        await updateOrganizeProduct(oldProductData, productData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -111,17 +122,8 @@ export async function remove(req: Request, res: Response) {
         }
         if (categoryId) {
             try {
-                await Promise.all(categoryId.map(async catId => {
-                    const categoryData = await category.get(catId)
-                    const { productId: catProductId } = categoryData
-                    try {
-                        await category.update(catId, {
-                            productId: catProductId.filter(p => p !== productId)
-                        })
-                    } catch (err) {
-                        console.error(err)
-                    }
-                }))
+                const categoryData = await category.get(categoryId)
+                await removeProductFromCategory(productData, categoryData)
             } catch (err) {
                 console.error(err)
             }

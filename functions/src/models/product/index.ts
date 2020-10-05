@@ -38,24 +38,24 @@ export async function getByCondition(conditions: ProductCondition[]): Promise<Pr
     }
 }
 
-export async function add(product: ProductType): Promise<string> {
+export async function add(product: ProductType): Promise<ProductInterface> {
     try {
         const id = productsRef.doc().id
         product.productId = id
-        await set(id, product)
+        const productData = await set(id, product)
         await incrementProduct()
-        return id
+        return productData
     } catch (err) {
         throw err
     }
 }
 
-export async function set(productId: string, product: ProductType): Promise<boolean> {
+export async function set(productId: string, product: ProductType): Promise<ProductInterface> {
     try {
         const dataToInsert = new Product(product).get()
         dataToInsert.updatedAt = Date.now()
         await productsRef.doc(productId).set(dataToInsert)
-        return true
+        return dataToInsert
     } catch (err) {
         throw err
     }

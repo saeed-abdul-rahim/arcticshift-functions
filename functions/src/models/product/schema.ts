@@ -12,10 +12,11 @@ export interface ProductInterface extends CommonInterface {
     productTypeId: string
     attribute: AttributeValue
     attributeValue: AttributeValue
-    categoryId: string[]
+    categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
+    chargeTax: boolean
     tax: Tax | null
     variantId: string[]
     saleDiscountId: string
@@ -36,10 +37,11 @@ export type ProductType = CommonType & {
     productTypeId?: string
     attribute?: AttributeValue
     attributeValue?: AttributeValue
-    categoryId?: string[]
+    categoryId?: string
     collectionId?: string[]
     prices?: Price[]
     price?: number
+    chargeTax?: boolean
     tax?: Tax | null
     variantId?: string[]
     saleDiscountId?: string
@@ -60,10 +62,11 @@ export class Product extends Common implements ProductInterface {
     productTypeId: string
     attribute: AttributeValue
     attributeValue: AttributeValue
-    categoryId: string[]
+    categoryId: string
     collectionId: string[]
     prices: Price[]
     price: number
+    chargeTax: boolean
     tax: Tax | null
     variantId: string[]
     saleDiscountId: string
@@ -84,10 +87,11 @@ export class Product extends Common implements ProductInterface {
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
         this.attribute = data.attribute ? data.attribute : null
         this.attributeValue = data.attributeValue ? data.attributeValue : null
-        this.categoryId = data.categoryId ? data.categoryId : []
+        this.categoryId = data.categoryId ? data.categoryId : ''
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0
+        this.chargeTax = data.chargeTax ? data.chargeTax : false
         this.tax = data.tax ? data.tax : null
         this.variantId = data.variantId ? uniqueArr(data.variantId) : []
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
@@ -114,6 +118,7 @@ export class Product extends Common implements ProductInterface {
             collectionId: this.collectionId,
             prices: this.prices,
             price: this.price,
+            chargeTax: this.chargeTax,
             tax: this.tax,
             variantId: this.variantId,
             saleDiscountId: this.saleDiscountId,

@@ -6,6 +6,7 @@ import { ShopType } from '../../models/shop/schema'
 import { CollectionType } from '../../models/collection/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
+import { addProductToCollection, removeProductFromCollection } from './helper'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -102,11 +103,9 @@ export async function addProduct(req: Request, res: Response) {
         }
         const productData = await product.get(productId)
         const collectionData = await collection.get(collectionId)
-        const { productId: productIds } = collectionData
-        productIds.unshift(productId)
-        productData.collectionId.unshift(collectionId)
-        await collection.update(collectionId, { productId: productIds })
-        await product.set(productId, productData)
+        const { newProductData, newCollectionData } = addProductToCollection(productData, collectionData)
+        await collection.set(collectionId, newCollectionData)
+        await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -122,11 +121,9 @@ export async function removeProduct(req: Request, res: Response) {
         }
         const productData = await product.get(productId)
         const collectionData = await collection.get(collectionId)
-        let { productId: productIds } = collectionData
-        productIds = productIds.filter(pid => pid !== productId)
-        productData.collectionId = productData.collectionId.filter(cid => cid !== collectionId)
-        await collection.update(collectionId, { productId: productIds })
-        await product.set(productId, productData)
+        const { newProductData, newCollectionData } = removeProductFromCollection(productData, collectionData)
+        await collection.set(collectionId, newCollectionData)
+        await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)

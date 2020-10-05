@@ -8,6 +8,7 @@ import { categoryHandler } from './category'
 import { collectionHandler } from './collection'
 import { saleDiscountHandler } from './saleDiscount'
 import { voucherHandler } from './voucher'
+import { taxHandler } from './tax'
 
 export function routes(app: Application) {
     userHandler(app)
@@ -18,4 +19,5 @@ export function routes(app: Application) {
     collectionHandler(app)
     saleDiscountHandler(app)
     voucherHandler(app)
+    taxHandler(app)
 }
