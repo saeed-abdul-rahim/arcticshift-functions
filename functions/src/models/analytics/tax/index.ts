@@ -1,20 +1,20 @@
-import { collectionAnalyticsRef } from "../../../config/db"
+import { taxAnalyticsRef } from "../../../config/db"
 import { updateRef } from "../../common"
 import { decrementDocByOne, incrementDocByOne } from "../common"
 
-export async function incrementCollection() {
+export async function incrementTax() {
     try {
         const data = incrementDocByOne()
-        await updateRef(collectionAnalyticsRef, data)
+        await updateRef(taxAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }
 }
 
-export async function decrementCollection() {
+export async function decrementTax() {
     try {
         const data = decrementDocByOne()
-        await updateRef(collectionAnalyticsRef, data)
+        await updateRef(taxAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }

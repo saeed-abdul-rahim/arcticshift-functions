@@ -1,10 +1,11 @@
 import { advertAnalyticsRef } from "../../../config/db"
+import { updateRef } from "../../common"
 import { decrementDocByOne, incrementDocByOne } from "../common"
 
 export async function incrementAdvert() {
     try {
         const data = incrementDocByOne()
-        await advertAnalyticsRef.update(data)
+        await updateRef(advertAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }
@@ -13,7 +14,7 @@ export async function incrementAdvert() {
 export async function decrementAdvert() {
     try {
         const data = decrementDocByOne()
-        await advertAnalyticsRef.update(data)
+        await updateRef(advertAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }

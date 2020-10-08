@@ -36,7 +36,7 @@ export function attributeHandler(app: Application) {
     app.delete(`${attributeRoute}/:attributeId/value/:attributeValueId`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
-        attribute.remove
+        attribute.removeAttributeValue
     )
 
     app.delete(`${attributeRoute}/:id`,

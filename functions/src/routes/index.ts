@@ -9,11 +9,15 @@ import { collectionHandler } from './collection'
 import { saleDiscountHandler } from './saleDiscount'
 import { voucherHandler } from './voucher'
 import { taxHandler } from './tax'
+import { attributeHandler } from './attribute'
+import { productTypeHandler } from './productType'
 
 export function routes(app: Application) {
     userHandler(app)
     shopHandler(app)
     productHandler(app)
+    productTypeHandler(app)
+    attributeHandler(app)
     variantHandler(app)
     categoryHandler(app)
     collectionHandler(app)

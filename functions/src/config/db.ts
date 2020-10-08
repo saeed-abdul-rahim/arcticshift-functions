@@ -69,6 +69,7 @@ export const giftCardAnalyticsRef = dbRef.collection(ANALYTICS).doc(GIFTCARDS)
 export const orderAnalyticsRef = dbRef.collection(ANALYTICS).doc(ORDERS)
 export const userAnalyticsRef = dbRef.collection(ANALYTICS).doc(USERS)
 export const shippingAnalyticsRef = dbRef.collection(ANALYTICS).doc(SHIPPING)
+export const taxAnalyticsRef = dbRef.collection(ANALYTICS).doc(TAXES)
 export const warehouseAnalyticsRef = dbRef.collection(ANALYTICS).doc(WAREHOUSE)
 export const advertAnalyticsRef = dbRef.collection(ANALYTICS).doc(ADVERTS)
 

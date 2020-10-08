@@ -1,10 +1,11 @@
 import { saleDiscountAnalyticsRef } from "../../../config/db"
+import { updateRef } from "../../common"
 import { decrementDocByOne, incrementDocByOne } from "../common"
 
 export async function incrementSaleDiscount() {
     try {
         const data = incrementDocByOne()
-        await saleDiscountAnalyticsRef.update(data)
+        await updateRef(saleDiscountAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }
@@ -13,7 +14,7 @@ export async function incrementSaleDiscount() {
 export async function decrementSaleDiscount() {
     try {
         const data = decrementDocByOne()
-        await saleDiscountAnalyticsRef.update(data)
+        await updateRef(saleDiscountAnalyticsRef, data)
     } catch (err) {
         console.error(err)
     }

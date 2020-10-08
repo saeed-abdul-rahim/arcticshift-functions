@@ -34,3 +34,11 @@ export function isValidDateTime(datetime: Datetime) {
 export function incrementValue(value: number) {
     return admin.firestore.FieldValue.increment(value)
 }
+
+export async function updateRef(ref: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, data: any) {
+    try {
+        await ref.set(data, { merge: true })
+    } catch (err) {
+        console.error(err)
+    }
+}

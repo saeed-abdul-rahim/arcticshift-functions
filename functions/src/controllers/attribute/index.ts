@@ -11,11 +11,8 @@ export async function create(req: Request, res: Response) {
     try {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         let { data }: { data: AttributeType } = req.body
-        const { name, code } = data
+        const { name } = data
         const { shopId } = shopData
-        if (!code) {
-            return missingParam(res, 'Code')
-        }
         if (!name) {
             return missingParam(res, 'Name')
         }
@@ -34,16 +31,13 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: AttributeType } = req.body
-        const { attributeId, name, code } = data 
+        const { attributeId, name } = data 
         if (!attributeId) {
             return missingParam(res, 'ID')
         }
         const attributeData = await attribute.get(attributeId)
         if (name) {
             attributeData.name = name
-        }
-        if (code) {
-            attributeData.code = code
         }
         await attribute.set(attributeId, attributeData)
         return successUpdated(res)
@@ -76,26 +70,22 @@ export async function addAttributeValue(req: Request, res: Response) {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         const { data }: { [data: string]: AttributeValue } = req.body
         const { shopId } = shopData
-        const { attributeId, name, code } = data
+        const { attributeId, name } = data
         if (!attributeId) {
             return missingParam(res, 'Attribute ID')
         }
         if (!name) {
             return missingParam(res, 'Name')
         }
-        if (!code) {
-            return missingParam(res, 'Code')
-        }
         const attributeValueId = await attributeValue.add({
             shopId,
             attributeId,
-            code,
             name
         })
         const attributeData = await attribute.get(attributeId)
         attributeData.attributeValueId.unshift(attributeValueId)
         await attribute.set(attributeId, attributeData)
-        return successUpdated(res)
+        return successResponse(res, { id: attributeValueId })
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -105,17 +95,14 @@ export async function addAttributeValue(req: Request, res: Response) {
 export async function updateAttributeValue(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: AttributeValue } = req.body
-        const { attributeValueId, name, code } = data
+        const { attributeValueId, name } = data
         if (!attributeValueId) {
             return missingParam(res, 'Attribute Value ID')
         }
         if (!name) {
             return missingParam(res, 'Name')
         }
-        if (!code) {
-            return missingParam(res, 'Code')
-        }
-        await attributeValue.update(attributeValueId, { code, name })
+        await attributeValue.update(attributeValueId, { name })
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -124,15 +111,15 @@ export async function updateAttributeValue(req: Request, res: Response) {
 }
 
 export async function removeAttributeValue(req: Request, res: Response) {
+    const { attributeId, attributeValueId } = req.params
     try {
-        const { attributeId, attributeValueId } = req.params
         await attributeValue.remove(attributeValueId)
         const attributeData = await attribute.get(attributeId)
         attributeData.attributeValueId = attributeData.attributeValueId.filter(aid => aid !== attributeValueId)
         await attribute.set(attributeId, attributeData)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(err, attributeId, attributeValueId)
         return serverError(res, err)
     }
 }

@@ -1,4 +1,5 @@
 import { taxesRef } from '../../config/db'
+import { decrementTax, incrementTax } from '../analytics/tax'
 import { TaxInterface, TaxType, Tax, TaxObjectType } from './schema'
 
 export async function get(taxId: string): Promise<TaxInterface> {
@@ -18,6 +19,7 @@ export async function add(tax: TaxType): Promise<string> {
         const id = taxesRef.doc().id
         tax.taxId = id
         await set(id, tax)
+        await incrementTax()
         return id
     } catch (err) {
         throw err
@@ -47,6 +49,7 @@ export async function update(taxId: string, tax: TaxType): Promise<boolean> {
 export async function remove(taxId: string): Promise<boolean> {
     try {
         await taxesRef.doc(taxId).delete()
+        await decrementTax()
         return true
     } catch (err) {
         throw err
