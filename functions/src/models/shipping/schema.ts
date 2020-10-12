@@ -6,6 +6,8 @@ export interface ShippingInterface extends CommonInterface {
     shippingId: string
     name: string
     countries: string[] // ALPHA-3
+    zipCode: string[]
+    radius: number
     priceBased: Rate
     weightBased: Rate
     warehouseId: string[]
@@ -17,6 +19,8 @@ export type ShippingType = CommonType & {
     shippingId?: string
     name?: string
     countries?: string[]
+    zipCode?: string[]
+    radius?: number
     priceBased?: Rate
     weightBased?: Rate
     warehouseId?: string[]
@@ -28,6 +32,8 @@ export class Shipping extends Common implements ShippingInterface {
     shippingId: string
     name: string
     countries: string[] // ALPHA-3
+    zipCode: string[]
+    radius: number
     priceBased: Rate
     weightBased: Rate
     warehouseId: string[]
@@ -39,6 +45,8 @@ export class Shipping extends Common implements ShippingInterface {
         this.shippingId = data.shippingId ? data.shippingId : ''
         this.name = data.name ? data.name : ''
         this.countries = data.countries ? uniqueArr(data.countries) : []
+        this.zipCode = data.zipCode ? uniqueArr(data.zipCode) : []
+        this.radius = data.radius ? data.radius : 0
         this.priceBased = data.priceBased ? data.priceBased : null
         this.weightBased = data.weightBased ? data.weightBased : null
         this.warehouseId = data.warehouseId ? uniqueArr(data.warehouseId) : []
@@ -52,6 +60,8 @@ export class Shipping extends Common implements ShippingInterface {
             shippingId: this.shippingId,
             name: this.name,
             countries: this.countries,
+            zipCode: this.zipCode,
+            radius: this.radius,
             priceBased: this.priceBased,
             weightBased: this.weightBased,
             warehouseId: this.warehouseId,

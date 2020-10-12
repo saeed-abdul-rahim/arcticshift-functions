@@ -1,5 +1,6 @@
 import { attributeValuesRef } from '../../config/db'
-import { AttributeValueInterface, AttributeValueType, AttributeValue } from './schema'
+import { setCondition } from '../common'
+import { AttributeValueInterface, AttributeValueType, AttributeValue, AttributeValueCondition } from './schema'
 
 export async function get(attributeValueId: string): Promise<AttributeValueInterface> {
     try {
@@ -10,6 +11,15 @@ export async function get(attributeValueId: string): Promise<AttributeValueInter
         return new AttributeValue(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getByCondition(conditions: AttributeValueCondition[]): Promise<AttributeValueInterface[] | null> {
+    try {
+        const ref = setCondition(attributeValuesRef, conditions)
+        return await getAll(ref)
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -59,4 +69,15 @@ export async function getRef(id?: string) {
     } else {
         return attributeValuesRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as AttributeValueInterface
+        data.attributeValueId = d.id
+        data = new AttributeValue(data).get()
+        return data
+    })
 }

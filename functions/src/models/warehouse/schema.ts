@@ -1,3 +1,4 @@
+import { uniqueArr } from '../../utils/uniqueArr'
 import { Common, CommonInterface, CommonType, Address, Condition } from '../common/schema'
 
 export interface WarehouseInterface extends CommonInterface {
@@ -5,7 +6,8 @@ export interface WarehouseInterface extends CommonInterface {
     warehouseId: string
     name: string
     address: Address | null
-    shippingId: string
+    shippingId: string[]
+    pointLocation: Point | null
 }
 
 export type WarehouseType = CommonType & {
@@ -13,7 +15,8 @@ export type WarehouseType = CommonType & {
     warehouseId?: string
     name?: string
     address?: Address | null
-    shippingId?: string
+    shippingId?: string[]
+    pointLocation?: Point | null
 }
 
 export class Warehouse extends Common implements WarehouseInterface {
@@ -21,7 +24,8 @@ export class Warehouse extends Common implements WarehouseInterface {
     warehouseId: string
     name: string
     address: Address | null
-    shippingId: string
+    shippingId: string[]
+    pointLocation: Point | null
 
     constructor(data: WarehouseType) {
         super(data)
@@ -29,7 +33,8 @@ export class Warehouse extends Common implements WarehouseInterface {
         this.warehouseId = data.warehouseId ? data.warehouseId : ''
         this.name = data.name ? data.name : ''
         this.address = data.address ? data.address : null
-        this.shippingId = data.shippingId ? data.shippingId : ''
+        this.shippingId = data.shippingId ? uniqueArr(data.shippingId) : []
+        this.pointLocation = data.pointLocation ? data.pointLocation : null
     }
 
     get(): WarehouseInterface {
@@ -39,7 +44,8 @@ export class Warehouse extends Common implements WarehouseInterface {
             warehouseId: this.warehouseId,
             name: this.name,
             address: this.address,
-            shippingId: this.shippingId
+            shippingId: this.shippingId,
+            pointLocation: this.pointLocation
         }
     }
 
@@ -51,3 +57,8 @@ export type WarehouseCondition = Condition & {
 }
 
 type WarehouseFields = keyof (WarehouseType & Address)
+
+type Point = {
+    lat: number,
+    lon: number
+}

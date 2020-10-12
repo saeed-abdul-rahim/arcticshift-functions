@@ -11,6 +11,8 @@ import { voucherHandler } from './voucher'
 import { taxHandler } from './tax'
 import { attributeHandler } from './attribute'
 import { productTypeHandler } from './productType'
+import { warehouseHandler } from './warehouse'
+import { shippingHandler } from './shipping'
 
 export function routes(app: Application) {
     userHandler(app)
@@ -24,4 +26,6 @@ export function routes(app: Application) {
     saleDiscountHandler(app)
     voucherHandler(app)
     taxHandler(app)
+    warehouseHandler(app)
+    shippingHandler(app)
 }

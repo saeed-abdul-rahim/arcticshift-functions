@@ -1,6 +1,7 @@
 import { attributesRef } from '../../config/db'
 import { decrementAttribute, incrementAttribute } from '../analytics/attribute'
-import { AttributeInterface, AttributeType, Attribute } from './schema'
+import { setCondition } from '../common'
+import { AttributeInterface, AttributeType, Attribute, AttributeCondition } from './schema'
 
 export async function get(attributeId: string): Promise<AttributeInterface> {
     try {
@@ -11,6 +12,15 @@ export async function get(attributeId: string): Promise<AttributeInterface> {
         return new Attribute(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getByCondition(conditions: AttributeCondition[]): Promise<AttributeInterface[] | null> {
+    try {
+        const ref = setCondition(attributesRef, conditions)
+        return await getAll(ref)
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -62,4 +72,15 @@ export async function getRef(id?: string) {
     } else {
         return attributesRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as AttributeInterface
+        data.attributeId = d.id
+        data = new Attribute(data).get()
+        return data
+    })
 }

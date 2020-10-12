@@ -1,9 +1,11 @@
 import { Request, Response } from 'express'
 import * as attribute from '../../models/attribute'
 import * as attributeValue from '../../models/attributeValue'
+import * as product from '../../models/product'
+import * as variant from '../../models/variant'
 import { ShopType } from '../../models/shop/schema'
 import { AttributeType } from '../../models/attribute/schema'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { AttributeValue } from '../../models/attributeValue/schema'
 
@@ -52,10 +54,20 @@ export async function remove(req: Request, res: Response) {
         const { id: attributeId } = req.params
         const attributeData = await attribute.get(attributeId)
         const { attributeValueId } = attributeData
+        const products = await product.getByCondition([{ field: 'attributeId', type: '==', value: attributeId }])
+        const variants = await variant.getByCondition([{ field: 'attributeId', type: '==', value: attributeId }])
+        if (products) {
+            return badRequest(res, 'Attribute is being used by product')
+        }
+        if (variants) {
+            return badRequest(res, 'Attribute is being used by Variant')
+        }
         await Promise.all(attributeValueId.map(async atvId => {
             try {
                 await attributeValue.remove(atvId)
-            } catch (_) {}
+            } catch (err) {
+                console.error(err)
+            }
         }))
         await attribute.remove(attributeId)
         return successDeleted(res)

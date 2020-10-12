@@ -60,7 +60,7 @@ export async function remove(req: Request, res: Response) {
             await Promise.all(warehouseData.map(async wd => {
                 try {
                     const { warehouseId } = wd
-                    wd.shippingId = ''
+                    wd.shippingId = wd.shippingId.filter(id => id !== shippingId)
                     await warehouse.set(warehouseId, wd)
                 } catch (err) {
                     console.error(err)

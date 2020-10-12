@@ -1,4 +1,5 @@
 import * as product from '../../models/product'
+import * as attribute from '../../models/attribute'
 import * as productType from '../../models/productType'
 import * as category from '../../models/category'
 import * as collection from '../../models/collection'
@@ -6,8 +7,8 @@ import { ProductInterface } from "../../models/product/schema";
 import { addProductToProductType, removeProductFromProductType } from '../productType/helper';
 import { addProductToCategory, removeProductFromCategory } from '../category/helper';
 import { addProductToCollection, removeProductFromCollection } from '../collection/helper';
-import { strArrToBoolObject } from '../../utils/strArrToBoolObject';
 import { isBothArrEqual } from '../../utils/isBothArrEqual';
+import { addProductToAttribute, removeProductFromAttribute } from '../attribute/helper'
 
 export async function organizeProduct(productData: ProductInterface) {
     try {
@@ -16,15 +17,18 @@ export async function organizeProduct(productData: ProductInterface) {
             try {
                 const productTypeData = await productType.get(productTypeId)
                 const { newProductTypeData } = addProductToProductType(productData, productTypeData)
-                if (productTypeData.productAttributeId.length > 0) {
-                    const { productAttributeId } = productTypeData
-                    const attributes = strArrToBoolObject(productAttributeId)
-                    await product.update(productId, { attribute: attributes })
-                }
                 await productType.set(productTypeId, newProductTypeData)
+                const attributes = await attribute.getByCondition([{ field: 'productTypeId', type: 'array-contains', value: productTypeId }])
+                if (attributes) {
+                    await Promise.all(attributes.map(async attributeData => {
+                        const { attributeId } = attributeData
+                        const { newAttributeData } = addProductToAttribute(productData, attributeData)
+                        await attribute.set(attributeId, newAttributeData)
+                    }))
+                }
             } catch (err) {
-                await product.update(productId, { productTypeId: '' })
-                console.log(err)
+                await product.update(productId, { productTypeId: '', attributeId: [] })
+                console.error(err)
             }
         }
         if (categoryId) {
@@ -34,7 +38,7 @@ export async function organizeProduct(productData: ProductInterface) {
                 await category.set(categoryId, newCategoryData)
             } catch (err) {
                 await product.update(productId, { categoryId: '' })
-                console.log(err)
+                console.error(err)
             }
         }
         if (collectionId && collectionId.length > 0) {
@@ -46,12 +50,12 @@ export async function organizeProduct(productData: ProductInterface) {
                 } catch (err) {
                     productData.collectionId = productData.collectionId.filter(cid => cid !== collId)
                     await product.update(productId, { collectionId: productData.collectionId })
-                    console.log(err)
+                    console.error(err)
                 }
             }))
         }
     } catch (err) {
-        console.log(err)
+        console.error(err)
     }
 }
 
@@ -69,9 +73,7 @@ export async function updateOrganizeProduct(oldProductData: ProductInterface, pr
         if (oldProductData.productTypeId === productTypeId) {
             productData.productTypeId = ''
         } else if (oldProductData.productTypeId && oldProductData.productTypeId !== productTypeId) {
-            const productTypeData = await productType.get(oldProductData.productTypeId)
-            const { newProductTypeData } = removeProductFromProductType(productData, productTypeData)
-            await productType.set(oldProductData.productTypeId, newProductTypeData)
+            await removeFromProductType(oldProductData)
         }
         if (isCollectionIdEqual) {
             productData.collectionId = []
@@ -85,7 +87,7 @@ export async function updateOrganizeProduct(oldProductData: ProductInterface, pr
                         const { newCollectionData } = removeProductFromCollection(productData, collectionData)
                         await collection.set(collId, newCollectionData)
                     } catch (err) {
-                        console.log(err)
+                        console.error(err)
                     }
                 }))
             }
@@ -93,6 +95,25 @@ export async function updateOrganizeProduct(oldProductData: ProductInterface, pr
         }
         await organizeProduct(productData)
     } catch (err) {
-        console.log(err)
+        console.error(err)
+    }
+}
+
+export async function removeFromProductType(productData: ProductInterface) {
+    try {
+        const { productTypeId } = productData
+        const productTypeData = await productType.get(productTypeId)
+        const { newProductTypeData } = removeProductFromProductType(productData, productTypeData)
+        await productType.set(productTypeId, newProductTypeData)
+        const attributes = await attribute.getByCondition([{ field: 'productTypeId', type: 'array-contains', value: productTypeId }])
+        if (attributes) {
+            await Promise.all(attributes.map(async attributeData => {
+                const { attributeId } = attributeData
+                const { newAttributeData } = removeProductFromAttribute(productData, attributeData)
+                await attribute.set(attributeId, newAttributeData)
+            }))
+        }
+    } catch (err) {
+        console.error(err)
     }
 }

@@ -1,11 +1,11 @@
 import { Request, Response } from 'express'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
-import * as storage from '../../storage'
+// import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { VariantType } from '../../models/variant/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
-import { successResponse, successUpdated } from '../../responseHandler/successHandler'
+import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
 
 export async function create(req: Request, res: Response) {
@@ -87,32 +87,7 @@ export async function update(req: Request, res: Response) {
 
 export async function remove(req: Request, res: Response) {
     try {
-        const { id: variantId } = req.params
-        const variantData = await variant.get(variantId)
-        const { image, thumbnailUrls } = variantData
-        if (image) {
-            try {
-                const { path } = image
-                await storage.remove(path)
-            } catch (err) {
-                console.error(err)
-            }
-        }
-        if (thumbnailUrls) {
-            try {
-                await Promise.all(thumbnailUrls.map(async thumbnail => {
-                    const { image: thumbImage } = thumbnail
-                    if (thumbImage) {
-                        const { path: thumbPath } = thumbImage
-                        await storage.remove(thumbPath)
-                    }
-                }))
-            } catch (err) {
-                console.error(err)
-            }
-        }
-        await variant.remove(variantId)
-        return successUpdated(res)
+        return successDeleted(res)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

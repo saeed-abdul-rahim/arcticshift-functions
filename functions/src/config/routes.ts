@@ -14,6 +14,8 @@ const routes = {
     checkout: `${v1}/checkout`,
     shop: `${v1}/shop`,
     tax: `${v1}/tax`,
+    warehouse: `${v1}/warehouse`,
+    shipping: `${v1}/shipping`,
     webhook: `${v1}/webhook`,
 }
 export default routes

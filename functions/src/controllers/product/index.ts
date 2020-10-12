@@ -10,7 +10,7 @@ import { serverError, missingParam, badRequest } from '../../responseHandler/err
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
 import { removeProductFromCategory } from '../category/helper'
-import { organizeProduct, updateOrganizeProduct } from './helper'
+import { organizeProduct, removeFromProductType, updateOrganizeProduct } from './helper'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -96,7 +96,7 @@ export async function remove(req: Request, res: Response) {
     try {
         const { id: productId } = req.params
         const productData = await product.get(productId)
-        const { images, variantId, categoryId, collectionId } = productData
+        const { images, variantId, categoryId, collectionId, productTypeId } = productData
         if (images) {
             await Promise.all(images.map(async img => {
                 const { content, thumbnails } = img
@@ -119,6 +119,9 @@ export async function remove(req: Request, res: Response) {
                     }
                 }
             }))
+        }
+        if (productTypeId) {
+            await removeFromProductType(productData)
         }
         if (categoryId) {
             try {
@@ -151,7 +154,7 @@ export async function remove(req: Request, res: Response) {
                     try {
                         await variant.remove(varId)
                     } catch (err) {
-                        console.log(err)
+                        console.error(err)
                     }
                 }))
             } catch (err) {

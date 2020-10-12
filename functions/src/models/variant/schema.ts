@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Condition, ContentStorage } from '../common/schema'
+import { Common, CommonInterface, CommonType, Condition, Content } from '../common/schema'
 import { uniqueArr } from '../../utils/uniqueArr'
 
 export interface VariantInterface extends CommonInterface {
@@ -10,11 +10,10 @@ export interface VariantInterface extends CommonInterface {
     description: string
     keywords: string[]
     url: string
-    image: ContentStorage | null
-    thumbnailUrls: Thumbnail[]
+    images: Content[]
     productTypeId: string
-    attribute: AttributeValue
-    attributeValue: AttributeValue
+    attributeId: string[]
+    attributeValueId: string[]
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -37,11 +36,10 @@ export type VariantType = CommonType & {
     description?: string
     keywords?: string[]
     url?: string
-    image?: ContentStorage | null
-    thumbnailUrls?: Thumbnail[]
+    images?: Content[]
     productTypeId?: string
-    attribute?: AttributeValue
-    attributeValue?: AttributeValue
+    attributeId?: string[]
+    attributeValueId?: string[]
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
@@ -64,11 +62,10 @@ export class Variant extends Common implements VariantInterface {
     description: string
     keywords: string[]
     url: string
-    image: ContentStorage | null
-    thumbnailUrls: Thumbnail[]
+    images: Content[]
     productTypeId: string
-    attribute: AttributeValue
-    attributeValue: AttributeValue
+    attributeId: string[]
+    attributeValueId: string[]
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -91,11 +88,10 @@ export class Variant extends Common implements VariantInterface {
         this.description = data.description ? data.description : ''
         this.keywords = data.keywords ? data.keywords : []
         this.url = data.url ? data.url : ''
-        this.image = data.image ? data.image : null
-        this.thumbnailUrls = data.thumbnailUrls ? data.thumbnailUrls : []
+        this.images = data.images ? data.images : []
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
-        this.attribute = data.attribute ? data.attribute : null
-        this.attributeValue = data.attributeValue ? data.attributeValue : null
+        this.attributeId = data.attributeId ? data.attributeId : []
+        this.attributeValueId = data.attributeValueId ? data.attributeValueId : []
         this.categoryId = data.categoryId ? data.categoryId : ''
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
@@ -120,11 +116,10 @@ export class Variant extends Common implements VariantInterface {
             description: this.description,
             keywords: this.keywords,
             url: this.url,
-            image: this.image,
-            thumbnailUrls: this.thumbnailUrls,
+            images: this.images,
             productTypeId: this.productTypeId,
-            attribute: this.attribute,
-            attributeValue: this.attributeValue,
+            attributeId: this.attributeId,
+            attributeValueId: this.attributeValueId,
             categoryId: this.categoryId,
             collectionId: this.collectionId,
             prices: this.prices,
@@ -146,21 +141,12 @@ export type VariantCondition = Condition & {
     parentFields?: (keyof VariantType)[]
 }
 
-type VariantFields = keyof (VariantType & Thumbnail & Price & AttributeValue)
-
-type Thumbnail = {
-    size: string
-    image: ContentStorage | null
-}
+type VariantFields = keyof (VariantType)
 
 type Price = {
     name: string
     value: string
 }
-
-type AttributeValue = {
-    [key: string]: boolean
-} | null
 
 type WarehouseInventory = {
     warehouseId: string

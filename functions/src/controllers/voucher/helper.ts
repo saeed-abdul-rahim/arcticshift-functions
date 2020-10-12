@@ -46,7 +46,7 @@ async function updateProduct(productId: string[], voucherId: string) {
             }
         }))
     } catch (err) {
-        console.log(err)
+        console.error(err)
     }
 }
 
@@ -56,7 +56,7 @@ async function updatePrevSaleDiscount(voucherId: string, catalog: CatalogTypeKey
         voucherData[catalog] = voucherData[catalog].filter(id => catalogId !== id)
         await voucher.set(voucherId, voucherData)
     } catch (err) {
-        console.log(err)
+        console.error(err)
     }
 }
 
@@ -78,6 +78,6 @@ async function updateCategory(categoryId: string[], voucherId: string) {
             }
         }))
     } catch(err) {
-        console.log(err)
+        console.error(err)
     }
 }
