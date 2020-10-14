@@ -1,31 +1,26 @@
 import { Request, Response } from 'express'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
-// import * as storage from '../../storage'
+import * as storage from '../../storage'
 import { ShopType } from '../../models/shop/schema'
 import { VariantType } from '../../models/variant/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { createKeywords } from '../../utils/createKeywords'
 
 export async function create(req: Request, res: Response) {
     try {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         let { data }: { data: VariantType } = req.body
-        const { name, sku, productId } = data
+        const { sku, productId } = data
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
-        if (!name) {
-            return missingParam(res, 'Name')
-        }
         const productData = await product.get(productId)
-        const keywords = createKeywords(name)
         if (sku) {
             const prevVariant = await variant.getOneByCondition([{
                 field: 'sku',
                 type: '==',
-                value: data.sku
+                value: sku
             }])
             if (prevVariant) {
                 return badRequest(res, 'SKU exists')
@@ -34,7 +29,6 @@ export async function create(req: Request, res: Response) {
         const { shopId } = shopData
         data = {
             ...data,
-            keywords,
             shopId
         }
         const variantId = await variant.add(data)
@@ -50,7 +44,7 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: VariantType } = req.body
-        const { variantId, sku, name } = data
+        const { variantId, sku } = data
         if (!variantId) {
             return missingParam(res, 'ID')
         }
@@ -58,7 +52,7 @@ export async function update(req: Request, res: Response) {
             let prevVariant = await variant.getByCondition([{
                 field: 'sku',
                 type: '==',
-                value: data.sku
+                value: sku
             }])
             if (prevVariant) {
                 prevVariant = prevVariant.filter(p => p.variantId !== variantId)
@@ -68,14 +62,9 @@ export async function update(req: Request, res: Response) {
             }
         }
         const oldVariantData = await variant.get(variantId)
-        let keywords = oldVariantData.keywords
-        if (name) {
-            keywords = createKeywords(name)
-        }
         data = {
             ...oldVariantData,
-            ...data,
-            keywords
+            ...data
         }
         await variant.set(variantId, data)
         return successUpdated(res)
@@ -85,9 +74,63 @@ export async function update(req: Request, res: Response) {
     }
 }
 
+
+export async function removeImage(req: Request, res: Response) {
+    try {
+        const { id: variantId } = req.params
+        const { path }: { path: string } = req.body
+        const variantData = await variant.get(variantId)
+        let { images } = variantData
+        const image = images.find(img => img.content.path === path)
+        if (image) {
+            const { content, thumbnails } = image
+            await storage.remove(content.path)
+            await storage.removeMultiple(thumbnails)
+            images = images.filter(img => img.content.path !== path)
+            await variant.update(variantId, { images })
+            return successDeleted(res)
+        } else {
+            return badRequest(res, 'Image not found')
+        }
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
 export async function remove(req: Request, res: Response) {
     try {
-        return successDeleted(res)
+        const { id: variantId } = req.params
+        const variantData = await variant.get(variantId)
+        const { images, productId } = variantData
+        const productData = await product.get(productId)
+        productData.variantId = productData.variantId.filter(id => id !== variantId)
+        if (images) {
+            await Promise.all(images.map(async img => {
+                const { content, thumbnails } = img
+                if (content) {
+                    try {
+                        const { path } = content
+                        await storage.remove(path)
+                    } catch (err) {
+                        console.error(err)
+                    }
+                }
+                if (thumbnails) {
+                    try {
+                        await Promise.all(thumbnails.map(async thumbnail => {
+                            const { path: thumbPath } = thumbnail
+                            await storage.remove(thumbPath)
+                        }))
+                    } catch (err) {
+                        console.error(err)
+                    }
+                }
+            }))
+        }
+        await product.set(productId, productData)
+        await variant.remove(variantId)
+        return successUpdated(res)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

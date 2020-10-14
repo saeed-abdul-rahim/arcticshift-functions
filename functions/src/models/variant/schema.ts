@@ -1,5 +1,5 @@
-import { Common, CommonInterface, CommonType, Condition, Content } from '../common/schema'
-import { uniqueArr } from '../../utils/uniqueArr'
+import { ObjString, Common, CommonInterface, CommonType, Condition, Content, ObjNumber, Price } from '../common/schema'
+import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface VariantInterface extends CommonInterface {
     shopId: string
@@ -14,6 +14,7 @@ export interface VariantInterface extends CommonInterface {
     productTypeId: string
     attributeId: string[]
     attributeValueId: string[]
+    attributes: ObjString
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -22,13 +23,13 @@ export interface VariantInterface extends CommonInterface {
     like: number
     rating: number
     trackInventory: boolean
-    warehouse: WarehouseInventory[]
+    warehouseQuantity: ObjNumber
     quantity: number
     bookedQuantity: number
 }
 
 export type VariantType = CommonType & {
-    shopId: string
+    shopId?: string
     productId?: string
     variantId?: string
     sku?: string
@@ -40,6 +41,7 @@ export type VariantType = CommonType & {
     productTypeId?: string
     attributeId?: string[]
     attributeValueId?: string[]
+    attributes?: ObjString
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
@@ -48,7 +50,7 @@ export type VariantType = CommonType & {
     like?: number
     rating?: number
     trackInventory?: boolean
-    warehouse?: WarehouseInventory[]
+    warehouseQuantity?: ObjNumber
     quantity?: number
     bookedQuantity?: number
 }
@@ -66,6 +68,7 @@ export class Variant extends Common implements VariantInterface {
     productTypeId: string
     attributeId: string[]
     attributeValueId: string[]
+    attributes: ObjString
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -74,7 +77,7 @@ export class Variant extends Common implements VariantInterface {
     like: number
     rating: number
     trackInventory: boolean
-    warehouse: WarehouseInventory[]
+    warehouseQuantity: ObjNumber
     quantity: number
     bookedQuantity: number
 
@@ -92,6 +95,7 @@ export class Variant extends Common implements VariantInterface {
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
         this.attributeId = data.attributeId ? data.attributeId : []
         this.attributeValueId = data.attributeValueId ? data.attributeValueId : []
+        this.attributes = data.attributes ? data.attributes : null
         this.categoryId = data.categoryId ? data.categoryId : ''
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
@@ -100,7 +104,7 @@ export class Variant extends Common implements VariantInterface {
         this.like = data.like ? data.like : 0
         this.rating = data.rating ? data.rating : 0
         this.trackInventory = data.trackInventory ? data.trackInventory : false
-        this.warehouse = data.warehouse ? data.warehouse : []
+        this.warehouseQuantity = data.warehouseQuantity ? data.warehouseQuantity : null
         this.quantity = data.quantity ? data.quantity : 0
         this.bookedQuantity = data.bookedQuantity ? data.bookedQuantity : 0
     }
@@ -120,6 +124,7 @@ export class Variant extends Common implements VariantInterface {
             productTypeId: this.productTypeId,
             attributeId: this.attributeId,
             attributeValueId: this.attributeValueId,
+            attributes: this.attributes,
             categoryId: this.categoryId,
             collectionId: this.collectionId,
             prices: this.prices,
@@ -128,7 +133,7 @@ export class Variant extends Common implements VariantInterface {
             like: this.like,
             rating: this.rating,
             trackInventory: this.trackInventory,
-            warehouse: this.warehouse,
+            warehouseQuantity: this.warehouseQuantity,
             quantity: this.quantity,
             bookedQuantity: this.bookedQuantity
         }
@@ -141,14 +146,4 @@ export type VariantCondition = Condition & {
     parentFields?: (keyof VariantType)[]
 }
 
-type VariantFields = keyof (VariantType)
-
-type Price = {
-    name: string
-    value: string
-}
-
-type WarehouseInventory = {
-    warehouseId: string
-    quantity: number
-}
+type VariantFields = keyof (VariantType) | string

@@ -1,4 +1,4 @@
-import { uniqueArr } from '../../utils/uniqueArr'
+import { uniqueArr } from '../../utils/arrayUtils'
 import { Common, CommonInterface, CommonType, Address, Condition } from '../common/schema'
 
 export interface WarehouseInterface extends CommonInterface {

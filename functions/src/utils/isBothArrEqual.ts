@@ -1,1 +1,0 @@
-export const isBothArrEqual = (a: any[], b: any[]) => a.length === b.length && a.every((el, ix) => el === b[ix])

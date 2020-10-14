@@ -1,5 +1,5 @@
 import { Common, CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
-import { uniqueArr } from '../../utils/uniqueArr'
+import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface SaleDiscountInterface extends CommonInterface {
     shopId: string

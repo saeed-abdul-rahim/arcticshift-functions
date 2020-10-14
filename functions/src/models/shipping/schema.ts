@@ -1,5 +1,5 @@
 import { Common, Condition, CommonInterface, CommonType } from '../common/schema'
-import { uniqueArr } from '../../utils/uniqueArr'
+import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface ShippingInterface extends CommonInterface {
     shopId: string
@@ -8,21 +8,21 @@ export interface ShippingInterface extends CommonInterface {
     countries: string[] // ALPHA-3
     zipCode: string[]
     radius: number
-    priceBased: Rate
-    weightBased: Rate
+    priceBased: Rate[]
+    weightBased: Rate[]
     warehouseId: string[]
     taxId: string
 }
 
 export type ShippingType = CommonType & {
-    shopId: string
+    shopId?: string
     shippingId?: string
     name?: string
     countries?: string[]
     zipCode?: string[]
     radius?: number
-    priceBased?: Rate
-    weightBased?: Rate
+    priceBased?: Rate[]
+    weightBased?: Rate[]
     warehouseId?: string[]
     taxId?: string
 }
@@ -34,8 +34,8 @@ export class Shipping extends Common implements ShippingInterface {
     countries: string[] // ALPHA-3
     zipCode: string[]
     radius: number
-    priceBased: Rate
-    weightBased: Rate
+    priceBased: Rate[]
+    weightBased: Rate[]
     warehouseId: string[]
     taxId: string
 
@@ -47,8 +47,8 @@ export class Shipping extends Common implements ShippingInterface {
         this.countries = data.countries ? uniqueArr(data.countries) : []
         this.zipCode = data.zipCode ? uniqueArr(data.zipCode) : []
         this.radius = data.radius ? data.radius : 0
-        this.priceBased = data.priceBased ? data.priceBased : null
-        this.weightBased = data.weightBased ? data.weightBased : null
+        this.priceBased = data.priceBased ? data.priceBased : []
+        this.weightBased = data.weightBased ? data.weightBased : []
         this.warehouseId = data.warehouseId ? uniqueArr(data.warehouseId) : []
         this.taxId = data.taxId ? data.taxId : ''
     }
@@ -85,4 +85,4 @@ type Rate = {
     price?: number
     noValueLimit?: boolean
     freeShipping?: boolean
-} | null
+}

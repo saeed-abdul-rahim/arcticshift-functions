@@ -15,6 +15,12 @@ export function variantHandler(app: Application) {
         variant.create
     )
 
+    app.patch(`${variantRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        variant.removeImage
+    )
+
     app.patch(variantRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),

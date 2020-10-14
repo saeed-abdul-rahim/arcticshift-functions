@@ -7,7 +7,7 @@ import * as productType from '../../models/productType'
 import * as attribute from '../../models/attribute'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
-import { uniqueArr } from '../../utils/uniqueArr'
+import { uniqueArr } from '../../utils/arrayUtils'
 
 export async function create(req: Request, res: Response) {
     try {

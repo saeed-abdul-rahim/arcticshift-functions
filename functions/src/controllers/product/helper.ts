@@ -7,7 +7,7 @@ import { ProductInterface } from "../../models/product/schema";
 import { addProductToProductType, removeProductFromProductType } from '../productType/helper';
 import { addProductToCategory, removeProductFromCategory } from '../category/helper';
 import { addProductToCollection, removeProductFromCollection } from '../collection/helper';
-import { isBothArrEqual } from '../../utils/isBothArrEqual';
+import { isBothArrEqual } from '../../utils/arrayUtils';
 import { addProductToAttribute, removeProductFromAttribute } from '../attribute/helper'
 
 export async function organizeProduct(productData: ProductInterface) {

@@ -1,5 +1,5 @@
 import { Condition, Common, CommonInterface, CommonType } from '../common/schema'
-import { uniqueArr } from '../../utils/uniqueArr'
+import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface ProductTypeInterface extends CommonInterface {
     shopId: string

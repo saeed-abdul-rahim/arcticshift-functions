@@ -5,6 +5,12 @@ export type FieldValue = admin.firestore.FieldValue
 export type Role = 'admin' | 'staff'
 export type Status = 'active' | 'inactive'
 export type ValueType = 'fixed' | 'percent'
+export type PriceType = 'original' | 'override' | 'strike' | 'discount' | 'cost'
+
+export type Price = {
+    name: PriceType
+    value: number
+}
 
 export type CatalogType = {
     productId?: string[]
@@ -12,6 +18,14 @@ export type CatalogType = {
     collectionId?: string[]
 }
 export type CatalogTypeKey = keyof CatalogType
+
+export type ObjString = {
+    [key: string]: string
+} | null
+
+export type ObjNumber = {
+    [key: string]: number
+} | null
 
 export type Tax = {
     name: string
