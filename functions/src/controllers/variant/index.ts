@@ -12,6 +12,7 @@ export async function create(req: Request, res: Response) {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         let { data }: { data: VariantType } = req.body
         const { sku, productId } = data
+        let { price, prices } = data
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
@@ -30,6 +31,15 @@ export async function create(req: Request, res: Response) {
         data = {
             ...data,
             shopId
+        }
+        if (!price) {
+            price = productData.price
+            prices = [{ name: 'override', value: productData.price }]
+            data = {
+                ...data,
+                price,
+                prices
+            }
         }
         const variantId = await variant.add(data)
         productData.variantId.push(variantId)
