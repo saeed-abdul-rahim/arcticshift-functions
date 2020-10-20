@@ -27,7 +27,7 @@ export async function organizeProduct(productData: ProductInterface) {
                     }))
                 }
             } catch (err) {
-                await product.update(productId, { productTypeId: '', attributeId: [] })
+                await product.update(productId, { productTypeId: '', attributes: null })
                 console.error(err)
             }
         }

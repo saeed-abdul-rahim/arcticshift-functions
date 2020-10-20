@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Status, Condition, Tax, Content } from '../common/schema'
+import { Common, CommonInterface, CommonType, Status, Condition, Tax, Content, ObjString } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface ProductInterface extends CommonInterface {
@@ -10,8 +10,7 @@ export interface ProductInterface extends CommonInterface {
     url: string
     images: Content[]
     productTypeId: string
-    attributeId: string[]
-    attributeValueId: string[]
+    attributes: ObjString
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -35,8 +34,7 @@ export type ProductType = CommonType & {
     url?: string
     images?: Content[]
     productTypeId?: string
-    attributeId?: string[]
-    attributeValueId?: string[]
+    attributes?: ObjString
     categoryId?: string
     collectionId?: string[]
     prices?: Price[]
@@ -60,8 +58,7 @@ export class Product extends Common implements ProductInterface {
     url: string
     images: Content[]
     productTypeId: string
-    attributeId: string[]
-    attributeValueId: string[]
+    attributes: ObjString
     categoryId: string
     collectionId: string[]
     prices: Price[]
@@ -85,8 +82,7 @@ export class Product extends Common implements ProductInterface {
         this.url = data.url ? data.url : ''
         this.images = data.images ? data.images : []
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
-        this.attributeId = data.attributeId ? data.attributeId : []
-        this.attributeValueId = data.attributeValueId ? data.attributeValueId : []
+        this.attributes = data.attributes ? data.attributes : null
         this.categoryId = data.categoryId ? data.categoryId : ''
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
@@ -112,8 +108,7 @@ export class Product extends Common implements ProductInterface {
             url: this.url,
             images: this.images,
             productTypeId: this.productTypeId,
-            attributeId: this.attributeId,
-            attributeValueId: this.attributeValueId,
+            attributes: this.attributes,
             categoryId: this.categoryId,
             collectionId: this.collectionId,
             prices: this.prices,
@@ -136,7 +131,7 @@ export type ProductCondition = Condition & {
     parentFields?: (keyof ProductType)[]
 }
 
-type ProductFields = keyof (ProductType & Price & Content)
+type ProductFields = keyof (ProductType & Price) | string
 
 type Price = {
     name: string

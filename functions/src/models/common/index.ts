@@ -13,7 +13,7 @@ export function setCondition(collectionRef: FirebaseFirestore.CollectionReferenc
     conditions.forEach(condition => {
         const { field, type, value, parentFields } = condition
         if (parentFields && parentFields.length > 0) {
-            const whereField = parentFields.join('.') + field
+            const whereField = `${parentFields.join('.')}.${field}`
             ref = ref.where(whereField, type, value)
         } else {
             ref = ref.where(field, type, value)

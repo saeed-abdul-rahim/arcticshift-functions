@@ -47,7 +47,7 @@ export async function update(req: Request, res: Response) {
         const voucherData = await voucher.get(voucherId)
         const newData = {
             ...voucherData,
-            data
+            ...data
         }
         await voucher.set(voucherId, newData)
         return successUpdated(res)

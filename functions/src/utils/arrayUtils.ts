@@ -37,7 +37,7 @@ export function filterIn(value: string[], from: string[]): string[] {
 }
 
 export function arrToBoolObject(arr: string[]) {
-    return arr.reduce(function(m: any, v) {
+    return arr.reduce((m: any, v) => {
         m[v] = true
         return m
       }, {})

@@ -4,10 +4,8 @@ import { successDeleted, successResponse, successUpdated } from '../../responseH
 import { ShopType } from '../../models/shop/schema'
 import { ProductTypeType } from '../../models/productType/schema'
 import * as productType from '../../models/productType'
-import * as attribute from '../../models/attribute'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
-import { uniqueArr } from '../../utils/arrayUtils'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -33,49 +31,11 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: ProductTypeType } = req.body
-        let attributeIds: string[] = []
-        const { productTypeId, name, productAttributeId, variantAttributeId, taxId } = data
+        const { productTypeId } = data
         if (!productTypeId) {
             return missingParam(res, 'ID')
         }
         const productTypeData = await productType.get(productTypeId)
-        if (name) {
-            productTypeData.name = name
-        }
-        if (productAttributeId) {
-            attributeIds.push(...productAttributeId)
-            productTypeData.productAttributeId = productAttributeId
-        }
-        if (variantAttributeId) {
-            attributeIds.push(...variantAttributeId)
-            productTypeData.variantAttributeId = variantAttributeId
-        }
-        if (taxId) {
-            productTypeData.taxId = taxId
-        }
-
-        const oldAttributes = [...productTypeData.productAttributeId, ...productTypeData.variantAttributeId]
-        const attributesToRemove = uniqueArr(oldAttributes.filter(id => !attributeIds.includes(id)))
-        if (attributesToRemove.length > 0) {
-            await Promise.all(attributesToRemove.map(async id => {
-                try {
-                    const attributeData = await attribute.get(id)
-                    attributeData.productTypeId = attributeData.productTypeId.filter(pid => pid !== productTypeId)
-                    await attribute.set(id, attributeData)
-                } catch (err) {
-                    console.error(err)
-                }
-            }))
-        }
-        if (attributeIds.length > 0) {
-            attributeIds = uniqueArr(attributeIds)
-            await Promise.all(attributeIds.map(async id => {
-                const attributeData = await attribute.get(id)
-                attributeData.productTypeId.push(productTypeId)
-                await attribute.set(id, attributeData)
-            }))
-        }
-
         data = {
             ...productTypeData,
             ...data

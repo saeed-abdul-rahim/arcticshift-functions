@@ -12,8 +12,6 @@ export interface VariantInterface extends CommonInterface {
     url: string
     images: Content[]
     productTypeId: string
-    attributeId: string[]
-    attributeValueId: string[]
     attributes: ObjString
     categoryId: string
     collectionId: string[]
@@ -39,8 +37,6 @@ export type VariantType = CommonType & {
     url?: string
     images?: Content[]
     productTypeId?: string
-    attributeId?: string[]
-    attributeValueId?: string[]
     attributes?: ObjString
     categoryId?: string
     collectionId?: string[]
@@ -66,8 +62,6 @@ export class Variant extends Common implements VariantInterface {
     url: string
     images: Content[]
     productTypeId: string
-    attributeId: string[]
-    attributeValueId: string[]
     attributes: ObjString
     categoryId: string
     collectionId: string[]
@@ -93,8 +87,6 @@ export class Variant extends Common implements VariantInterface {
         this.url = data.url ? data.url : ''
         this.images = data.images ? data.images : []
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
-        this.attributeId = data.attributeId ? data.attributeId : []
-        this.attributeValueId = data.attributeValueId ? data.attributeValueId : []
         this.attributes = data.attributes ? data.attributes : null
         this.categoryId = data.categoryId ? data.categoryId : ''
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
@@ -122,8 +114,6 @@ export class Variant extends Common implements VariantInterface {
             url: this.url,
             images: this.images,
             productTypeId: this.productTypeId,
-            attributeId: this.attributeId,
-            attributeValueId: this.attributeValueId,
             attributes: this.attributes,
             categoryId: this.categoryId,
             collectionId: this.collectionId,
