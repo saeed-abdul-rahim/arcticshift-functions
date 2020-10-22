@@ -1,19 +1,7 @@
-import { Common, CommonInterface, CommonType, Address } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, Condition } from '../common/schema'
 
-type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
-type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
-
-type Product = {
-    productId: string
-    quantity: number
-}
-type Fulfilled = Product & {
-    inventoryId: string
-}
-type Payment = {
-    type: 'charge' | 'refund'
-    amount: number
-}
+export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
+export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
 
 export interface OrderInterface extends CommonInterface {
     shopId: string
@@ -37,7 +25,7 @@ export interface OrderInterface extends CommonInterface {
 }
 
 export type OrderType = CommonType & {
-    shopId: string
+    shopId?: string
     userId?: string
     customerName?: string
     orderId?: string
@@ -123,4 +111,23 @@ export class Order extends Common implements OrderInterface {
         }
     }
 
+}
+
+export type OrderCondition = Condition & {
+    field: OrderFields
+    parentFields?: (keyof OrderType)[]
+}
+
+type OrderFields = keyof (OrderType & Address)
+
+type Product = {
+    productId: string
+    quantity: number
+}
+type Fulfilled = Product & {
+    inventoryId: string
+}
+type Payment = {
+    type: 'charge' | 'refund'
+    amount: number
 }
