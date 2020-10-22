@@ -13,10 +13,12 @@ import { attributeHandler } from './attribute'
 import { productTypeHandler } from './productType'
 import { warehouseHandler } from './warehouse'
 import { shippingHandler } from './shipping'
+import { orderHandler } from './order'
 
 export function routes(app: Application) {
     userHandler(app)
     shopHandler(app)
+    orderHandler(app)
     productHandler(app)
     productTypeHandler(app)
     attributeHandler(app)

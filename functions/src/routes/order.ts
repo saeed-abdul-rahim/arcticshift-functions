@@ -4,7 +4,7 @@ import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import * as order from '../controllers/order'
 
-export function productTypeHandler(app: Application) {
+export function orderHandler(app: Application) {
 
     const orderRoute = routes.order
 
