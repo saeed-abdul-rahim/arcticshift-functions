@@ -23,6 +23,7 @@ export interface UserInterface extends CommonInterface, AuthTypeImp {
     shippingAddress: Address | null
     addressId: string[]
     wishlist: string[]
+    cart: string[]
     likes: string[]
 }
 
@@ -46,6 +47,7 @@ export type UserType = CommonType & AuthType & {
     shippingAddress?: Address | null
     addressId?: string[]
     wishlist?: string[]
+    cart?: string[]
     likes?: string[]
 }
 
@@ -71,6 +73,7 @@ export class User extends Common implements UserInterface {
     shippingAddress: Address | null
     addressId: string[]
     wishlist: string[]
+    cart: string[]
     likes: string[]
 
     constructor(data: UserType) {
@@ -96,6 +99,7 @@ export class User extends Common implements UserInterface {
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
         this.addressId = data.addressId ? uniqueArr(data.addressId) : []
         this.wishlist = data.wishlist ? uniqueArr(data.wishlist) : []
+        this.cart = data.cart ? uniqueArr(data.cart) : []
         this.likes = data.likes ? uniqueArr(data.likes) : []
     }
 
@@ -123,6 +127,7 @@ export class User extends Common implements UserInterface {
             shippingAddress: this.shippingAddress,
             addressId: this.addressId,
             wishlist: this.wishlist,
+            cart: this.cart,
             likes: this.likes
         }
     }

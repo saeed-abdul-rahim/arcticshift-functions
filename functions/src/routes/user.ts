@@ -20,6 +20,16 @@ export function userHandler(app: Application) {
         user.createStaff
     )
 
+    app.put(`${userRoute}/wishlist`,
+        isAuthenticated,
+        user.addToWishlist
+    )
+
+    app.put(`${userRoute}/cart`,
+        isAuthenticated,
+        user.addToCart
+    )
+
     app.patch(userRoute,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),

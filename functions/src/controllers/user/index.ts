@@ -93,6 +93,34 @@ export async function update(req: Request, res: Response) {
     }
 }
 
+export async function addToWishlist(req: Request, res: Response) {
+    try {
+        const { uid } = res.locals
+        const { productId } = req.body
+        const userData = await user.get(uid)
+        userData.wishlist.push(productId)
+        await user.set(uid, userData)
+        return successUpdated(res)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function addToCart(req: Request, res: Response) {
+    try {
+        const { uid } = res.locals
+        const { productId } = req.body
+        const userData = await user.get(uid)
+        userData.cart.push(productId)
+        await user.set(uid, userData)
+        return successUpdated(res)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
 export async function createAdmin(req: Request, res: Response) {
     const { email, shopId }: { email: string, shopId: string } = req.body
     await create(res, {
