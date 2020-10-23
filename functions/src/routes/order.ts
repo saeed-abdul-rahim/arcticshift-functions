@@ -13,4 +13,14 @@ export function orderHandler(app: Application) {
         order.create
     )
 
+    app.put(orderRoute,
+        isAuthenticated,
+        order.addVariant
+    )
+
+    app.patch(`${orderRoute}/:id/variant`,
+        isAuthenticated,
+        order.removeVariant
+    )
+
 }

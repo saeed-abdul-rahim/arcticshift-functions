@@ -3,6 +3,11 @@ import { Common, CommonInterface, CommonType, Address, Condition } from '../comm
 export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
 export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
 
+export type VariantQuantity = {
+    variantId: string
+    quantity: number
+}
+
 export interface OrderInterface extends CommonInterface {
     shopId: string
     userId: string
@@ -17,7 +22,7 @@ export interface OrderInterface extends CommonInterface {
     saleDiscountId: string
     giftCardId: string
     shippingId: string
-    products: Product[]
+    variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subtotal: number
     total: number
@@ -38,7 +43,7 @@ export type OrderType = CommonType & {
     saleDiscountId?: string
     giftCardId?: string
     shippingId?: string
-    products?: Product[]
+    variants?: VariantQuantity[]
     fullfilled?: Fulfilled[]
     subtotal?: number
     total?: number
@@ -59,7 +64,7 @@ export class Order extends Common implements OrderInterface {
     saleDiscountId: string
     giftCardId: string
     shippingId: string
-    products: Product[]
+    variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subtotal: number
     total: number
@@ -80,7 +85,7 @@ export class Order extends Common implements OrderInterface {
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
         this.giftCardId = data.giftCardId ? data.giftCardId : ''
         this.shippingId = data.shippingId ? data.shippingId : ''
-        this.products = data.products ? data.products : []
+        this.variants = data.variants ? data.variants : []
         this.fullfilled = data.fullfilled ? data.fullfilled : []
         this.subtotal = data.subtotal ? data.subtotal : 0
         this.total = data.total ? data.total : 0
@@ -103,7 +108,7 @@ export class Order extends Common implements OrderInterface {
             saleDiscountId: this.saleDiscountId,
             giftCardId: this.giftCardId,
             shippingId: this.shippingId,
-            products: this.products,
+            variants: this.variants,
             fullfilled: this.fullfilled,
             subtotal: this.subtotal,
             total: this.total,
@@ -120,11 +125,7 @@ export type OrderCondition = Condition & {
 
 type OrderFields = keyof (OrderType & Address)
 
-type Product = {
-    productId: string
-    quantity: number
-}
-type Fulfilled = Product & {
+type Fulfilled = VariantQuantity & {
     inventoryId: string
 }
 type Payment = {
