@@ -1,5 +1,6 @@
 import { Request, Response } from 'express'
 import * as admin from 'firebase-admin'
+import * as functions from 'firebase-functions'
 import * as storage from '../../storage'
 import { serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successCreated, successUpdated } from '../../responseHandler/successHandler'
@@ -13,6 +14,16 @@ import { Role } from '../../models/common/schema'
 import { UserType, genders } from '../../models/user/schema'
 import { randomString } from '../../utils/randomString'
 import { sendMail } from '../../mail'
+
+export async function createUserDb(userRecord: admin.auth.UserRecord, context: functions.EventContext) {
+    const { uid, email, phoneNumber, displayName } = userRecord
+    await user.set(uid, {
+        uid,
+        name: displayName,
+        email,
+        phone: phoneNumber,
+    })
+}
 
 export async function signUp(req: Request, res: Response) {
     try {

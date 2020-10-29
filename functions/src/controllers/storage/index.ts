@@ -9,10 +9,11 @@ import { Metadata } from '../../models/storage/schema'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as category from '../../models/category'
+import * as collection from '../../models/collection'
 import { download, getUrl, upload } from '../../storage'
 import { Content, ContentStorage } from '../../models/common/schema'
 import { isDefined } from '../../utils/isDefined'
-import { CATEGORY, PRODUCT, VARIANT } from '../../config/constants'
+import { CATEGORY, COLLECTION, PRODUCT, VARIANT } from '../../config/constants'
 
 export async function generateThumbnails(object: functions.storage.ObjectMetadata) {
     try {
@@ -44,17 +45,31 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
         }
 
         let images: Content[] = []
-        if (type === PRODUCT) {
-            const productData = await product.get(id)
-            images = productData && productData.images
-        } else if (type === VARIANT) {
-            const variantData = await variant.get(id)
-            images = variantData && variantData.images
-        } else if (type === CATEGORY) {
-            const categoryData = await category.get(id)
-            images = categoryData && categoryData.images
-        } else {
-            return false
+
+        switch (type) {
+
+            case PRODUCT:
+                const productData = await product.get(id)
+                images = productData && productData.images
+                break
+
+            case VARIANT:
+                const variantData = await variant.get(id)
+                images = variantData && variantData.images
+                break
+
+            case CATEGORY:
+                const categoryData = await category.get(id)
+                images = categoryData && categoryData.images
+                break
+
+            case COLLECTION:
+                const collectionData = await collection.get(id)
+                images = collectionData && collectionData.images
+                break
+
+            default:
+                return false
         }
         
         const bucketDir = dirname(filePath)
@@ -99,21 +114,23 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
 
         const allUploads = await Promise.all(uploadPromises)
 
-        const image: Content = {
-            content: {
-                path: filePath,
-                url: getUrl(filePath)
-            },
-            thumbnails: allUploads.filter(isDefined)
-        }
-        images.push(image)
+        images = pushContent(images, filePath, allUploads.filter(isDefined))
 
-        if (type === PRODUCT) {
-            await product.update(id, { images })
-        } else if (type === VARIANT) {
-            await variant.update(id, { images })
-        } else if (type === CATEGORY) {
-            await category.update(id, { images })
+        switch (type) {
+
+            case PRODUCT:
+                await product.update(id, { images })
+                break
+            
+            case VARIANT:
+                await variant.update(id, { images })
+            
+            case CATEGORY:
+                await category.update(id, { images })
+            
+            case COLLECTION:
+                await collection.update(id, { images })
+
         }
 
         await fs.remove(workingDir)
@@ -124,4 +141,15 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
         throw err
     }
 
+}
+
+function pushContent(images: Content[], filePath: string, thumbnails: ContentStorage[] = []) {
+    images.push({
+        content: {
+            path: filePath,
+            url: getUrl(filePath)
+        },
+        thumbnails
+    })
+    return images
 }

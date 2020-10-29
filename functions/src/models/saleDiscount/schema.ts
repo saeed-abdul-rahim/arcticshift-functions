@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
+import { Common, CommonInterface, CommonType, ValueType } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface SaleDiscountInterface extends CommonInterface {
@@ -10,8 +10,8 @@ export interface SaleDiscountInterface extends CommonInterface {
     categoryId: string[]
     collectionId: string[]
     productId: string[]
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 }
 
 export type SaleDiscountType = CommonType & {
@@ -23,8 +23,8 @@ export type SaleDiscountType = CommonType & {
     categoryId?: string[]
     collectionId?: string[]
     productId?: string[]
-    startDate?: Datetime | null
-    endDate?: Datetime | null
+    startDate?: number
+    endDate?: number
 }
 
 export class SaleDiscount extends Common implements SaleDiscountInterface {
@@ -36,8 +36,8 @@ export class SaleDiscount extends Common implements SaleDiscountInterface {
     categoryId: string[]
     collectionId: string[]
     productId: string[]
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 
     constructor(data: SaleDiscountType) {
         super(data)
@@ -49,8 +49,8 @@ export class SaleDiscount extends Common implements SaleDiscountInterface {
         this.categoryId = data.categoryId ? uniqueArr(data.categoryId) : []
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.productId = data.productId ? uniqueArr(data.productId) : []
-        this.startDate = data.startDate ? data.startDate : null
-        this.endDate = data.endDate ? data.endDate : null
+        this.startDate = data.startDate ? data.startDate : -1
+        this.endDate = data.endDate ? data.endDate : -1
     }
 
     get(): SaleDiscountInterface {

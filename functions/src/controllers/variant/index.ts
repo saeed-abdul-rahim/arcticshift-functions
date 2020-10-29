@@ -17,6 +17,10 @@ export async function create(req: Request, res: Response) {
             return missingParam(res, 'Product ID')
         }
         const productData = await product.get(productId)
+        data = {
+            ...data,
+            productName: productData.name
+        }
         if (sku) {
             const prevVariant = await variant.getOneByCondition([{
                 field: 'sku',

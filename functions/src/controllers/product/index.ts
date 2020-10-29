@@ -52,8 +52,18 @@ export async function update(req: Request, res: Response) {
         }
         const oldProductData = await product.get(productId)
         let keywords = oldProductData.keywords
-        if (name) {
+        if (name && oldProductData.name !== name) {
             keywords = createKeywords(name)
+            const { variantId } = oldProductData
+            await Promise.all(variantId.map(async varId => {
+                try {
+                    const variantData = await variant.get(varId)
+                    variantData.productName = name
+                    await variant.set(varId, variantData)
+                } catch (err) {
+                    console.error(err)
+                }
+            }))
         }
         data = {
             ...oldProductData,

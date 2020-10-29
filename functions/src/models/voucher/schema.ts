@@ -1,8 +1,9 @@
-import { Common, CommonInterface, CommonType, Datetime, ValueType } from '../common/schema'
+import { Common, CommonInterface, CommonType, ValueType } from '../common/schema'
 import { valueTypes } from '../common'
 import { uniqueArr } from '../../utils/arrayUtils'
 
-type VoucherTypeType = ValueType | 'shipping'
+type OrderType = 'entireOrder' | 'specificProducts'
+type VoucherValueType = ValueType | 'shipping'
 type MinimumRequirementType = 'orderValue' | 'quantity'
 
 type MinimumRequirement = {
@@ -10,14 +11,15 @@ type MinimumRequirement = {
     value: number
 } | null
 
-export const voucherValueTypes: VoucherTypeType[] = [ ...valueTypes, 'shipping' ]
+export const voucherValueTypes: VoucherValueType[] = [ ...valueTypes, 'shipping' ]
 export const minimumRequirementTypes: MinimumRequirementType[] = [ 'orderValue', 'quantity' ]
 
 export interface VoucherInterface extends CommonInterface {
     shopId: string
     voucherId: string
     code: string
-    valueType: VoucherTypeType
+    valueType: VoucherValueType
+    orderType: OrderType
     value: number
     entireOrder: boolean
     oncePerOrder: boolean
@@ -27,15 +29,16 @@ export interface VoucherInterface extends CommonInterface {
     minimumRequirement: MinimumRequirement
     totalUsage: number
     onePerUser: boolean
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 }
 
 export type VoucherType = CommonType & {
     shopId: string
     voucherId?: string
     code?: string
-    valueType?: VoucherTypeType
+    valueType?: VoucherValueType
+    orderType?: OrderType
     value?: number
     entireOrder?: boolean
     oncePerOrder?: boolean
@@ -45,15 +48,16 @@ export type VoucherType = CommonType & {
     minimumRequirement?: MinimumRequirement
     totalUsage?: number
     onePerUser?: boolean
-    startDate?: Datetime | null
-    endDate?: Datetime | null
+    startDate?: number
+    endDate?: number
 }
 
 export class Voucher extends Common implements VoucherInterface {
     shopId: string
     voucherId: string
     code: string
-    valueType: VoucherTypeType
+    valueType: VoucherValueType
+    orderType: OrderType
     value: number
     entireOrder: boolean
     oncePerOrder: boolean
@@ -63,8 +67,8 @@ export class Voucher extends Common implements VoucherInterface {
     minimumRequirement: MinimumRequirement
     totalUsage: number
     onePerUser: boolean
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 
     constructor(data: VoucherType) {
         super(data)
@@ -72,6 +76,7 @@ export class Voucher extends Common implements VoucherInterface {
         this.voucherId = data.voucherId ? data.voucherId : ''
         this.code = data.code ? data.code : ''
         this.valueType = data.valueType ? data.valueType : 'fixed'
+        this.orderType = data.orderType ? data.orderType : 'entireOrder'
         this.value = data.value ? data.value : 0
         this.entireOrder = data.entireOrder ? data.entireOrder : true
         this.oncePerOrder = data.oncePerOrder ? data.oncePerOrder : false
@@ -81,8 +86,8 @@ export class Voucher extends Common implements VoucherInterface {
         this.minimumRequirement = data.minimumRequirement ? data.minimumRequirement : null
         this.totalUsage = data.totalUsage ? data.totalUsage : -1
         this.onePerUser = data.onePerUser ? data.onePerUser : false
-        this.startDate = data.startDate ? data.startDate : null
-        this.endDate = data.endDate ? data.endDate : null
+        this.startDate = data.startDate ? data.startDate : -1
+        this.endDate = data.endDate ? data.endDate : -1
     }
 
     get(): VoucherInterface {
@@ -92,6 +97,7 @@ export class Voucher extends Common implements VoucherInterface {
             voucherId: this.voucherId,
             code: this.code,
             valueType: this.valueType,
+            orderType: this.orderType,
             value: this.value,
             entireOrder: this.entireOrder,
             oncePerOrder: this.oncePerOrder,

@@ -6,7 +6,8 @@ import { ShopType } from '../../models/shop/schema'
 import { CollectionType } from '../../models/collection/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
-import { addProductToCollection, removeProductFromCollection } from './helper'
+import { removeProductFromCollection } from './helper'
+import { isDefined } from '../../utils/isDefined'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -32,18 +33,13 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: CollectionType } = req.body
-        const { collectionId, name, images } = data 
+        const { collectionId } = data 
         if (!collectionId) {
             return missingParam(res, 'ID')
         }
         const collectionData = await collection.get(collectionId)
-        if (name) {
-            collectionData.name = name
-        }
-        if (images) {
-            collectionData.images = images
-        }
-        await collection.set(collectionId, collectionData)
+        const newData = { ...collectionData, ...data }
+        await collection.set(collectionId, newData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -94,18 +90,27 @@ export async function removeImage(req: Request, res: Response) {
 
 export async function addProduct(req: Request, res: Response) {
     try {
-        const { collectionId, productId }: { collectionId: string, productId: string } = req.body
+        const { data }: { data: { collectionId: string, productId: string[] } } = req.body
+        const { collectionId, productId } = data
         if (!collectionId) {
             return missingParam(res, 'Collection ID')
         }
-        if (!productId) {
+        if (!productId || productId.length === 0) {
             return missingParam(res, 'Product ID')
         }
-        const productData = await product.get(productId)
         const collectionData = await collection.get(collectionId)
-        const { newProductData, newCollectionData } = addProductToCollection(productData, collectionData)
-        await collection.set(collectionId, newCollectionData)
-        await product.set(productId, newProductData)
+        const successPIds = await Promise.all(productId.map(async pId => {
+            try {
+                const productData = await product.get(pId)
+                productData.collectionId.unshift(collectionId)
+                await product.set(pId, productData)
+                return pId
+            } catch (_) {
+                return
+            }
+        })).then(p => p.filter(isDefined))
+        collectionData.productId.push(...successPIds)
+        await collection.set(collectionId, collectionData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -115,14 +120,16 @@ export async function addProduct(req: Request, res: Response) {
 
 export async function removeProduct(req: Request, res: Response) {
     try {
-        const { cid: collectionId, pid: productId } = req.params
+        const { id } = req.params
+        const { data }: { data: { productId: string } } = req.body
+        const { productId } = data
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
         const productData = await product.get(productId)
-        const collectionData = await collection.get(collectionId)
+        const collectionData = await collection.get(id)
         const { newProductData, newCollectionData } = removeProductFromCollection(productData, collectionData)
-        await collection.set(collectionId, newCollectionData)
+        await collection.set(id, newCollectionData)
         await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {

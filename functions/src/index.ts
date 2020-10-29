@@ -8,6 +8,7 @@ import * as cors from 'cors'
 
 import { routes } from './routes'
 import { supportRoute } from './config/db';
+import { createUserDb } from './controllers/user'
 import { sendSupportMessage } from './controllers/support'
 import { generateThumbnails } from './controllers/storage';
 
@@ -15,6 +16,8 @@ const app = express()
 app.use(express.json())
 app.use(cors({ origin: true }))
 routes(app)
+
+export const authOnCreate = functions.auth.user().onCreate(createUserDb)
 
 export const onFileUpload = functions.storage
     .object()

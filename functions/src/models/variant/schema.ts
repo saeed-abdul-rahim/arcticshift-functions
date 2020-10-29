@@ -7,6 +7,7 @@ export interface VariantInterface extends CommonInterface {
     variantId: string
     sku: string
     name: string
+    productName: string
     description: string
     keywords: string[]
     url: string
@@ -32,6 +33,7 @@ export type VariantType = CommonType & {
     variantId?: string
     sku?: string
     name?: string
+    productName?: string
     description?: string
     keywords?: string[]
     url?: string
@@ -57,6 +59,7 @@ export class Variant extends Common implements VariantInterface {
     variantId: string
     sku: string
     name: string
+    productName: string
     description: string
     keywords: string[]
     url: string
@@ -82,6 +85,7 @@ export class Variant extends Common implements VariantInterface {
         this.variantId = data.variantId ? data.variantId : ''
         this.sku = data.sku ? data.sku : ''
         this.name = data.name ? data.name : ''
+        this.productName = data.productName ? data.productName : ''
         this.description = data.description ? data.description : ''
         this.keywords = data.keywords ? data.keywords : []
         this.url = data.url ? data.url : ''
@@ -109,6 +113,7 @@ export class Variant extends Common implements VariantInterface {
             variantId: this.variantId,
             sku: this.sku,
             name: this.name,
+            productName: this.productName,
             description: this.description,
             keywords: this.keywords,
             url: this.url,

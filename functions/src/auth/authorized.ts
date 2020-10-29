@@ -7,9 +7,11 @@ export function isAuthorized(opts: { hasRole?: Array<Role>, allowSameUser?: bool
    return async (req: Request, res: Response, next: Function) => {
         const { claims, uid } = res.locals
         const { id } = req.params
+        const { data } = req.body
+        const { userId } = data
         const { shopid } = req.headers
         res.locals = { ...res.locals, shopId: shopid }
-        if (opts.allowSameUser && id && uid === id)
+        if (opts.allowSameUser && ((id && uid === id) || (userId && uid === userId)))
             return next();
         else if (!claims)
             return forbidden(res);

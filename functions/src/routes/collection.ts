@@ -15,28 +15,28 @@ export function collectionHandler(app: Application) {
         collection.create
     )
 
-    app.patch(`${collectionRoute}/:id/image`,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        collection.removeImage
-    )
-
-    app.patch(collectionRoute,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        collection.update
-    )
-
     app.put(collectionRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         collection.addProduct
     )
 
-    app.delete(`${collectionRoute}/:cid/product/:pid`,
+    app.patch(`${collectionRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        collection.removeImage
+    )
+
+    app.patch(`${collectionRoute}/:id/product`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         collection.removeProduct
+    )
+
+    app.patch(collectionRoute,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        collection.update
     )
 
     app.delete(`${collectionRoute}/:id/image`,
