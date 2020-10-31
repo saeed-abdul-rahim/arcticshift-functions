@@ -15,28 +15,28 @@ export function categoryHandler(app: Application) {
         category.create
     )
 
-    app.patch(`${categoryRoute}/:id/image`,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.removeImage
-    )
-
-    app.patch(categoryRoute,
-        isAuthenticated,
-        isAuthorized({ hasRole: ['admin', 'staff'] }),
-        category.update
-    )
-
     app.put(categoryRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         category.addProduct
     )
 
-    app.delete(`${categoryRoute}/:cid/product/:pid`,
+    app.patch(`${categoryRoute}/:id/image`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        category.removeImage
+    )
+
+    app.patch(`${categoryRoute}/:id/product`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         category.removeProduct
+    )
+
+    app.patch(categoryRoute,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        category.update
     )
 
     app.delete(`${categoryRoute}/:id/image`,

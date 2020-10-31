@@ -5,7 +5,7 @@ import * as category from '../../models/category'
 import * as collection from '../../models/collection'
 import { ProductInterface } from "../../models/product/schema";
 import { addProductToProductType, removeProductFromProductType } from '../productType/helper';
-import { addProductToCategory, removeProductFromCategory } from '../category/helper';
+import { addProductToAllCategories, removeProductFromAllCategories } from '../category/helper';
 import { addProductToCollection, removeProductFromCollection } from '../collection/helper';
 import { isBothArrEqual } from '../../utils/arrayUtils';
 import { addProductToAttribute, removeProductFromAttribute } from '../attribute/helper'
@@ -34,10 +34,11 @@ export async function organizeProduct(productData: ProductInterface) {
         if (categoryId) {
             try {
                 const categoryData = await category.get(categoryId)
-                const { newCategoryData } = await addProductToCategory(productData, categoryData)
-                await category.set(categoryId, newCategoryData)
+                const allCategories = await addProductToAllCategories(productId, categoryData)
+                const allCategoryId = allCategories.map(cat => cat.categoryId)
+                await product.update(productId, { allCategoryId })
             } catch (err) {
-                await product.update(productId, { categoryId: '' })
+                await product.update(productId, { categoryId: '', allCategoryId: [] })
                 console.error(err)
             }
         }
@@ -59,16 +60,16 @@ export async function organizeProduct(productData: ProductInterface) {
     }
 }
 
-export async function updateOrganizeProduct(oldProductData: ProductInterface, productData: ProductInterface) {
+export async function organizeProductUpdate(oldProductData: ProductInterface, productData: ProductInterface) {
     try {
-        const { categoryId, collectionId, productTypeId } = productData
+        const { categoryId, collectionId, productTypeId, productId } = productData
         const isCollectionIdEqual = isBothArrEqual(oldProductData.collectionId, collectionId)
         if (oldProductData.categoryId === categoryId) {
             productData.categoryId = ''
         } else if (oldProductData.categoryId && oldProductData.categoryId !== categoryId) {
             const categoryData = await category.get(oldProductData.categoryId)
-            const { newCategoryData } = await removeProductFromCategory(productData, categoryData)
-            await category.set(oldProductData.categoryId, newCategoryData)
+            const allRemovedIds = await removeProductFromAllCategories(productId, categoryData)
+            productData.allCategoryId = productData.allCategoryId.filter(cid => !allRemovedIds.includes(cid))
         }
         if (oldProductData.productTypeId === productTypeId) {
             productData.productTypeId = ''

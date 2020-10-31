@@ -51,11 +51,20 @@ export async function remove(req: Request, res: Response) {
     try {
         const { id: collectionId } = req.params
         const collectionData = await collection.get(collectionId)
-        const { images } = collectionData
+        const { images, productId } = collectionData
         await Promise.all(images.map(async img => {
             try {
                 await storage.remove(img.content.path)
             } catch (_) {}
+        }))
+        await Promise.all(productId.map(async pId => {
+            try {
+                const productData = await product.get(pId)
+                productData.collectionId = productData.collectionId.filter(cid => cid !== collectionId)
+                await product.set(pId, productData)
+            } catch (err) {
+                console.error(err)
+            }
         }))
         await collection.remove(collectionId)
         return successDeleted(res)
@@ -120,16 +129,16 @@ export async function addProduct(req: Request, res: Response) {
 
 export async function removeProduct(req: Request, res: Response) {
     try {
-        const { id } = req.params
+        const { id: collectionId } = req.params
         const { data }: { data: { productId: string } } = req.body
         const { productId } = data
         if (!productId) {
             return missingParam(res, 'Product ID')
         }
         const productData = await product.get(productId)
-        const collectionData = await collection.get(id)
+        const collectionData = await collection.get(collectionId)
         const { newProductData, newCollectionData } = removeProductFromCollection(productData, collectionData)
-        await collection.set(id, newCollectionData)
+        await collection.set(collectionId, newCollectionData)
         await product.set(productId, newProductData)
         return successUpdated(res)
     } catch (err) {

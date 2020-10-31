@@ -9,8 +9,8 @@ import { ProductType } from '../../models/product/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { createKeywords } from '../../utils/createKeywords'
-import { removeProductFromCategory } from '../category/helper'
-import { organizeProduct, removeFromProductType, updateOrganizeProduct } from './helper'
+import { removeProductFromAllCategories } from '../category/helper'
+import { organizeProduct, removeFromProductType, organizeProductUpdate } from './helper'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -71,7 +71,7 @@ export async function update(req: Request, res: Response) {
             keywords
         }
         const productData = await product.set(productId, data)
-        await updateOrganizeProduct(oldProductData, productData)
+        await organizeProductUpdate(oldProductData, productData)
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -136,7 +136,7 @@ export async function remove(req: Request, res: Response) {
         if (categoryId) {
             try {
                 const categoryData = await category.get(categoryId)
-                await removeProductFromCategory(productData, categoryData)
+                await removeProductFromAllCategories(productId, categoryData)
             } catch (err) {
                 console.error(err)
             }
