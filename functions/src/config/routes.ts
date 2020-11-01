@@ -9,6 +9,7 @@ import {
     PRODUCTTYPE,
     SALEDISCOUNT,
     SHIPPING,
+    SHIPPINGRATE,
     SHOP,
     TAX,
     USER,
@@ -36,6 +37,7 @@ const routes = {
     tax: `${v1}/${TAX}`,
     warehouse: `${v1}/${WAREHOUSE}`,
     shipping: `${v1}/${SHIPPING}`,
+    shippingRate: `${v1}/${SHIPPINGRATE}`,
     webhook: `${v1}/${WEBHOOK}`,
 }
 export default routes

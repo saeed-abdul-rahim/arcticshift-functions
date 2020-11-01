@@ -52,6 +52,11 @@ export type Condition = {
     parentFields?: string[]
 }
 
+export type OrderBy = {
+    field: string
+    direction: 'asc' | 'desc'
+};
+
 export type SignInType = {
     email?: string
     phone?: string

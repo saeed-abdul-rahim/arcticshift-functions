@@ -4,8 +4,9 @@ import { successDeleted, successResponse, successUpdated } from '../../responseH
 import { ShopType } from '../../models/shop/schema'
 import { ShippingType } from '../../models/shipping/schema'
 import * as shipping from '../../models/shipping'
+import * as shippingRate from '../../models/shippingRate'
 import * as warehouse from '../../models/warehouse'
-import { hasDuplicatesArrObj, isBothArrEqual, removeDuplicatesArrObj } from '../../utils/arrayUtils'
+import { isBothArrEqual } from '../../utils/arrayUtils'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -44,17 +45,11 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: ShippingType } = req.body
-        const { shippingId, priceBased, weightBased, warehouseId } = data
+        const { shippingId, warehouseId } = data
         if (!shippingId) {
             return missingParam(res, 'ID')
         }
         const shippingData = await shipping.get(shippingId)
-        if (priceBased && priceBased.length > 0 && hasDuplicatesArrObj(priceBased, 'name')) {
-            data.priceBased = removeDuplicatesArrObj(priceBased, 'name', true)
-        }
-        if (weightBased && weightBased.length > 0 && hasDuplicatesArrObj(weightBased, 'name')) {
-            data.weightBased = removeDuplicatesArrObj(weightBased, 'name', true)
-        }
         data = {
             ...shippingData,
             ...data
@@ -96,7 +91,8 @@ export async function update(req: Request, res: Response) {
 export async function remove(req: Request, res: Response) {
     try {
         const { id: shippingId } = req.params
-        await shipping.get(shippingId)
+        const shippingData = await shipping.get(shippingId)
+        const { rates } = shippingData
         const warehouseData = await warehouse.getByCondition([{
             field: 'shippingId',
             type: '==',
@@ -113,6 +109,13 @@ export async function remove(req: Request, res: Response) {
                 }
             }))
         }
+        await Promise.all(rates.map(async rateId => {
+            try {
+                await shippingRate.remove(rateId)
+            } catch (err) {
+                console.error(err)
+            }
+        }))
         await shipping.remove(shippingId)
         return successDeleted(res)
     } catch (err) {

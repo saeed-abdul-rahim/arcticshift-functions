@@ -24,7 +24,7 @@ import {
     PAGES,
     NAVIGATION,
     SUPPORT,
-    INVENTORY, ANALYTICS
+    INVENTORY, ANALYTICS, SHIPPINGRATES
 } from './constants'
 
 const db = admin.firestore()
@@ -50,6 +50,7 @@ export const saleDiscountsRef = dbRef.collection(SALEDISCOUNTS)
 export const vouchersRef = dbRef.collection(VOUCHERS)
 export const giftCardsRef = dbRef.collection(GIFTCARDS)
 export const shippingsRef = dbRef.collection(SHIPPING)
+export const shippingRatesRef = dbRef.collection(SHIPPINGRATES)
 export const warehouseRef = dbRef.collection(WAREHOUSE)
 export const inventoryRef = dbRef.collection(INVENTORY)
 export const advertsRef = dbRef.collection(ADVERTS)

@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { CatalogType } from '../../models/common/schema'
 import { ShopType } from '../../models/shop/schema'
 import { VoucherType } from '../../models/voucher/schema'
-import { updateCatalog } from './helper'
+import { checkIfVoucherExists, updateCatalog } from './helper'
 import * as voucher from '../../models/voucher'
 
 export async function create(req: Request, res: Response) {
@@ -15,6 +15,10 @@ export async function create(req: Request, res: Response) {
         const { shopId } = shopData
         if (!code) {
             return missingParam(res, 'Code')
+        }
+        const voucherExists = await checkIfVoucherExists(code)
+        if (voucherExists) {
+            return badRequest(res, 'Voucher exists')
         }
         if (!value) {
             return missingParam(res, 'Value')
@@ -40,11 +44,17 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: VoucherType } = req.body
-        const { voucherId } = data 
+        const { voucherId, code } = data 
         if (!voucherId) {
             return missingParam(res, 'ID')
         }
         const voucherData = await voucher.get(voucherId)
+        if (code && voucherData.code !== code) {
+            const voucherExists = await checkIfVoucherExists(code)
+            if (voucherExists) {
+                return badRequest(res, 'Voucher exists')
+            }
+        }
         const newData = {
             ...voucherData,
             ...data

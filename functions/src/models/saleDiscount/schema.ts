@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, ValueType } from '../common/schema'
+import { Common, CommonInterface, CommonType, Condition, ValueType } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface SaleDiscountInterface extends CommonInterface {
@@ -70,3 +70,9 @@ export class SaleDiscount extends Common implements SaleDiscountInterface {
     }
 
 }
+
+export type SaleDiscountCondition = Condition & {
+    field: SaleDiscountFields
+}
+
+type SaleDiscountFields = keyof (SaleDiscountType)

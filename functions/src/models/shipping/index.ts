@@ -15,6 +15,19 @@ export async function get(shippingId: string): Promise<ShippingInterface> {
     }
 }
 
+export async function getOneByCondition(conditions: ShippingCondition[]): Promise<ShippingInterface | null> {
+    try {
+        const data = await getByCondition(conditions)
+        if (!data) {
+            return data
+        } else {
+            return data[0]
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
 export async function getByCondition(conditions: ShippingCondition[]): Promise<ShippingInterface[] | null> {
     try {
         const ref = setCondition(shippingsRef, conditions)

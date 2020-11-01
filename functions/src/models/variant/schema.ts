@@ -14,8 +14,6 @@ export interface VariantInterface extends CommonInterface {
     images: Content[]
     productTypeId: string
     attributes: ObjString
-    categoryId: string
-    collectionId: string[]
     prices: Price[]
     price: number
     variantIds: string[]
@@ -40,8 +38,6 @@ export type VariantType = CommonType & {
     images?: Content[]
     productTypeId?: string
     attributes?: ObjString
-    categoryId?: string
-    collectionId?: string[]
     prices?: Price[]
     price?: number
     variantIds?: string[]
@@ -66,8 +62,6 @@ export class Variant extends Common implements VariantInterface {
     images: Content[]
     productTypeId: string
     attributes: ObjString
-    categoryId: string
-    collectionId: string[]
     prices: Price[]
     price: number
     variantIds: string[]
@@ -92,8 +86,6 @@ export class Variant extends Common implements VariantInterface {
         this.images = data.images ? data.images : []
         this.productTypeId = data.productTypeId ? data.productTypeId : ''
         this.attributes = data.attributes ? data.attributes : null
-        this.categoryId = data.categoryId ? data.categoryId : ''
-        this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0
         this.variantIds = data.variantIds ? uniqueArr(data.variantIds) : []
@@ -120,8 +112,6 @@ export class Variant extends Common implements VariantInterface {
             images: this.images,
             productTypeId: this.productTypeId,
             attributes: this.attributes,
-            categoryId: this.categoryId,
-            collectionId: this.collectionId,
             prices: this.prices,
             price: this.price,
             variantIds: this.variantIds,

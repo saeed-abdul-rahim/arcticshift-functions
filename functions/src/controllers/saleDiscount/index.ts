@@ -1,10 +1,10 @@
 import { Request, Response } from 'express'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { valueTypes } from '../../models/common'
 import { ShopType } from '../../models/shop/schema'
 import { SaleDiscountType } from '../../models/saleDiscount/schema'
-import { updateCatalog } from './helper'
+import { checkIfSaleDiscountExists, updateCatalog } from './helper'
 import * as saleDiscount from '../../models/saleDiscount'
 import { CatalogType } from '../../models/common/schema'
 
@@ -16,6 +16,10 @@ export async function create(req: Request, res: Response) {
         const { shopId } = shopData
         if (!name) {
             return missingParam(res, 'Name')
+        }
+        const saleExists = await checkIfSaleDiscountExists(name)
+        if (saleExists) {
+            return badRequest(res, 'Sale Discount Exists')
         }
         if (!value) {
             return missingParam(res, 'Value')
@@ -47,7 +51,12 @@ export async function update(req: Request, res: Response) {
         }
         const saleDiscountData = await saleDiscount.get(saleDiscountId)
         if (name) {
-            saleDiscountData.name = name
+            const saleExists = await checkIfSaleDiscountExists(name)
+            if (saleExists) {
+                return badRequest(res, 'Sale Discount Exists')
+            } else {
+                saleDiscountData.name = name
+            }
         }
         if (value) {
             saleDiscountData.value = value

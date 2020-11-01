@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, ValueType } from '../common/schema'
+import { Common, CommonInterface, CommonType, Condition, OrderBy, ValueType } from '../common/schema'
 import { valueTypes } from '../common'
 import { uniqueArr } from '../../utils/arrayUtils'
 
@@ -113,3 +113,15 @@ export class Voucher extends Common implements VoucherInterface {
     }
 
 }
+
+export type VoucherCondition = Condition & {
+    field: VoucherFields
+    parentFields?: AllVoucherFields[]
+}
+
+export type VoucherOrderBy = OrderBy & {
+    field: VoucherFields
+}
+
+type AllVoucherFields = keyof (VoucherType & MinimumRequirement)
+type VoucherFields = keyof VoucherType

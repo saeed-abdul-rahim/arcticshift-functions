@@ -3,6 +3,12 @@ import { UserInterface } from "../../models/user/schema"
 import * as order from "../../models/order"
 import { isDefined } from "../../utils/isDefined"
 
+export type AggregateType = {
+    subTotal: number
+    total: number
+    taxes: number
+}
+
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
     try {
         const orderStatus: OrderStatus = 'draft'
@@ -39,4 +45,12 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
     } else {
         throw new Error('Not a draft')
     }
+}
+
+export function isDraft(orderData: OrderInterface) {
+    const { orderStatus } = orderData
+    if (orderStatus === 'draft') {
+        return true
+    }
+    return false
 }

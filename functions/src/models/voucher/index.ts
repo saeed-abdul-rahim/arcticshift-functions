@@ -1,6 +1,7 @@
 import { vouchersRef } from '../../config/db'
 import { decrementVoucher, incrementVoucher } from '../analytics/voucher'
-import { VoucherInterface, VoucherType, Voucher } from './schema'
+import { setCondition } from '../common'
+import { VoucherInterface, VoucherType, Voucher, VoucherCondition, VoucherOrderBy } from './schema'
 
 export async function get(voucherId: string): Promise<VoucherInterface> {
     try {
@@ -11,6 +12,29 @@ export async function get(voucherId: string): Promise<VoucherInterface> {
         return new Voucher(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getOneByCondition(conditions: VoucherCondition[], orderBy?: VoucherOrderBy): Promise<VoucherInterface | null> {
+    try {
+        const data = await getByCondition(conditions, orderBy, 1)
+        if (!data) {
+            return data
+        }
+        else {
+            return data[0]
+        }
+    } catch (err) {
+        throw err;
+    }
+}
+
+export async function getByCondition(conditions: VoucherCondition[], orderBy?: VoucherOrderBy, limit?: number): Promise<VoucherInterface[] | null> {
+    try {
+        const ref = setCondition(vouchersRef, conditions, orderBy, limit);
+        return await getAll(ref)
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -62,4 +86,15 @@ export async function getRef(id?: string) {
     } else {
         return vouchersRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as VoucherInterface
+        data.voucherId = d.id
+        data = new Voucher(data).get()
+        return data
+    })
 }

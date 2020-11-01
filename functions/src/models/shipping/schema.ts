@@ -8,8 +8,7 @@ export interface ShippingInterface extends CommonInterface {
     countries: string[] // ALPHA-3
     zipCode: string[]
     radius: number
-    priceBased: Rate[]
-    weightBased: Rate[]
+    rates: string[]
     warehouseId: string[]
     taxId: string
 }
@@ -21,8 +20,7 @@ export type ShippingType = CommonType & {
     countries?: string[]
     zipCode?: string[]
     radius?: number
-    priceBased?: Rate[]
-    weightBased?: Rate[]
+    rates?: string[]
     warehouseId?: string[]
     taxId?: string
 }
@@ -34,8 +32,7 @@ export class Shipping extends Common implements ShippingInterface {
     countries: string[] // ALPHA-3
     zipCode: string[]
     radius: number
-    priceBased: Rate[]
-    weightBased: Rate[]
+    rates: string[]
     warehouseId: string[]
     taxId: string
 
@@ -47,8 +44,7 @@ export class Shipping extends Common implements ShippingInterface {
         this.countries = data.countries ? uniqueArr(data.countries) : []
         this.zipCode = data.zipCode ? uniqueArr(data.zipCode) : []
         this.radius = data.radius ? data.radius : 0
-        this.priceBased = data.priceBased ? data.priceBased : []
-        this.weightBased = data.weightBased ? data.weightBased : []
+        this.rates = data.rates ? uniqueArr(data.rates) : []
         this.warehouseId = data.warehouseId ? uniqueArr(data.warehouseId) : []
         this.taxId = data.taxId ? data.taxId : ''
     }
@@ -62,8 +58,7 @@ export class Shipping extends Common implements ShippingInterface {
             countries: this.countries,
             zipCode: this.zipCode,
             radius: this.radius,
-            priceBased: this.priceBased,
-            weightBased: this.weightBased,
+            rates: this.rates,
             warehouseId: this.warehouseId,
             taxId: this.taxId
         }
@@ -73,16 +68,6 @@ export class Shipping extends Common implements ShippingInterface {
 
 export type ShippingCondition = Condition & {
     field: ShippingFields
-    parentFields?: (keyof ShippingType)[]
 }
 
-type ShippingFields = keyof (ShippingType & Rate)
-
-type Rate = {
-    name: string
-    minValue?: number
-    maxValue?: number
-    price?: number
-    noValueLimit?: boolean
-    freeShipping?: boolean
-}
+type ShippingFields = keyof ShippingType

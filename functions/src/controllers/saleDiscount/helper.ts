@@ -4,6 +4,22 @@ import * as category from '../../models/category'
 import * as collection from '../../models/collection'
 import * as product from '../../models/product'
 
+export async function checkIfSaleDiscountExists(name: string) {
+    try {
+        const saleData = saleDiscount.getOneByCondition([{
+            field: 'name', type: '==', value: name
+        }])
+        if (saleData) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log(err)
+        throw err
+    }
+}
+
 export async function updateCatalog(saleDiscountId: string, catalog: CatalogType) {
     try {
         const { productId, categoryId, collectionId } = catalog

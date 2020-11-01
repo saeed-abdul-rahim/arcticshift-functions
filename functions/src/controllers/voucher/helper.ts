@@ -4,6 +4,22 @@ import * as category from '../../models/category'
 import * as collection from '../../models/collection'
 import * as product from '../../models/product'
 
+export async function checkIfVoucherExists(code: string) {
+    try {
+        const voucherData = voucher.getOneByCondition([{
+            field: 'code', type: '==', value: code
+        }])
+        if (voucherData) {
+            return true
+        } else {
+            return false
+        }
+    } catch (err) {
+        console.log(err)
+        throw err
+    }
+}
+
 export async function updateCatalog(voucherId: string, catalog: CatalogType) {
     try {
         const { productId, categoryId, collectionId } = catalog

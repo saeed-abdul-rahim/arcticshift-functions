@@ -9,6 +9,7 @@ export interface ProductTypeInterface extends CommonInterface {
     productAttributeId: string[]
     variantAttributeId: string[]
     taxId: string
+    weight: number
 }
 
 export type ProductTypeType = CommonType & {
@@ -19,6 +20,7 @@ export type ProductTypeType = CommonType & {
     productAttributeId?: string[]
     variantAttributeId?: string[]
     taxId?: string
+    weight?: number
 }
 
 export class ProductType extends Common implements ProductTypeInterface {
@@ -29,6 +31,7 @@ export class ProductType extends Common implements ProductTypeInterface {
     productAttributeId: string[]
     variantAttributeId: string[]
     taxId: string
+    weight: number
 
     constructor(data: ProductTypeType) {
         super(data)
@@ -39,6 +42,7 @@ export class ProductType extends Common implements ProductTypeInterface {
         this.productAttributeId = data.productAttributeId ? uniqueArr(data.productAttributeId) : []
         this.variantAttributeId = data.variantAttributeId ? uniqueArr(data.variantAttributeId) : []
         this.taxId = data.taxId ? data.taxId : ''
+        this.weight = data.weight ? data.weight : -1
     }
 
     get(): ProductTypeInterface {
@@ -50,7 +54,8 @@ export class ProductType extends Common implements ProductTypeInterface {
             productId: this.productId,
             productAttributeId: this.productAttributeId,
             variantAttributeId: this.variantAttributeId,
-            taxId: this.taxId
+            taxId: this.taxId,
+            weight: this.weight
         }
     }
 

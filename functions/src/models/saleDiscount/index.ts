@@ -1,6 +1,7 @@
 import { saleDiscountsRef } from '../../config/db'
 import { decrementSaleDiscount, incrementSaleDiscount } from '../analytics/saleDiscount'
-import { SaleDiscountInterface, SaleDiscountType, SaleDiscount } from './schema'
+import { setCondition } from '../common'
+import { SaleDiscountInterface, SaleDiscountType, SaleDiscount, SaleDiscountCondition } from './schema'
 
 export async function get(saleDiscountId: string): Promise<SaleDiscountInterface> {
     try {
@@ -11,6 +12,29 @@ export async function get(saleDiscountId: string): Promise<SaleDiscountInterface
         return new SaleDiscount(data).get()
     } catch (err) {
         throw err
+    }
+}
+
+export async function getOneByCondition(conditions: SaleDiscountCondition[]): Promise<SaleDiscountInterface | null> {
+    try {
+        const ref = setCondition(saleDiscountsRef, conditions)
+        const doc = await ref.get()
+        if (doc.empty) return null
+        const user = doc.docs[0].data()
+        const data = <SaleDiscountInterface>user
+        data.saleDiscountId = doc.docs[0].id
+        return new SaleDiscount(data).get()
+    } catch (err) {
+        throw err;
+    }
+}
+
+export async function getByCondition(conditions: SaleDiscountCondition[]): Promise<SaleDiscountInterface[] | null> {
+    try {
+        const ref = setCondition(saleDiscountsRef, conditions)
+        return await getAll(ref)
+    } catch (err) {
+        throw err;
     }
 }
 
@@ -62,4 +86,15 @@ export async function getRef(id?: string) {
     } else {
         return saleDiscountsRef
     }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+    const doc = await ref.get()
+    if (doc.empty) return null
+    return doc.docs.map(d => {
+        let data = d.data() as SaleDiscountInterface
+        data.saleDiscountId = d.id
+        data = new SaleDiscount(data).get()
+        return data
+    })
 }

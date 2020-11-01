@@ -19,12 +19,13 @@ export interface OrderInterface extends CommonInterface {
     billingAddress: Address | null
     shippingAddress: Address | null
     voucherId: string
-    saleDiscountId: string
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subtotal: number
+    discounts: number
+    charges: number
     total: number
     payment: Payment[]
 }
@@ -40,12 +41,13 @@ export type OrderType = CommonType & {
     billingAddress?: Address | null
     shippingAddress?: Address | null
     voucherId?: string
-    saleDiscountId?: string
     giftCardId?: string
     shippingId?: string
     variants?: VariantQuantity[]
     fullfilled?: Fulfilled[]
     subtotal?: number
+    discounts?: number
+    charges?: number
     total?: number
     payment?: Payment[]
 }
@@ -61,12 +63,13 @@ export class Order extends Common implements OrderInterface {
     billingAddress: Address | null
     shippingAddress: Address | null
     voucherId: string
-    saleDiscountId: string
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subtotal: number
+    discounts: number
+    charges: number
     total: number
     payment: Payment[]
 
@@ -82,12 +85,13 @@ export class Order extends Common implements OrderInterface {
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
         this.voucherId = data.voucherId ? data.voucherId : ''
-        this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
         this.giftCardId = data.giftCardId ? data.giftCardId : ''
         this.shippingId = data.shippingId ? data.shippingId : ''
         this.variants = data.variants ? data.variants : []
         this.fullfilled = data.fullfilled ? data.fullfilled : []
         this.subtotal = data.subtotal ? data.subtotal : 0
+        this.discounts = data.discounts ? data.discounts : 0
+        this.charges = data.charges ? data.charges : 0
         this.total = data.total ? data.total : 0
         this.payment = data.payment ? data.payment : []
     }
@@ -105,12 +109,13 @@ export class Order extends Common implements OrderInterface {
             billingAddress: this.billingAddress,
             shippingAddress: this.shippingAddress,
             voucherId: this.voucherId,
-            saleDiscountId: this.saleDiscountId,
             giftCardId: this.giftCardId,
             shippingId: this.shippingId,
             variants: this.variants,
             fullfilled: this.fullfilled,
             subtotal: this.subtotal,
+            discounts: this.discounts,
+            charges: this.charges,
             total: this.total,
             payment: this.payment
         }
