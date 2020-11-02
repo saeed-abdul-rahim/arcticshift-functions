@@ -18,16 +18,18 @@ export interface OrderInterface extends CommonInterface {
     paymentStatus: PaymentStatus
     billingAddress: Address | null
     shippingAddress: Address | null
+    shippingRateId: string
     voucherId: string
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
-    subtotal: number
+    subTotal: number
     discounts: number
     charges: number
     total: number
     payment: Payment[]
+    data: any
 }
 
 export type OrderType = CommonType & {
@@ -40,16 +42,18 @@ export type OrderType = CommonType & {
     paymentStatus?: PaymentStatus
     billingAddress?: Address | null
     shippingAddress?: Address | null
+    shippingRateId?: string
     voucherId?: string
     giftCardId?: string
     shippingId?: string
     variants?: VariantQuantity[]
     fullfilled?: Fulfilled[]
-    subtotal?: number
+    subTotal?: number
     discounts?: number
     charges?: number
     total?: number
     payment?: Payment[]
+    data?: any
 }
 
 export class Order extends Common implements OrderInterface {
@@ -62,16 +66,18 @@ export class Order extends Common implements OrderInterface {
     paymentStatus: PaymentStatus
     billingAddress: Address | null
     shippingAddress: Address | null
+    shippingRateId: string
     voucherId: string
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
-    subtotal: number
+    subTotal: number
     discounts: number
     charges: number
     total: number
     payment: Payment[]
+    data: any
 
     constructor(data: OrderType) {
         super(data)
@@ -84,16 +90,18 @@ export class Order extends Common implements OrderInterface {
         this.paymentStatus = data.paymentStatus ? data.paymentStatus : ''
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
+        this.shippingRateId = data.shippingRateId ? data.shippingRateId : ''
         this.voucherId = data.voucherId ? data.voucherId : ''
         this.giftCardId = data.giftCardId ? data.giftCardId : ''
         this.shippingId = data.shippingId ? data.shippingId : ''
         this.variants = data.variants ? data.variants : []
         this.fullfilled = data.fullfilled ? data.fullfilled : []
-        this.subtotal = data.subtotal ? data.subtotal : 0
+        this.subTotal = data.subTotal ? data.subTotal : 0
         this.discounts = data.discounts ? data.discounts : 0
         this.charges = data.charges ? data.charges : 0
         this.total = data.total ? data.total : 0
         this.payment = data.payment ? data.payment : []
+        this.data = data.data ? data.data : null
     }
 
     get(): OrderInterface {
@@ -108,16 +116,18 @@ export class Order extends Common implements OrderInterface {
             paymentStatus: this.paymentStatus,
             billingAddress: this.billingAddress,
             shippingAddress: this.shippingAddress,
+            shippingRateId: this.shippingRateId,
             voucherId: this.voucherId,
             giftCardId: this.giftCardId,
             shippingId: this.shippingId,
             variants: this.variants,
             fullfilled: this.fullfilled,
-            subtotal: this.subtotal,
+            subTotal: this.subTotal,
             discounts: this.discounts,
             charges: this.charges,
             total: this.total,
-            payment: this.payment
+            payment: this.payment,
+            data: this.data
         }
     }
 

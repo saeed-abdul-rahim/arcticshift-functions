@@ -4,7 +4,7 @@ import { uniqueArr } from '../../utils/arrayUtils'
 
 type OrderType = 'entireOrder' | 'specificProducts'
 type VoucherValueType = ValueType | 'shipping'
-type MinimumRequirementType = 'orderValue' | 'quantity'
+type MinimumRequirementType = 'orderValue' | 'quantity' | ''
 
 type MinimumRequirement = {
     type: MinimumRequirementType
@@ -21,7 +21,6 @@ export interface VoucherInterface extends CommonInterface {
     valueType: VoucherValueType
     orderType: OrderType
     value: number
-    entireOrder: boolean
     oncePerOrder: boolean
     categoryId: string[]
     collectionId: string[]
@@ -40,7 +39,6 @@ export type VoucherType = CommonType & {
     valueType?: VoucherValueType
     orderType?: OrderType
     value?: number
-    entireOrder?: boolean
     oncePerOrder?: boolean
     categoryId?: string[]
     collectionId?: string[]
@@ -59,7 +57,6 @@ export class Voucher extends Common implements VoucherInterface {
     valueType: VoucherValueType
     orderType: OrderType
     value: number
-    entireOrder: boolean
     oncePerOrder: boolean
     categoryId: string[]
     collectionId: string[]
@@ -78,7 +75,6 @@ export class Voucher extends Common implements VoucherInterface {
         this.valueType = data.valueType ? data.valueType : 'fixed'
         this.orderType = data.orderType ? data.orderType : 'entireOrder'
         this.value = data.value ? data.value : 0
-        this.entireOrder = data.entireOrder ? data.entireOrder : true
         this.oncePerOrder = data.oncePerOrder ? data.oncePerOrder : false
         this.categoryId = data.categoryId ? uniqueArr(data.categoryId) : []
         this.collectionId = data.collectionId ? uniqueArr(data.collectionId) : []
@@ -99,7 +95,6 @@ export class Voucher extends Common implements VoucherInterface {
             valueType: this.valueType,
             orderType: this.orderType,
             value: this.value,
-            entireOrder: this.entireOrder,
             oncePerOrder: this.oncePerOrder,
             categoryId: this.categoryId,
             collectionId: this.collectionId,

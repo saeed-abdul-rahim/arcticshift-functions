@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType, ObjNumber } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export const genders: Gender[] = [ 'Male', 'Female', 'Transgender' ]
@@ -17,7 +17,7 @@ export interface UserInterface extends CommonInterface, AuthTypeImp {
     shopInvite: string[]
     access: string[]
     paymentMethods: PaymentMethod[]
-    voucherId: string[]
+    voucherUsed: ObjNumber
     orderId: string[]
     billingAddress: Address | null
     shippingAddress: Address | null
@@ -41,7 +41,7 @@ export type UserType = CommonType & AuthType & {
     shopInvite?: string[]
     access?: string[]
     paymentMethods?: PaymentMethod[]
-    voucherId?: string[]
+    voucherUsed?: ObjNumber
     orderId?: string[]
     billingAddress?: Address | null
     shippingAddress?: Address | null
@@ -67,7 +67,7 @@ export class User extends Common implements UserInterface {
     admin: string[]
     staff: string[]
     paymentMethods: PaymentMethod[]
-    voucherId: string[]
+    voucherUsed: ObjNumber
     orderId: string[]
     billingAddress: Address | null
     shippingAddress: Address | null
@@ -93,7 +93,7 @@ export class User extends Common implements UserInterface {
         this.admin = data.admin ? uniqueArr(data.admin) : []
         this.staff = data.staff ? uniqueArr(data.staff) : []
         this.paymentMethods = data.paymentMethods ? data.paymentMethods : []
-        this.voucherId = data.voucherId ? uniqueArr(data.voucherId) : []
+        this.voucherUsed = data.voucherUsed ? data.voucherUsed : null
         this.orderId = data.orderId ? uniqueArr(data.orderId) : []
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
@@ -121,7 +121,7 @@ export class User extends Common implements UserInterface {
             admin: this.admin,
             staff: this.staff,
             paymentMethods: this.paymentMethods,
-            voucherId: this.voucherId,
+            voucherUsed: this.voucherUsed,
             orderId: this.orderId,
             billingAddress: this.billingAddress,
             shippingAddress: this.shippingAddress,

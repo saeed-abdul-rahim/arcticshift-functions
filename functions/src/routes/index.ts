@@ -14,7 +14,6 @@ import { productTypeHandler } from './productType'
 import { warehouseHandler } from './warehouse'
 import { shippingHandler } from './shipping'
 import { orderHandler } from './order'
-import { shippingRateHandler } from './shippingRate'
 
 export function routes(app: Application) {
     userHandler(app)
@@ -31,5 +30,4 @@ export function routes(app: Application) {
     taxHandler(app)
     warehouseHandler(app)
     shippingHandler(app)
-    shippingRateHandler(app)
 }
