@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Content, Datetime } from '../common/schema'
+import { Common, CommonInterface, CommonType, Content } from '../common/schema'
 
 export interface AdvertInterface extends CommonInterface {
     shopId: string
@@ -7,8 +7,8 @@ export interface AdvertInterface extends CommonInterface {
     description: string
     images: Content[]
     url: string
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 }
 
 export type AdvertType = CommonType & {
@@ -18,8 +18,8 @@ export type AdvertType = CommonType & {
     description?: string
     images?: Content[]
     url?: string
-    startDate?: Datetime | null
-    endDate?: Datetime | null
+    startDate?: number
+    endDate?: number
 }
 
 export class Advert extends Common implements AdvertInterface {
@@ -29,8 +29,8 @@ export class Advert extends Common implements AdvertInterface {
     description: string
     images: Content[]
     url: string
-    startDate: Datetime | null
-    endDate: Datetime | null
+    startDate: number
+    endDate: number
 
     constructor(data: AdvertType) {
         super(data)
@@ -40,8 +40,8 @@ export class Advert extends Common implements AdvertInterface {
         this.description = data.description ? data.description : ''
         this.images = data.images ? data.images : []
         this.url = data.url ? data.url : ''
-        this.startDate = data.startDate ? data.startDate : null
-        this.endDate = data.endDate ? data.endDate : null
+        this.startDate = data.startDate ? data.startDate : -1
+        this.endDate = data.endDate ? data.endDate : -1
     }
 
     get(): AdvertInterface {

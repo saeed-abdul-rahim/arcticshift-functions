@@ -22,6 +22,7 @@ export function userHandler(app: Application) {
 
     app.put(`${userRoute}/wishlist`,
         isAuthenticated,
+        isAuthorized({ allowSameUser: true }),
         user.addToWishlist
     )
 
@@ -29,6 +30,12 @@ export function userHandler(app: Application) {
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.update
+    )
+
+    app.delete(`${userRoute}/wishlist/:id`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true }),
+        user.removeFromWishlist
     )
 
     app.delete(`${userRoute}/:id/shop`,

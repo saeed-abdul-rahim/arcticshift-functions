@@ -88,12 +88,6 @@ export interface CommonInterface extends TimestampInterface {
     status: Status
 }
 
-export type Datetime = {
-    date: string
-    time: string
-    zone: string
-}
-
 export type Address = {
     name?: string
     company?: string

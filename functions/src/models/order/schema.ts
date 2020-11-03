@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Address, Condition } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, Condition, OrderBy } from '../common/schema'
 
 export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
 export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
@@ -25,8 +25,11 @@ export interface OrderInterface extends CommonInterface {
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subTotal: number
-    discounts: number
-    charges: number
+    saleDiscount: number
+    voucherDiscount: number
+    giftCardDiscount: number
+    taxCharge: number
+    shippingCharge: number
     total: number
     payment: Payment[]
     data: any
@@ -49,8 +52,11 @@ export type OrderType = CommonType & {
     variants?: VariantQuantity[]
     fullfilled?: Fulfilled[]
     subTotal?: number
-    discounts?: number
-    charges?: number
+    saleDiscount?: number
+    voucherDiscount?: number
+    giftCardDiscount?: number
+    taxCharge?: number
+    shippingCharge?: number
     total?: number
     payment?: Payment[]
     data?: any
@@ -73,8 +79,11 @@ export class Order extends Common implements OrderInterface {
     variants: VariantQuantity[]
     fullfilled: Fulfilled[]
     subTotal: number
-    discounts: number
-    charges: number
+    saleDiscount: number
+    voucherDiscount: number
+    giftCardDiscount: number
+    taxCharge: number
+    shippingCharge: number
     total: number
     payment: Payment[]
     data: any
@@ -97,8 +106,11 @@ export class Order extends Common implements OrderInterface {
         this.variants = data.variants ? data.variants : []
         this.fullfilled = data.fullfilled ? data.fullfilled : []
         this.subTotal = data.subTotal ? data.subTotal : 0
-        this.discounts = data.discounts ? data.discounts : 0
-        this.charges = data.charges ? data.charges : 0
+        this.saleDiscount = data.saleDiscount ? data.saleDiscount : 0
+        this.voucherDiscount = data.voucherDiscount ? data.voucherDiscount : 0
+        this.giftCardDiscount = data.giftCardDiscount ? data.giftCardDiscount : 0
+        this.taxCharge = data.taxCharge ? data.taxCharge : 0
+        this.shippingCharge = data.shippingCharge ? data.shippingCharge : 0
         this.total = data.total ? data.total : 0
         this.payment = data.payment ? data.payment : []
         this.data = data.data ? data.data : null
@@ -123,8 +135,11 @@ export class Order extends Common implements OrderInterface {
             variants: this.variants,
             fullfilled: this.fullfilled,
             subTotal: this.subTotal,
-            discounts: this.discounts,
-            charges: this.charges,
+            saleDiscount: this.saleDiscount,
+            voucherDiscount: this.voucherDiscount,
+            giftCardDiscount: this.giftCardDiscount,
+            taxCharge: this.taxCharge,
+            shippingCharge: this.shippingCharge,
             total: this.total,
             payment: this.payment,
             data: this.data
@@ -134,11 +149,17 @@ export class Order extends Common implements OrderInterface {
 }
 
 export type OrderCondition = Condition & {
-    field: OrderFields
-    parentFields?: (keyof OrderType)[]
+    field: AllOrderFields
+    parentFields?: OrderFields[]
 }
 
-type OrderFields = keyof (OrderType & Address)
+export type OrderOrderBy = OrderBy & {
+    field: OrderFields
+}
+
+type OrderFields = keyof OrderType
+
+type AllOrderFields = keyof (OrderType & Address)
 
 type Fulfilled = VariantQuantity & {
     inventoryId: string

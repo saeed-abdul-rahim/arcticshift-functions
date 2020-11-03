@@ -11,6 +11,7 @@ export async function get(saleDiscountId: string): Promise<SaleDiscountInterface
         data.saleDiscountId = doc.id
         return new SaleDiscount(data).get()
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
@@ -25,6 +26,7 @@ export async function getOneByCondition(conditions: SaleDiscountCondition[]): Pr
         data.saleDiscountId = doc.docs[0].id
         return new SaleDiscount(data).get()
     } catch (err) {
+        console.error(err)
         throw err;
     }
 }
@@ -34,6 +36,7 @@ export async function getByCondition(conditions: SaleDiscountCondition[]): Promi
         const ref = setCondition(saleDiscountsRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(err)
         throw err;
     }
 }
@@ -46,6 +49,7 @@ export async function add(saleDiscount: SaleDiscountType): Promise<string> {
         await incrementSaleDiscount()
         return id
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
@@ -57,6 +61,7 @@ export async function set(saleDiscountId: string, saleDiscount: SaleDiscountType
         await saleDiscountsRef.doc(saleDiscountId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
@@ -66,6 +71,7 @@ export async function update(saleDiscountId: string, saleDiscount: SaleDiscountT
         await saleDiscountsRef.doc(saleDiscountId).update({ ...saleDiscount, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
@@ -76,6 +82,7 @@ export async function remove(saleDiscountId: string): Promise<boolean> {
         await decrementSaleDiscount()
         return true
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
@@ -89,12 +96,17 @@ export async function getRef(id?: string) {
 }
 
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as SaleDiscountInterface
-        data.saleDiscountId = d.id
-        data = new SaleDiscount(data).get()
-        return data
-    })
+    try {
+        const doc = await ref.get()
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as SaleDiscountInterface
+            data.saleDiscountId = d.id
+            data = new SaleDiscount(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
 }

@@ -1,5 +1,5 @@
 import * as admin from 'firebase-admin'
-import { Role, Condition, ValueType, Datetime, AddressKey, OrderBy } from './schema'
+import { Role, Condition, ValueType, AddressKey, OrderBy } from './schema'
 
 export const roles: Role[] = ['admin', 'staff']
 export const valueTypes: ValueType[] = ['fixed', 'percent']
@@ -21,21 +21,12 @@ export function setCondition(collectionRef: FirebaseFirestore.CollectionReferenc
     });
     if (orderBy) {
       const { field, direction } = orderBy;
-      ref.orderBy(field, direction);
+      ref = ref.orderBy(field, direction);
     }
     if (limit) {
-      ref.limit(limit);
+      ref = ref.limit(limit);
     }
     return ref;
-}
-
-export function isValidDateTime(datetime: Datetime) {
-    const { date, time, zone } = datetime
-    if (date && time && zone) {
-        return datetime
-    } else {
-        return null
-    }
 }
 
 export function incrementValue(value: number) {

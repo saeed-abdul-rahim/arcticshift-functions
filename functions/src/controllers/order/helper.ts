@@ -73,13 +73,13 @@ export function combineData(orderVariants: VariantQuantity[], allVariantData: Va
                 baseProductType
             }
             if (productDiscount) {
-                return { ...data, discount: productDiscount }
+                return { ...data, saleDiscount: productDiscount }
             } else if (categoryDiscount) {
-                return { ...data, discount: categoryDiscount }
+                return { ...data, saleDiscount: categoryDiscount }
             } else if (collectionDiscount) {
-                return { ...data, discount: collectionDiscount }
+                return { ...data, saleDiscount: collectionDiscount }
             } else {
-                return { ...data, discount: null }
+                return { ...data, saleDiscount: null }
             }
         }).filter(isDefined)
     } catch (err) {
@@ -90,7 +90,7 @@ export function combineData(orderVariants: VariantQuantity[], allVariantData: Va
 export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc[]> {
     try {
         return await Promise.all(allData.map(async data => {
-            const { price, orderQuantity, discount, baseProductType, baseProduct } = data
+            const { price, orderQuantity, saleDiscount, baseProductType, baseProduct } = data
             const { chargeTax } = baseProduct
             const { taxId, weight } = baseProductType
             const subTotal = price * orderQuantity
@@ -98,8 +98,8 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
             let taxes = 0
             let totalWeight = 0
             let discountValue = 0
-            if (discount) {
-                const { value, valueType } = discount
+            if (saleDiscount) {
+                const { value, valueType } = saleDiscount
                 discountValue = getDiscount(price, value, valueType)
                 total -= discountValue
             }
@@ -123,7 +123,7 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
                 taxes,
                 totalWeight,
                 quantity: orderQuantity,
-                discount: discountValue
+                saleDiscount: discountValue
             }
         }))
     } catch (err) {
@@ -134,8 +134,8 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
 export function aggregateData(allDataCalculated: OrderDataCalc[]): AggregateType {
     try {
         const allDataTotals = allDataCalculated.map(dt => {
-            const { subTotal, total, taxes, totalWeight, quantity } = dt
-            return { subTotal, total, taxes, totalWeight, quantity }
+            const { subTotal, total, taxes, totalWeight, quantity, saleDiscount } = dt
+            return { subTotal, total, taxes, totalWeight, quantity, saleDiscount }
         })
         return mergeDuplicatesArrObj(allDataTotals)
     } catch (err) {
@@ -306,14 +306,14 @@ type AggregateType = {
     taxes: number
     totalWeight: number
     quantity: number
-    discount: number
+    saleDiscount: number
 }
 
 type OrderData = VariantInterface & {
     orderQuantity: number
     baseProduct: ProductInterface
     baseProductType: ProductTypeInterface
-    discount: SaleDiscountInterface | null
+    saleDiscount: SaleDiscountInterface | null
 }
 type OrderDataCalc = AggregateType & {
     data: OrderData

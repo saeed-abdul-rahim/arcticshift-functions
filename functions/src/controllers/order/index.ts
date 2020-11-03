@@ -28,16 +28,25 @@ export async function create(req: Request, res: Response) {
 export async function calculateDraft(req: Request, res: Response) {
     try {
         const { uid } = res.locals
-        const { id: draftId } = req.params
         const now = Date.now()
-        const orderData = await order.get(draftId)
+        const orderData = await order.getOneByCondition([
+            { field: 'userId', type: '==', value: uid },
+            { field: 'orderStatus', type: '==', value: 'draft' }
+        ])
+        if (!orderData) {
+            return badRequest(res, 'No draft found')
+        }
         const { variants, shippingRateId, voucherId } = orderData
 
-        const saleDiscounts = await saleDiscount.getByCondition([
+        let saleDiscounts = await saleDiscount.getByCondition([
             { field: 'status', type: '==', value: 'active' },
-            { field: 'startDate', type: '>=', value: now },
-            { field: 'endDate', type: '<=', value: now }
+            { field: 'startDate', type: '<=', value: now },
+            { field: 'startDate', type: '>', value: 0 }
         ])
+        if (saleDiscounts) {
+            saleDiscounts = saleDiscounts.filter(sd => sd.endDate < now)
+            saleDiscounts = saleDiscounts.length > 0 ? saleDiscounts : null
+        }
 
         const variantIds = variants.map(v => v.variantId)
         const allVariantData = await Promise.all(variantIds.map(async variantId => {
@@ -61,17 +70,20 @@ export async function calculateDraft(req: Request, res: Response) {
         const voucherCalculated = await calculateVoucherDiscount(uid, voucherId, allProductData, allDataCalculated, allDataAggregated, shippingCharge)
         shippingCharge = voucherCalculated.shippingCharge
         const { voucherDiscount } = voucherCalculated
-        const { subTotal, discount, taxes, total } = allDataAggregated
+        const { subTotal, saleDiscount: saleDiscountValue, taxes, total } = allDataAggregated
         const grandTotal = total + shippingCharge - voucherDiscount
         const result = {
             subTotal,
-            discounts: discount + voucherDiscount,
-            charges: taxes + shippingCharge,
+            saleDiscount: saleDiscountValue,
+            voucherDiscount,
+            taxCharge: taxes,
+            shippingCharge,
             total: grandTotal >= 0 ? grandTotal : 0
         }
-        await order.set(draftId, {
+        await order.set(orderData.orderId, {
             ...orderData,
-            ...result
+            ...result,
+            data: allDataCalculated
         })
         return successUpdated(res)
     } catch (err) {
@@ -80,7 +92,7 @@ export async function calculateDraft(req: Request, res: Response) {
     }
 }
 
-export async function addVoucher(req: Request, res: Response) {
+export async function addVoucher(req: Request, res: Response, next: Function) {
     try {
         const { id: draftId } = req.params
         const { data }: { data: { code: string } } = req.body
@@ -115,7 +127,7 @@ export async function addVoucher(req: Request, res: Response) {
         }
         orderData.voucherId = voucherId
         await order.set(draftId, orderData)
-        return successUpdated(res)
+        return next()
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -150,11 +162,12 @@ export async function addVariant(req: Request, res: Response) {
     }
 }
 
-export async function removeVariant(req: Request, res: Response) {
+export async function removeVariant(req: Request, res: Response, next: Function) {
     try {
-        const { orderId } = req.params
-        const { variantIds }: { variantIds: string[] } = req.body
-        if (!variantIds || !Array.isArray(variantIds) || variantIds.length <= 0) {
+        const { id: orderId } = req.params
+        const { data }: { data: { variantId: string } } = req.body
+        const { variantId } = data
+        if (!variantId) {
             return missingParam(res, 'Variant')
         }
         const orderData = await order.get(orderId)
@@ -162,8 +175,13 @@ export async function removeVariant(req: Request, res: Response) {
             return badRequest(res, 'Not a draft')
         }
         const { variants } = orderData
-        orderData.variants = variants.filter(v => !variantIds.includes(v.variantId))
-        return successUpdated(res)
+        orderData.variants = variants.filter(v => v.variantId !== variantId)
+        if (orderData.variants.length === 0) {
+            orderData.voucherId = ''
+            orderData.giftCardId = ''
+        }
+        await order.set(orderId, orderData)
+        return next()
     } catch (err) {
         console.error(err)
         return serverError(res, err)

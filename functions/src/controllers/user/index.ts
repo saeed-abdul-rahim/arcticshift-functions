@@ -118,6 +118,20 @@ export async function addToWishlist(req: Request, res: Response) {
     }
 }
 
+export async function removeFromWishlist(req: Request, res: Response) {
+    try {
+        const { uid } = res.locals
+        const { id } = req.params
+        const userData = await user.get(uid)
+        userData.wishlist = userData.wishlist.filter(w => w !== id)
+        await user.set(uid, userData)
+        return successUpdated(res)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
 export async function createAdmin(req: Request, res: Response) {
     const { email, shopId }: { email: string, shopId: string } = req.body
     await create(res, {
