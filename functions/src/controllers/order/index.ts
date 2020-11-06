@@ -1,4 +1,6 @@
 import { Request, Response } from 'express'
+import * as razorpay from '../../payments/razorpay'
+import * as settings from '../../models/settings'
 import * as user from '../../models/user'
 import * as voucher from '../../models/voucher'
 import * as saleDiscount from '../../models/saleDiscount'
@@ -83,7 +85,6 @@ export async function calculateDraft(req: Request, res: Response) {
         await order.set(orderData.orderId, {
             ...orderData,
             ...result,
-            data: allDataCalculated
         })
         return successUpdated(res)
     } catch (err) {
@@ -182,6 +183,42 @@ export async function removeVariant(req: Request, res: Response, next: Function)
         }
         await order.set(orderId, orderData)
         return next()
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function finalize(req: Request, res: Response) {
+    try {
+        // const { uid } = res.locals
+        const { data }: { data: OrderType } = req.body
+        const { orderId, shippingAddress, billingAddress } = data
+        if (!orderId) {
+            return missingParam(res, 'Order ID')
+        }
+        const orderData = await order.get(orderId)
+        const settingsData = await settings.getGeneralSettings()
+        // const userData = await user.get(uid)
+        if (billingAddress) {
+            orderData.billingAddress = billingAddress
+        }
+        if (billingAddress && !shippingAddress) {
+            orderData.shippingAddress = billingAddress
+        } else if (shippingAddress) {
+            orderData.shippingAddress = shippingAddress
+        }
+        if (orderData.orderStatus !== 'draft') {
+            return badRequest(res, 'Not a draft')
+        }
+        const { currency } = settingsData
+        const { total, notes } = orderData
+        const razorpayOrderId = await razorpay.createOrder(total, currency, orderId, notes)
+        await order.set(orderId, {
+            ...orderData,
+            gatewayOrderId: razorpayOrderId.id
+        })
+        return successResponse(res, razorpayOrderId)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

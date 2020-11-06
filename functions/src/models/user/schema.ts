@@ -6,8 +6,11 @@ export const genders: Gender[] = [ 'Male', 'Female', 'Transgender' ]
 export interface UserInterface extends CommonInterface, AuthTypeImp {
     uid: string
     name: string
+    firstName: string
+    lastName: string
     email: string
     phone: string
+    phoneCode: string
     dob: number
     gender: Gender
     image: ContentStorage | null
@@ -30,8 +33,11 @@ export interface UserInterface extends CommonInterface, AuthTypeImp {
 export type UserType = CommonType & AuthType & {
     uid: string
     name?: string
+    firstName?: string
+    lastName?: string
     email?: string
     phone?: string
+    phoneCode?: string
     dob?: number
     gender?: Gender
     image?: ContentStorage | null
@@ -54,8 +60,11 @@ export type UserType = CommonType & AuthType & {
 export class User extends Common implements UserInterface {
     uid: string
     name: string
+    firstName: string
+    lastName: string
     email: string
     phone: string
+    phoneCode: string
     dob: number
     gender: Gender
     image: ContentStorage | null
@@ -80,8 +89,11 @@ export class User extends Common implements UserInterface {
         super(data)
         this.uid = data.uid
         this.name = data.name ? data.name : ''
+        this.firstName = data.firstName ? data.firstName : ''
+        this.lastName = data.lastName ? data.lastName : ''
         this.email = data.email ? data.email : ''
         this.phone = data.phone ? data.phone : ''
+        this.phoneCode = data.phoneCode ? data.phoneCode : ''
         this.dob = data.dob ? data.dob : 0
         this.gender = data.gender ? data.gender : ''
         this.image = data.image ? data.image : null
@@ -108,8 +120,11 @@ export class User extends Common implements UserInterface {
             ...super.get(),
             uid: this.uid,
             name: this.name,
+            firstName: this.firstName,
+            lastName: this.lastName,
             email: this.email,
             phone: this.phone,
+            phoneCode: this.phoneCode,
             dob: this.dob,
             gender: this.gender,
             image: this.image,

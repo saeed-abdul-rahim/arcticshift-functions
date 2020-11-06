@@ -12,8 +12,13 @@ export interface OrderInterface extends CommonInterface {
     shopId: string
     userId: string
     customerName: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
     orderId: string
     orderNo: number
+    gatewayOrderId: string
     orderStatus: OrderStatus
     paymentStatus: PaymentStatus
     billingAddress: Address | null
@@ -31,16 +36,21 @@ export interface OrderInterface extends CommonInterface {
     taxCharge: number
     shippingCharge: number
     total: number
-    payment: Payment[]
-    data: any
+    payment: Payment[],
+    notes: string
 }
 
 export type OrderType = CommonType & {
     shopId?: string
     userId?: string
     customerName?: string
+    firstName?: string
+    lastName?: string
+    phone?: string
+    email?: string
     orderId?: string
     orderNo?: number
+    gatewayOrderId?: string
     orderStatus?: OrderStatus
     paymentStatus?: PaymentStatus
     billingAddress?: Address | null
@@ -58,16 +68,21 @@ export type OrderType = CommonType & {
     taxCharge?: number
     shippingCharge?: number
     total?: number
-    payment?: Payment[]
-    data?: any
+    payment?: Payment[],
+    notes?: string
 }
 
 export class Order extends Common implements OrderInterface {
     shopId: string
     userId: string
     customerName: string
+    firstName: string
+    lastName: string
+    phone: string
+    email: string
     orderId: string
     orderNo: number
+    gatewayOrderId: string
     orderStatus: OrderStatus
     paymentStatus: PaymentStatus
     billingAddress: Address | null
@@ -86,15 +101,20 @@ export class Order extends Common implements OrderInterface {
     shippingCharge: number
     total: number
     payment: Payment[]
-    data: any
+    notes: string
 
     constructor(data: OrderType) {
         super(data)
         this.shopId = data.shopId ? data.shopId : ''
         this.userId = data.userId ? data.userId : ''
         this.customerName = data.customerName ? data.customerName : ''
+        this.firstName = data.firstName ? data.firstName : ''
+        this.lastName = data.lastName ? data.lastName : ''
+        this.phone = data.phone ? data.phone : ''
+        this.email = data.email ? data.email : ''
         this.orderId = data.orderId ? data.orderId : ''
         this.orderNo = data.orderNo ? data.orderNo : 0
+        this.gatewayOrderId = data.gatewayOrderId ? data.gatewayOrderId : ''
         this.orderStatus = data.orderStatus ? data.orderStatus : ''
         this.paymentStatus = data.paymentStatus ? data.paymentStatus : ''
         this.billingAddress = data.billingAddress ? data.billingAddress : null
@@ -113,7 +133,7 @@ export class Order extends Common implements OrderInterface {
         this.shippingCharge = data.shippingCharge ? data.shippingCharge : 0
         this.total = data.total ? data.total : 0
         this.payment = data.payment ? data.payment : []
-        this.data = data.data ? data.data : null
+        this.notes = data.notes ? data.notes : ''
     }
 
     get(): OrderInterface {
@@ -122,8 +142,13 @@ export class Order extends Common implements OrderInterface {
             shopId: this.shopId,
             userId: this.userId,
             customerName: this.customerName,
+            firstName: this.firstName,
+            lastName: this.lastName,
+            phone: this.phone,
+            email: this.email,
             orderId: this.orderId,
             orderNo: this.orderNo,
+            gatewayOrderId: this.gatewayOrderId,
             orderStatus: this.orderStatus,
             paymentStatus: this.paymentStatus,
             billingAddress: this.billingAddress,
@@ -142,7 +167,7 @@ export class Order extends Common implements OrderInterface {
             shippingCharge: this.shippingCharge,
             total: this.total,
             payment: this.payment,
-            data: this.data
+            notes: this.notes
         }
     }
 

@@ -2,7 +2,9 @@ import { Request, Response } from 'express'
 import * as admin from 'firebase-admin'
 import * as functions from 'firebase-functions'
 import * as storage from '../../storage'
-import { serverError, missingParam } from '../../responseHandler/errorHandler'
+import parsePhoneNumber from 'libphonenumber-js'
+
+import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successCreated, successUpdated } from '../../responseHandler/successHandler'
 
 import * as shop from '../../models/shop'
@@ -50,6 +52,27 @@ export async function signUp(req: Request, res: Response) {
         }
     } catch(err) {
         console.error(`${err.code} -  ${err.message}`)
+        return serverError(res, err)
+    }
+}
+
+export async function linkWithPhoneNumber(req: Request, res: Response) {
+    try {
+        const { uid } = res.locals
+        const authUser = await admin.auth().getUser(uid)
+        if (authUser.phoneNumber) {
+            const { phoneNumber } = authUser
+            const parsedPhone = parsePhoneNumber(phoneNumber)
+            const userData = await user.get(uid)
+            userData.phone = phoneNumber
+            userData.phoneCode = parsedPhone && parsedPhone.countryCallingCode.toString() || ''
+            await user.set(uid, userData)
+            return successUpdated(res)
+        } else {
+            return badRequest(res, 'Phone number not found')
+        }
+    } catch (err) {
+        console.error(err)
         return serverError(res, err)
     }
 }

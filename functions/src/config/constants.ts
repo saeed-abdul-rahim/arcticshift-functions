@@ -45,6 +45,7 @@ export const ADVERTS: ADVERTS = 'adverts'
 export const PAGES: PAGES = 'pages'
 export const NAVIGATION: NAVIGATION = 'navigation'
 export const SUPPORT: SUPPORT = 'support'
+export const SETTINGS: SETTINGS = 'settings'
 export const ANALYTICS: ANALYTICS = 'analytics'
 
 
@@ -95,4 +96,5 @@ type ADVERTS = 'adverts'
 type PAGES = 'pages'
 type NAVIGATION = 'navigation'
 type SUPPORT = 'support'
+type SETTINGS = 'settings'
 type ANALYTICS = 'analytics'

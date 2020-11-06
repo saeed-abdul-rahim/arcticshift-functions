@@ -28,11 +28,3 @@ export function unauthorized(res: Response) {
 export function forbidden(res: Response) {
     return res.status(403).send(getErrorResponse('Forbidden'))
 }
-
-export function limitExceeded(res: Response) {
-    return res.status(403).send(getErrorResponse('Limit Exceeded'))
-}
-
-export function tierExpired(res: Response, message: string) {
-    return res.status(403).send(getErrorResponse(`Tier Inactive. Subscription Status: ${message}`))
-}

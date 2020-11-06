@@ -41,4 +41,10 @@ export function orderHandler(app: Application) {
         order.calculateDraft
     )
 
+    app.patch(orderRoute,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.finalize
+    )
+
 }

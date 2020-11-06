@@ -26,6 +26,12 @@ export function userHandler(app: Application) {
         user.addToWishlist
     )
 
+    app.patch(`${userRoute}/phone`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true }),
+        user.linkWithPhoneNumber
+    )
+
     app.patch(userRoute,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),

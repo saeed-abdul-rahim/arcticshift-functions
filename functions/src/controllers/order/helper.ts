@@ -100,7 +100,7 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
             let discountValue = 0
             if (saleDiscount) {
                 const { value, valueType } = saleDiscount
-                discountValue = getDiscount(price, value, valueType)
+                discountValue = getDiscount(price, value, valueType) * orderQuantity
                 total -= discountValue
             }
             if (chargeTax) {
@@ -111,6 +111,7 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
                 } else {
                     taxes = getTax(subTotal, value)
                 }
+                taxes = taxes * orderQuantity
                 total += taxes
             }
             if (weight && weight > 0) {
