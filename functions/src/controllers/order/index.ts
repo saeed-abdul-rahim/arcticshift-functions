@@ -13,6 +13,9 @@ import { badRequest, missingParam, serverError } from '../../responseHandler/err
 import { successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, isDraft } from './helper'
 import { uniqueArr } from '../../utils/arrayUtils'
+import { isValidAddress } from '../../models/common'
+import { setUserBillingAddress, setUserShippingAddress } from '../user/helper'
+import { batch } from '../../config/db'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -82,10 +85,17 @@ export async function calculateDraft(req: Request, res: Response) {
             shippingCharge,
             total: grandTotal >= 0 ? grandTotal : 0
         }
-        await order.set(orderData.orderId, {
-            ...orderData,
-            ...result,
+        allData.forEach(async data => {
+            const { orderQuantity, variantId, trackInventory } = data
+            if (trackInventory) {
+                const variantData = allVariantData.find(v => v.variantId === variantId)!
+                variantData.bookedQuantity += orderQuantity
+                batch.set(variant.getRef(variantId), variantData)
+            }
         })
+        const updatedOrderData = { ...orderData, ...result }
+        batch.set(order.getRef(orderData.orderId), updatedOrderData)
+        await batch.commit()
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -191,27 +201,41 @@ export async function removeVariant(req: Request, res: Response, next: Function)
 
 export async function finalize(req: Request, res: Response) {
     try {
-        // const { uid } = res.locals
+        const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
         const { orderId, shippingAddress, billingAddress } = data
         if (!orderId) {
             return missingParam(res, 'Order ID')
         }
+
         const orderData = await order.get(orderId)
-        const settingsData = await settings.getGeneralSettings()
-        // const userData = await user.get(uid)
-        if (billingAddress) {
-            orderData.billingAddress = billingAddress
-        }
-        if (billingAddress && !shippingAddress) {
-            orderData.shippingAddress = billingAddress
-        } else if (shippingAddress) {
-            orderData.shippingAddress = shippingAddress
-        }
         if (orderData.orderStatus !== 'draft') {
             return badRequest(res, 'Not a draft')
         }
+
+        let userData = await user.get(uid)
+        if (billingAddress && isValidAddress(billingAddress)) {
+            orderData.billingAddress = billingAddress
+            userData = setUserBillingAddress(userData, billingAddress)
+        } else {
+            return badRequest(res, 'Invalid Billing Address')
+        }
+        if (billingAddress && !shippingAddress && isValidAddress(billingAddress)) {
+            orderData.shippingAddress = billingAddress
+            userData = setUserShippingAddress(userData, billingAddress)
+        } else if (shippingAddress && isValidAddress(shippingAddress)) {
+            orderData.shippingAddress = shippingAddress
+            userData = setUserShippingAddress(userData, billingAddress)
+        } else {
+            return badRequest(res, 'Invalid Shipping Address')
+        }
+
+        const settingsData = await settings.getGeneralSettings()
         const { currency } = settingsData
+        if (!currency) {
+            return badRequest(res, 'Currency required')
+        }
+
         const { total, notes } = orderData
         const razorpayOrderId = await razorpay.createOrder(total, currency, orderId, notes)
         await order.set(orderId, {

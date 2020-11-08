@@ -2,14 +2,17 @@ import { Common, CommonInterface, CommonType } from '../common/schema'
 
 export interface SettingInterface extends CommonInterface {
     settingId: string
+    [key: string]: any
 }
 
 export type SettingType = CommonType & {
     settingId?: string
+    [key: string]: any
 }
 
 export class Setting extends Common implements SettingInterface {
     settingId: string
+    [key:string]: any
 
     constructor(data: SettingType) {
         super(data)

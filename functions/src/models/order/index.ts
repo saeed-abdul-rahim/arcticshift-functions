@@ -16,7 +16,7 @@ export async function get(orderId: string): Promise<OrderInterface> {
     }
 }
 
-export async function getOneByCondition(conditions: OrderCondition[], orderBy?: OrderOrderBy, limit?: number): Promise<OrderInterface | null> {
+export async function getOneByCondition(conditions: OrderCondition[], orderBy?: OrderOrderBy): Promise<OrderInterface | null> {
     try {
         const data = await getByCondition(conditions, orderBy, 1)
         if (!data) {
@@ -87,12 +87,8 @@ export async function remove(orderId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return ordersRef.doc(id)
-    } else {
-        return ordersRef
-    }
+export function getRef(id: string) {
+    return ordersRef.doc(id)
 }
 
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {

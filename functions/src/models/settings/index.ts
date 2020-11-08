@@ -1,19 +1,19 @@
 import { settingsRef } from '../../config/db'
-import { SettingInterface, SettingType, Setting, GeneralSettingType, GeneralSettingInterface } from './schema'
+import { GeneralSettingInterface, GeneralSettingType, GeneralSetting } from './schema'
 
-export async function get(settingId: string): Promise<SettingInterface> {
+export async function get(settingId: string): Promise<GeneralSettingInterface> {
     try {
         const doc = await settingsRef.doc(settingId).get()
-        if (!doc.exists) throw new Error('Setting not found')
-        const data = <SettingInterface>doc.data()
+        if (!doc.exists) throw new Error('GeneralSetting not found')
+        const data = <GeneralSettingInterface>doc.data()
         data.settingId = doc.id
-        return new Setting(data).get()
+        return new GeneralSetting(data).get()
     } catch (err) {
         throw err
     }
 }
 
-export async function add(setting: SettingType): Promise<string> {
+export async function add(setting: GeneralSettingType): Promise<string> {
     try {
         const id = settingsRef.doc().id
         setting.settingId = id
@@ -24,9 +24,9 @@ export async function add(setting: SettingType): Promise<string> {
     }
 }
 
-export async function set(settingId: string, setting: SettingType): Promise<boolean> {
+export async function set(settingId: string, setting: GeneralSettingType): Promise<boolean> {
     try {
-        const dataToInsert = new Setting(setting).get()
+        const dataToInsert = new GeneralSetting(setting).get()
         dataToInsert.updatedAt = Date.now()
         await settingsRef.doc(settingId).set(dataToInsert)
         return true
@@ -35,7 +35,7 @@ export async function set(settingId: string, setting: SettingType): Promise<bool
     }
 }
 
-export async function update(settingId: string, setting: SettingType): Promise<boolean> {
+export async function update(settingId: string, setting: GeneralSettingType): Promise<boolean> {
     try {
         await settingsRef.doc(settingId).update({ ...setting, updatedAt: Date.now() })
         return true
@@ -64,7 +64,7 @@ export async function getRef(id?: string) {
 
 export async function getGeneralSettings(): Promise<GeneralSettingInterface> {
     try {
-        return await get('general') as GeneralSettingInterface
+        return await get('general')
     } catch (err) {
         throw err
     }

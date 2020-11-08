@@ -10,7 +10,7 @@ import { successCreated, successUpdated } from '../../responseHandler/successHan
 import * as shop from '../../models/shop'
 import * as user from '../../models/user'
 import * as claims from '../../models/userClaims'
-import { isOfTypeAddress } from '../../models/common'
+import { isValidAddress } from '../../models/common'
 import { ShopType } from '../../models/shop/schema'
 import { Role } from '../../models/common/schema'
 import { UserType, genders } from '../../models/user/schema'
@@ -103,19 +103,13 @@ export async function update(req: Request, res: Response) {
             userData.gender = gender
         }
         if (shippingAddress) {
-            let valid = true
-            Object.entries(shippingAddress).forEach(([key]) => {
-                if (!isOfTypeAddress(key)) { valid = false }
-            });
+            const valid = isValidAddress(shippingAddress)
             if (valid) {
                 userData.shippingAddress = shippingAddress
             }
         }
         if (billingAddress) {
-            let valid = true
-            Object.entries(billingAddress).forEach(([key]) => {
-                if (!isOfTypeAddress(key)) { valid = false }
-            });
+            const valid = isValidAddress(billingAddress)
             if (valid) {
                 userData.billingAddress = billingAddress
             }
@@ -144,9 +138,9 @@ export async function addToWishlist(req: Request, res: Response) {
 export async function removeFromWishlist(req: Request, res: Response) {
     try {
         const { uid } = res.locals
-        const { id } = req.params
+        const { wid } = req.params
         const userData = await user.get(uid)
-        userData.wishlist = userData.wishlist.filter(w => w !== id)
+        userData.wishlist = userData.wishlist.filter(w => w !== wid)
         await user.set(uid, userData)
         return successUpdated(res)
     } catch (err) {

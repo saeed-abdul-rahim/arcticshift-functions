@@ -24,7 +24,7 @@ export interface UserInterface extends CommonInterface, AuthTypeImp {
     orderId: string[]
     billingAddress: Address | null
     shippingAddress: Address | null
-    addressId: string[]
+    addresses: Address[]
     wishlist: string[]
     cart: string[]
     likes: string[]
@@ -51,7 +51,7 @@ export type UserType = CommonType & AuthType & {
     orderId?: string[]
     billingAddress?: Address | null
     shippingAddress?: Address | null
-    addressId?: string[]
+    addresses?: Address[]
     wishlist?: string[]
     cart?: string[]
     likes?: string[]
@@ -80,7 +80,7 @@ export class User extends Common implements UserInterface {
     orderId: string[]
     billingAddress: Address | null
     shippingAddress: Address | null
-    addressId: string[]
+    addresses: Address[]
     wishlist: string[]
     cart: string[]
     likes: string[]
@@ -109,7 +109,7 @@ export class User extends Common implements UserInterface {
         this.orderId = data.orderId ? uniqueArr(data.orderId) : []
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
-        this.addressId = data.addressId ? uniqueArr(data.addressId) : []
+        this.addresses = data.addresses ? data.addresses : []
         this.wishlist = data.wishlist ? uniqueArr(data.wishlist) : []
         this.cart = data.cart ? uniqueArr(data.cart) : []
         this.likes = data.likes ? uniqueArr(data.likes) : []
@@ -140,7 +140,7 @@ export class User extends Common implements UserInterface {
             orderId: this.orderId,
             billingAddress: this.billingAddress,
             shippingAddress: this.shippingAddress,
-            addressId: this.addressId,
+            addresses: this.addresses,
             wishlist: this.wishlist,
             cart: this.cart,
             likes: this.likes

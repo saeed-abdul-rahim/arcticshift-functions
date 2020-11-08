@@ -20,25 +20,25 @@ export function userHandler(app: Application) {
         user.createStaff
     )
 
-    app.put(`${userRoute}/wishlist`,
+    app.put(`${userRoute}/:id/wishlist`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.addToWishlist
     )
 
-    app.patch(`${userRoute}/phone`,
+    app.patch(`${userRoute}/:id/phone`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.linkWithPhoneNumber
     )
 
-    app.patch(userRoute,
+    app.patch(`${userRoute}/:id`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.update
     )
 
-    app.delete(`${userRoute}/wishlist/:id`,
+    app.delete(`${userRoute}/:id/wishlist/:wid`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.removeFromWishlist

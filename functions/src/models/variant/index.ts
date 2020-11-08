@@ -77,12 +77,8 @@ export async function remove(variantId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return variantsRef.doc(id)
-    } else {
-        return variantsRef
-    }
+export function getRef(id: string) {
+    return variantsRef.doc(id)
 }
 
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {

@@ -1,7 +1,7 @@
 import { Common, CommonInterface, CommonType, Address, Condition, OrderBy } from '../common/schema'
 
-export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled' | ''
-export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded' | ''
+export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled'
+export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded'
 
 export type VariantQuantity = {
     variantId: string
@@ -115,8 +115,8 @@ export class Order extends Common implements OrderInterface {
         this.orderId = data.orderId ? data.orderId : ''
         this.orderNo = data.orderNo ? data.orderNo : 0
         this.gatewayOrderId = data.gatewayOrderId ? data.gatewayOrderId : ''
-        this.orderStatus = data.orderStatus ? data.orderStatus : ''
-        this.paymentStatus = data.paymentStatus ? data.paymentStatus : ''
+        this.orderStatus = data.orderStatus ? data.orderStatus : 'draft'
+        this.paymentStatus = data.paymentStatus ? data.paymentStatus : 'notCharged'
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
         this.shippingRateId = data.shippingRateId ? data.shippingRateId : ''

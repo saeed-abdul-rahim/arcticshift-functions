@@ -23,3 +23,4 @@ export const razorpay: Razorpay = new Razorpay({
         key_secret: config().razorpay.secret
     }
 })
+export const razorpayWebhookSecret = config().razorpay.webhook

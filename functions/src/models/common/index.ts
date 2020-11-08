@@ -1,11 +1,23 @@
 import * as admin from 'firebase-admin'
-import { Role, Condition, ValueType, AddressKey, OrderBy } from './schema'
+import { Role, Condition, ValueType, AddressKey, OrderBy, Address } from './schema'
 
 export const roles: Role[] = ['admin', 'staff']
 export const valueTypes: ValueType[] = ['fixed', 'percent']
 
-export function isOfTypeAddress (keyInput: string): keyInput is AddressKey {
+export function isOfTypeAddress(keyInput: string): keyInput is AddressKey {
     return ['name', 'company', 'phone', 'email', 'line1', 'line2', 'city', 'zip', 'area', 'country'].includes(keyInput);
+}
+
+export function isValidAddress(object: any): boolean {
+    let valid = true
+    Object.entries(object).forEach(([key]) => {
+        if (!isOfTypeAddress(key)) { valid = false }
+    });
+    const address = object as Address
+    if (!address.country || !address.city || !address.zip || !address.line1 || !address.name) {
+        valid = false
+    }
+    return valid
 }
 
 export function setCondition(collectionRef: FirebaseFirestore.CollectionReference<FirebaseFirestore.DocumentData>, conditions: Condition[], orderBy?: OrderBy, limit?: number) {

@@ -1,5 +1,6 @@
 import { IRazorOrder } from 'razorpay-typescript/dist/resources/order'
-import { razorpay } from '../../config'
+import { razorpay, razorpayWebhookSecret } from '../../config'
+import * as crypto from "crypto";
 
 export async function createCustomer(name: string, uid: string, email?: string, contact?: string) {
     try {
@@ -19,7 +20,7 @@ export async function createCustomer(name: string, uid: string, email?: string, 
 export async function createOrder(amount: number, currency: string, orderId: string, notes?: string) {
     try {
         const options: IRazorOrder = {
-            amount: amount * 100,
+            amount: Math.round(amount * 100),
             currency,
             receipt: orderId,
             notes: {
@@ -31,3 +32,15 @@ export async function createOrder(amount: number, currency: string, orderId: str
         throw err
     }
 }
+
+export function validateWebhook(body: any, signature: any) {
+    try {
+        return getSHA256(body, razorpayWebhookSecret) === signature
+    } catch (err) {
+        throw err
+    }
+}
+
+function getSHA256(body: any, secret: string) {
+    return crypto.createHmac('sha256', secret).update(JSON.stringify(body)).digest('hex')
+  }

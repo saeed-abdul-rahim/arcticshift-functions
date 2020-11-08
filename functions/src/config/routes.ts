@@ -20,6 +20,10 @@ import {
 } from "./constants"
 
 const v1 = '/v1'
+const webhooks = {
+    razorpay: `${v1}/${WEBHOOK}/razorpay`,
+    stripe: `${v1}/${WEBHOOK}/stripe`
+}
 const routes = {
     user: `${v1}/${USER}`,
     product: `${v1}/${PRODUCT}`,
@@ -38,6 +42,6 @@ const routes = {
     warehouse: `${v1}/${WAREHOUSE}`,
     shipping: `${v1}/${SHIPPING}`,
     shippingRate: `${v1}/${SHIPPING}/${RATE}`,
-    webhook: `${v1}/${WEBHOOK}`,
+    webhooks
 }
 export default routes
