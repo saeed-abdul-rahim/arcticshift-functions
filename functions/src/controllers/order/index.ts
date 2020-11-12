@@ -86,14 +86,6 @@ export async function calculateDraft(req: Request, res: Response) {
             total: grandTotal >= 0 ? grandTotal : 0
         }
         const batch = db.batch()
-        await Promise.all(allData.map(async data => {
-            const { orderQuantity, variantId, trackInventory } = data
-            if (trackInventory) {
-                const variantData = allVariantData.find(v => v.variantId === variantId)!
-                variantData.bookedQuantity += orderQuantity
-                batch.set(variant.getRef(variantId), variantData)
-            }
-        }))
         const updatedOrderData = { ...orderData, ...result }
         batch.set(order.getRef(orderData.orderId), updatedOrderData)
         await batch.commit()

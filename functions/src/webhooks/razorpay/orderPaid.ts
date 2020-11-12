@@ -1,5 +1,6 @@
 import { PaymentStatus } from "../../models/order/schema"
 import * as orderModel from "../../models/order"
+import * as variant from "../../models/variant"
 
 export async function orderPaid(payload: any) {
     try {
@@ -18,10 +19,28 @@ export async function orderPaid(payload: any) {
         if (!orderData) {
             throw new Error('Order not found')
         }
+
         orderData.paymentStatus = paymentStatus
         orderData.orderStatus = 'unfulfilled'
         await orderModel.set(orderData.orderId, orderData)
+
+        const { variants } = orderData
+        await Promise.all(variants.map(async v => {
+            try {
+                const { variantId, quantity } = v
+                const variantData = await variant.get(variantId)
+                const { trackInventory } = variantData
+                if (trackInventory) {
+                    variantData.bookedQuantity += quantity
+                    await variant.set(variantId, variantData)
+                }
+            } catch (err) {
+                console.log(err)
+                return
+            }
+        }))
     } catch (err) {
+        console.error(err)
         throw err
     }
 }
