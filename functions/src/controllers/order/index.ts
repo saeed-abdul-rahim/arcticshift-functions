@@ -15,7 +15,7 @@ import { addVariantToOrder, aggregateData, calculateData, calculateShipping, cal
 import { uniqueArr } from '../../utils/arrayUtils'
 import { isValidAddress } from '../../models/common'
 import { setUserBillingAddress, setUserShippingAddress } from '../user/helper'
-import { batch } from '../../config/db'
+import { db } from '../../config/db'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -85,14 +85,15 @@ export async function calculateDraft(req: Request, res: Response) {
             shippingCharge,
             total: grandTotal >= 0 ? grandTotal : 0
         }
-        allData.forEach(async data => {
+        const batch = db.batch()
+        await Promise.all(allData.map(async data => {
             const { orderQuantity, variantId, trackInventory } = data
             if (trackInventory) {
                 const variantData = allVariantData.find(v => v.variantId === variantId)!
                 variantData.bookedQuantity += orderQuantity
                 batch.set(variant.getRef(variantId), variantData)
             }
-        })
+        }))
         const updatedOrderData = { ...orderData, ...result }
         batch.set(order.getRef(orderData.orderId), updatedOrderData)
         await batch.commit()
@@ -191,6 +192,27 @@ export async function removeVariant(req: Request, res: Response, next: Function)
             orderData.voucherId = ''
             orderData.giftCardId = ''
         }
+        await order.set(orderId, orderData)
+        return next()
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function updateVariants(req: Request, res: Response, next: Function) {
+    try {
+        const { id: orderId } = req.params
+        const { data }: { data: OrderType } = req.body
+        const { variants } = data
+        if (!variants) {
+            return missingParam(res, 'Variant')
+        }
+        const orderData = await order.get(orderId)
+        if (!isDraft(orderData)) {
+            return badRequest(res, 'Not a draft')
+        }
+        orderData.variants = variants
         await order.set(orderId, orderData)
         return next()
     } catch (err) {

@@ -34,10 +34,17 @@ export function orderHandler(app: Application) {
         order.addVariant
     )
 
-    app.patch(`${orderRoute}/:id/${VARIANT}`,
+    app.patch(`${orderRoute}/:id/${VARIANT}/delete`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
         order.removeVariant,
+        order.calculateDraft
+    )
+
+    app.patch(`${orderRoute}/:id/${VARIANT}`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.updateVariants,
         order.calculateDraft
     )
 

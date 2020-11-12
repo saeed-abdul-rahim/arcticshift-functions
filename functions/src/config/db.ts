@@ -30,10 +30,7 @@ import {
     SETTINGS
 } from './constants'
 
-const db = admin.firestore()
-
-export const batch = admin.firestore().batch()
-export const transaction = admin.firestore().runTransaction
+export const db = admin.firestore()
 
 export const dbRef = db.collection(DBVERSION).doc(DBNAME)
 

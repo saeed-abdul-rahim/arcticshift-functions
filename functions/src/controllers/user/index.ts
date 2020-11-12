@@ -6,6 +6,7 @@ import parsePhoneNumber from 'libphonenumber-js'
 
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successCreated, successUpdated } from '../../responseHandler/successHandler'
+import * as razorpay from '../../payments/razorpay'
 
 import * as shop from '../../models/shop'
 import * as user from '../../models/user'
@@ -66,6 +67,7 @@ export async function linkWithPhoneNumber(req: Request, res: Response) {
             const userData = await user.get(uid)
             userData.phone = phoneNumber
             userData.phoneCode = parsedPhone && parsedPhone.countryCallingCode.toString() || ''
+            await razorpay.createCustomer(uid, '', '', phoneNumber)
             await user.set(uid, userData)
             return successUpdated(res)
         } else {

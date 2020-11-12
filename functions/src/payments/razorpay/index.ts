@@ -2,7 +2,7 @@ import { IRazorOrder } from 'razorpay-typescript/dist/resources/order'
 import { razorpay, razorpayWebhookSecret } from '../../config'
 import * as crypto from "crypto";
 
-export async function createCustomer(name: string, uid: string, email?: string, contact?: string) {
+export async function createCustomer(uid: string, name = '', email?: string, contact?: string) {
     try {
         return razorpay.customers.create({
             name,
