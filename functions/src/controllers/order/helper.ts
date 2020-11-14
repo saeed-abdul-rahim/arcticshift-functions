@@ -13,6 +13,9 @@ import { ProductInterface } from "../../models/product/schema"
 import { ProductTypeInterface } from "../../models/productType/schema"
 import { SaleDiscountInterface } from "../../models/saleDiscount/schema"
 import { mergeDuplicatesArrObj, uniqueArr } from "../../utils/arrayUtils"
+import { VoucherInterface } from "../../models/voucher/schema"
+import { ShippingRateInterface } from "../../models/shippingRate/schema"
+import { TaxInterface } from "../../models/tax/schema"
 
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
     try {
@@ -52,22 +55,29 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
     }
 }
 
-export function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null) {
+export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<OrderData[]> {
     try {
-        return allVariantData.map(variantData => {
+        return await Promise.all(allVariantData.map(async variantData => {
+
             const { productId, variantId } = variantData
             const orderQuantity = orderVariants.find(v => v.variantId === variantId)!.quantity
             const baseProduct = allProductData.find(p => p.productId === productId)!
-            const { productTypeId } = baseProduct
+            const { productTypeId, chargeTax, categoryId, allCategoryId, collectionId } = baseProduct
             const baseProductType = allProductTypeData.find(p => p.productTypeId === productTypeId)!
-            const { categoryId, allCategoryId, collectionId } = baseProduct
+            const { taxId } = baseProductType
+            let taxData: TaxInterface | null = null
+
             allCategoryId.push(categoryId)
             const cids = uniqueArr(allCategoryId)
             const productDiscount = saleDiscounts?.find(sd => sd.productId.includes(productId))
             const categoryDiscount = saleDiscounts?.find(sd => sd.categoryId.some(cid => cids.includes(cid)))
             const collectionDiscount = saleDiscounts?.find(sd => sd.collectionId.some(cid => collectionId.includes(cid)))
+            if (chargeTax) {
+                taxData = await tax.get(taxId)
+            }
             const data = {
                 ...variantData,
+                taxData,
                 orderQuantity,
                 baseProduct,
                 baseProductType
@@ -81,18 +91,17 @@ export function combineData(orderVariants: VariantQuantity[], allVariantData: Va
             } else {
                 return { ...data, saleDiscount: null }
             }
-        }).filter(isDefined)
+        })).then(data => data.filter(isDefined))
     } catch (err) {
         throw err
     }
 }
 
-export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc[]> {
+export function calculateData(allData: OrderData[]): OrderDataCalc[] {
     try {
-        return await Promise.all(allData.map(async data => {
-            const { price, orderQuantity, saleDiscount, baseProductType, baseProduct } = data
-            const { chargeTax } = baseProduct
-            const { taxId, weight } = baseProductType
+        return allData.map(data => {
+            const { price, orderQuantity, saleDiscount, baseProductType, taxData } = data
+            const { weight } = baseProductType
             const subTotal = price * orderQuantity
             let total = subTotal
             let taxes = 0
@@ -103,8 +112,7 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
                 discountValue = getDiscount(price, value, valueType) * orderQuantity
                 total -= discountValue
             }
-            if (chargeTax) {
-                const taxData = await tax.get(taxId)
+            if (taxData) {
                 const { value, valueType } = taxData
                 if (valueType === 'fixed') {
                     taxes += value
@@ -126,7 +134,7 @@ export async function calculateData(allData: OrderData[]): Promise<OrderDataCalc
                 quantity: orderQuantity,
                 saleDiscount: discountValue
             }
-        }))
+        })
     } catch (err) {
         throw err
     }
@@ -147,8 +155,9 @@ export function aggregateData(allDataCalculated: OrderDataCalc[]): AggregateType
 export async function calculateShipping(shippingRateId: string, aggregate: AggregateType) {
     try {
         let shippingCharge = 0
+        let shippingRateData: ShippingRateInterface | null = null
         if (shippingRateId) {
-            const shippingRateData = await shippingRate.get(shippingRateId)
+            shippingRateData = await shippingRate.get(shippingRateId)
             const { type, noValueLimit, freeShippingRate, minValue, maxValue, price } = shippingRateData
             const { total, totalWeight } = aggregate
             if (!freeShippingRate) {
@@ -164,7 +173,7 @@ export async function calculateShipping(shippingRateId: string, aggregate: Aggre
                 }
             }
         }
-        return shippingCharge
+        return { shippingCharge, shippingRateData }
     } catch (err) {
         throw err
     }
@@ -175,8 +184,9 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
         let shippingCharge = shipping
         const now = Date.now()
         let voucherDiscount = 0
+        let voucherData: VoucherInterface | null = null
         if (voucherId) {
-            const voucherData = await voucher.get(voucherId)
+            voucherData = await voucher.get(voucherId)
             const {
                 status,
                 startDate,
@@ -211,7 +221,7 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
                 }
 
                 let isValidUse = true
-                if (onePerUser || totalUsage > 0){
+                if (onePerUser || totalUsage > 0) {
                     const userData = await user.get(uid)
                     const { voucherUsed } = userData
                     if (voucherUsed && voucherUsed[voucherId] && voucherUsed[voucherId] > 0) {
@@ -219,7 +229,7 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
                             isValidUse = false
                         } else if (totalUsage > 0 && voucherUsed[voucherId] > totalUsage) {
                             isValidUse = false
-                        } 
+                        }
                     }
                 }
 
@@ -274,7 +284,7 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
             }
         }
         return {
-            voucherDiscount, shippingCharge
+            voucherDiscount, shippingCharge, voucherData
         }
     } catch (err) {
         throw err
@@ -315,6 +325,7 @@ type OrderData = VariantInterface & {
     baseProduct: ProductInterface
     baseProductType: ProductTypeInterface
     saleDiscount: SaleDiscountInterface | null
+    taxData?: TaxInterface | null
 }
 type OrderDataCalc = AggregateType & {
     data: OrderData

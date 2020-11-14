@@ -32,6 +32,12 @@ export function userHandler(app: Application) {
         user.linkWithPhoneNumber
     )
 
+    app.patch(`${userRoute}/:id/email`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true }),
+        user.linkWithEmail
+    )
+
     app.patch(`${userRoute}/:id`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),

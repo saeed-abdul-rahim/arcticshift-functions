@@ -68,13 +68,17 @@ export async function calculateDraft(req: Request, res: Response) {
             return productType.get(productTypeId)
         }))
 
-        const allData = combineData(variants, allVariantData, allProductData, allProductTypeData, saleDiscounts)
-        const allDataCalculated = await calculateData(allData)
+        const allData = await combineData(variants, allVariantData, allProductData, allProductTypeData, saleDiscounts)
+        const allDataCalculated = calculateData(allData)
         const allDataAggregated = aggregateData(allDataCalculated)
-        let shippingCharge = await calculateShipping(shippingRateId, allDataAggregated)
+        
+        const shippingCalculated = await calculateShipping(shippingRateId, allDataAggregated)
+        let { shippingCharge } = shippingCalculated
+        const { shippingRateData } = shippingCalculated
+
         const voucherCalculated = await calculateVoucherDiscount(uid, voucherId, allProductData, allDataCalculated, allDataAggregated, shippingCharge)
         shippingCharge = voucherCalculated.shippingCharge
-        const { voucherDiscount } = voucherCalculated
+        const { voucherDiscount, voucherData } = voucherCalculated
         const { subTotal, saleDiscount: saleDiscountValue, taxes, total } = allDataAggregated
         const grandTotal = total + shippingCharge - voucherDiscount
         const result = {
@@ -86,7 +90,15 @@ export async function calculateDraft(req: Request, res: Response) {
             total: grandTotal >= 0 ? grandTotal : 0
         }
         const batch = db.batch()
-        const updatedOrderData = { ...orderData, ...result }
+        const updatedOrderData = {
+            ...orderData,
+            ...result,
+            data: {
+                productsData: allData,
+                shippingRateData,
+                voucherData
+            }
+        }
         batch.set(order.getRef(orderData.orderId), updatedOrderData)
         await batch.commit()
         return successUpdated(res)

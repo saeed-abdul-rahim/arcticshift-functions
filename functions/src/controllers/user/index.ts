@@ -79,6 +79,26 @@ export async function linkWithPhoneNumber(req: Request, res: Response) {
     }
 }
 
+export async function linkWithEmail(req: Request, res: Response) {
+    try {
+        const { uid } = res.locals
+        const authUser = await admin.auth().getUser(uid)
+        if (authUser.email) {
+            const { email } = authUser
+            const userData = await user.get(uid)
+            userData.email = email
+            await razorpay.createCustomer(uid, '', email)
+            await user.set(uid, userData)
+            return successUpdated(res)
+        } else {
+            return badRequest(res, 'Email not found')
+        }
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
 export async function update(req: Request, res: Response) {
     const { uid } = res.locals
     const { name, dob, gender, image, shippingAddress, billingAddress } = req.body as UserType

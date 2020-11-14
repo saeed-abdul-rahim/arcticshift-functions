@@ -36,8 +36,9 @@ export interface OrderInterface extends CommonInterface {
     taxCharge: number
     shippingCharge: number
     total: number
-    payment: Payment[],
+    payment: Payment[]
     notes: string
+    data: any
 }
 
 export type OrderType = CommonType & {
@@ -70,6 +71,7 @@ export type OrderType = CommonType & {
     total?: number
     payment?: Payment[],
     notes?: string
+    data?: any
 }
 
 export class Order extends Common implements OrderInterface {
@@ -102,6 +104,7 @@ export class Order extends Common implements OrderInterface {
     total: number
     payment: Payment[]
     notes: string
+    data: any
 
     constructor(data: OrderType) {
         super(data)
@@ -134,6 +137,7 @@ export class Order extends Common implements OrderInterface {
         this.total = data.total ? data.total : 0
         this.payment = data.payment ? data.payment : []
         this.notes = data.notes ? data.notes : ''
+        this.data = data.data ? data.data : null
     }
 
     get(): OrderInterface {
@@ -167,7 +171,8 @@ export class Order extends Common implements OrderInterface {
             shippingCharge: this.shippingCharge,
             total: this.total,
             payment: this.payment,
-            notes: this.notes
+            notes: this.notes,
+            data: this.data
         }
     }
 
