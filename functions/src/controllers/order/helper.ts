@@ -1,4 +1,4 @@
-import { OrderInterface, OrderStatus, OrderType, VariantQuantity } from "../../models/order/schema"
+import { OrderInterface, OrderStatus, OrderType, ProductData, VariantQuantity } from "../../models/order/schema"
 import { UserInterface } from "../../models/user/schema"
 import * as shippingRate from "../../models/shippingRate"
 import * as voucher from "../../models/voucher"
@@ -55,7 +55,7 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
     }
 }
 
-export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<OrderData[]> {
+export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
     try {
         return await Promise.all(allVariantData.map(async variantData => {
 
@@ -97,7 +97,7 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
     }
 }
 
-export function calculateData(allData: OrderData[]): OrderDataCalc[] {
+export function calculateData(allData: ProductData[]): OrderDataCalc[] {
     try {
         return allData.map(data => {
             const { price, orderQuantity, saleDiscount, baseProductType, taxData } = data
@@ -320,13 +320,6 @@ type AggregateType = {
     saleDiscount: number
 }
 
-type OrderData = VariantInterface & {
-    orderQuantity: number
-    baseProduct: ProductInterface
-    baseProductType: ProductTypeInterface
-    saleDiscount: SaleDiscountInterface | null
-    taxData?: TaxInterface | null
-}
 type OrderDataCalc = AggregateType & {
-    data: OrderData
+    data: ProductData
 }

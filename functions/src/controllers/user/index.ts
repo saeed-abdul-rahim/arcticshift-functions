@@ -146,7 +146,11 @@ export async function update(req: Request, res: Response) {
 export async function addToWishlist(req: Request, res: Response) {
     try {
         const { uid } = res.locals
-        const { productId } = req.body
+        const { data } = req.body
+        const { productId } = data
+        if (!productId) {
+            return missingParam(res, 'Product ID')
+        }
         const userData = await user.get(uid)
         userData.wishlist.push(productId)
         await user.set(uid, userData)

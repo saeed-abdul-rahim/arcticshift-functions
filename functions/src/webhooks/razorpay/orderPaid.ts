@@ -22,6 +22,7 @@ export async function orderPaid(payload: any) {
 
         orderData.paymentStatus = paymentStatus
         orderData.orderStatus = 'unfulfilled'
+        orderData.capturedAmount = paymentAmount / 100
         await orderModel.set(orderData.orderId, orderData)
 
         const { variants } = orderData

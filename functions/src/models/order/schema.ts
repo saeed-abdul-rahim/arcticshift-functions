@@ -1,12 +1,11 @@
 import { Common, CommonInterface, CommonType, Address, Condition, OrderBy } from '../common/schema'
-
-export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled'
-export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded'
-
-export type VariantQuantity = {
-    variantId: string
-    quantity: number
-}
+import { ProductInterface } from '../product/schema'
+import { ProductTypeInterface } from '../productType/schema'
+import { SaleDiscountInterface } from '../saleDiscount/schema'
+import { ShippingRateInterface } from '../shippingRate/schema'
+import { TaxInterface } from '../tax/schema'
+import { VariantInterface } from '../variant/schema'
+import { VoucherInterface } from '../voucher/schema'
 
 export interface OrderInterface extends CommonInterface {
     shopId: string
@@ -28,7 +27,7 @@ export interface OrderInterface extends CommonInterface {
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
-    fullfilled: Fulfilled[]
+    fullfilled: Fullfill[]
     subTotal: number
     saleDiscount: number
     voucherDiscount: number
@@ -36,9 +35,10 @@ export interface OrderInterface extends CommonInterface {
     taxCharge: number
     shippingCharge: number
     total: number
+    capturedAmount: number
     payment: Payment[]
     notes: string
-    data: any
+    data: OrderData | null
 }
 
 export type OrderType = CommonType & {
@@ -61,7 +61,7 @@ export type OrderType = CommonType & {
     giftCardId?: string
     shippingId?: string
     variants?: VariantQuantity[]
-    fullfilled?: Fulfilled[]
+    fullfilled?: Fullfill[]
     subTotal?: number
     saleDiscount?: number
     voucherDiscount?: number
@@ -69,9 +69,10 @@ export type OrderType = CommonType & {
     taxCharge?: number
     shippingCharge?: number
     total?: number
+    capturedAmount?: number
     payment?: Payment[],
     notes?: string
-    data?: any
+    data?: OrderData | null
 }
 
 export class Order extends Common implements OrderInterface {
@@ -94,7 +95,7 @@ export class Order extends Common implements OrderInterface {
     giftCardId: string
     shippingId: string
     variants: VariantQuantity[]
-    fullfilled: Fulfilled[]
+    fullfilled: Fullfill[]
     subTotal: number
     saleDiscount: number
     voucherDiscount: number
@@ -102,9 +103,10 @@ export class Order extends Common implements OrderInterface {
     taxCharge: number
     shippingCharge: number
     total: number
+    capturedAmount: number
     payment: Payment[]
     notes: string
-    data: any
+    data: OrderData | null
 
     constructor(data: OrderType) {
         super(data)
@@ -135,6 +137,7 @@ export class Order extends Common implements OrderInterface {
         this.taxCharge = data.taxCharge ? data.taxCharge : 0
         this.shippingCharge = data.shippingCharge ? data.shippingCharge : 0
         this.total = data.total ? data.total : 0
+        this.capturedAmount = data.capturedAmount ? data.capturedAmount : 0
         this.payment = data.payment ? data.payment : []
         this.notes = data.notes ? data.notes : ''
         this.data = data.data ? data.data : null
@@ -170,6 +173,7 @@ export class Order extends Common implements OrderInterface {
             taxCharge: this.taxCharge,
             shippingCharge: this.shippingCharge,
             total: this.total,
+            capturedAmount: this.capturedAmount,
             payment: this.payment,
             notes: this.notes,
             data: this.data
@@ -187,13 +191,38 @@ export type OrderOrderBy = OrderBy & {
     field: OrderFields
 }
 
+
+export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled'
+export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded'
+
+export type VariantQuantity = {
+    variantId: string
+    quantity: number
+}
+
+export type Fullfill = VariantQuantity & {
+    warehouseId: string
+    trackingId?: string
+}
+
+export type ProductData = VariantInterface & {
+    orderQuantity: number
+    baseProduct: ProductInterface
+    baseProductType: ProductTypeInterface
+    saleDiscount: SaleDiscountInterface | null
+    taxData?: TaxInterface | null
+}
+
+type OrderData = {
+    productsData: ProductData[]
+    shippingRateData: ShippingRateInterface
+    voucherData: VoucherInterface
+}
+
 type OrderFields = keyof OrderType
 
 type AllOrderFields = keyof (OrderType & Address)
 
-type Fulfilled = VariantQuantity & {
-    inventoryId: string
-}
 type Payment = {
     type: 'charge' | 'refund'
     amount: number

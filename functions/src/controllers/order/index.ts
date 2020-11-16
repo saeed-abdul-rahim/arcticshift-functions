@@ -8,7 +8,7 @@ import * as productType from '../../models/productType'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as order from '../../models/order'
-import { OrderType } from '../../models/order/schema'
+import { Fullfill, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
 import { successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, isDraft } from './helper'
@@ -269,6 +269,223 @@ export async function finalize(req: Request, res: Response) {
             gatewayOrderId: razorpayOrderId.id
         })
         return successResponse(res, razorpayOrderId)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function addTrackingCode(req: Request, res: Response) {
+    try {
+        const { data }: { data: { orderId?: string, warehouseId?: string, trackingCode?: string } } = req.body
+        const { orderId, warehouseId, trackingCode } = data
+        if (!orderId) {
+            return missingParam(res, 'Order ID')
+        }
+        if (!warehouseId) {
+            return missingParam(res, 'Warehouse ID')
+        }
+        if (!trackingCode) {
+            return missingParam(res, 'Tracking Code')
+        }
+        const orderData = await order.get(orderId)
+        const { fullfilled } = orderData
+        const otherData = fullfilled.filter(f => f.warehouseId !== warehouseId)
+        let warehouseData = fullfilled.filter(f => f.warehouseId === warehouseId)
+        warehouseData = warehouseData.map(wData => {
+            wData.trackingId = trackingCode
+            return wData
+        })
+        warehouseData = warehouseData.concat(otherData)
+        await order.set(orderId, {
+            ...orderData,
+            fullfilled: warehouseData
+        })
+        return successUpdated(res)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function fullfill(req: Request, res: Response) {
+    try {
+        const { data }: { data: OrderType } = req.body
+        const { orderId, fullfilled } = data
+        const batch = db.batch()
+
+        if (!orderId) {
+            return missingParam(res, 'Order ID')
+        }
+        if (!fullfilled || !Array.isArray(fullfilled) || fullfilled.length === 0) {
+            return missingParam(res, 'Variants')
+        }
+        const variantIds = fullfilled.map(o => o.variantId)
+        if (!variantIds || variantIds.length === 0) {
+            return missingParam(res, 'Variants')
+        }
+
+        // GET ORDER ID
+        const orderData = await order.get(orderId)
+        const { variants, fullfilled: orderFullfilled } = orderData
+        let { orderStatus } = orderData
+        if (orderStatus === 'draft') {
+            return badRequest(res, 'Not a valid order')
+        }
+        if (orderStatus === 'cancelled') {
+            return badRequest(res, 'Order already cancelled')
+        }
+
+        const orderVariantIds = variants.map(v => v.variantId)
+        const invalidVariant = variantIds.some(v => !orderVariantIds.includes(v))
+        if (invalidVariant) {
+            return badRequest(res, 'Invalid Variant')
+        }
+        const fullfilledVariantIds = orderFullfilled.map(v => v.variantId)
+        const fullfillmentNew = fullfilled.filter(f => !fullfilledVariantIds.includes(f.variantId))
+        const fullfillmentToUpdate = fullfilled.filter(f => fullfilledVariantIds.includes(f.variantId))
+        const updatedFullfillment: Fullfill[] = []
+        if (fullfillmentNew.length > 0) {
+            updatedFullfillment.concat(fullfillmentNew)
+        }
+        if (fullfillmentToUpdate.length > 0) {
+            updatedFullfillment.concat(fullfillmentToUpdate)
+        }
+
+        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
+        const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
+
+        // UPDATE QUANTITY
+        variantsToTrackInventory.forEach(variantData => {
+            const { warehouseQuantity, variantId } = variantData
+            let { bookedQuantity } = variantData
+            if (!warehouseQuantity) {
+                throw new Error(`Warehouses not found for variant: ${variantId}`)
+            }
+
+            const variantFullfillOld = orderFullfilled.filter(f => f.variantId === variantId)
+            const variantFullfillNew = fullfilled.filter(f => f.variantId === variantId)
+            const totalNewQuantity = variantFullfillNew.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
+
+            // REDUCE BOOKED QUANTITY
+            if (variantFullfillOld.length > 0 && variantFullfillNew.length > 0) {
+                const totalOldQuantity = variantFullfillOld.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
+                if (totalOldQuantity < totalNewQuantity) {
+                    bookedQuantity -= (totalNewQuantity - totalOldQuantity)
+                } else if (totalOldQuantity > totalNewQuantity) {
+                    bookedQuantity -= (totalNewQuantity - totalOldQuantity)
+                }
+            } else if (variantFullfillNew.length > 0) {
+                bookedQuantity -= totalNewQuantity
+            }
+
+            // REDUCE WAREHOUSE QUANTITY
+            Object.keys(warehouseQuantity).forEach(wId => {
+                if (variantFullfillOld.length > 0 && variantFullfillNew.length > 0) {
+                    const oldWarehouseQty = orderFullfilled.find(f => f.warehouseId === wId)
+                    const newWarehouseQty = fullfilled.find(f => f.warehouseId === wId)
+                    if (oldWarehouseQty && newWarehouseQty) {
+                        if (oldWarehouseQty.quantity < newWarehouseQty.quantity) {
+                            warehouseQuantity[wId] -= newWarehouseQty.quantity - oldWarehouseQty.quantity
+                        } else if (oldWarehouseQty.quantity > newWarehouseQty.quantity) {
+                            warehouseQuantity[wId] -= oldWarehouseQty.quantity - newWarehouseQty.quantity
+                        }
+                    } else if (newWarehouseQty) {
+                        warehouseQuantity[wId] -= newWarehouseQty.quantity
+                    }
+                }
+            })
+
+            batch.set(variant.getRef(variantId), {
+                ...variantData,
+                bookedQuantity,
+                warehouseQuantity
+            })
+            
+        })
+
+        // ORDER STATUS
+        const totalFullfilled = updatedFullfillment.map(f => f.quantity).reduce((sum, curr) => sum + curr, 0)
+        const toFullfill = variants.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
+        if (totalFullfilled === 0) {
+            orderStatus = 'unfulfilled'
+        } else if (totalFullfilled < toFullfill) {
+            orderStatus = 'partiallyFulfilled'
+        } else if (totalFullfilled === toFullfill) {
+            orderStatus = 'fulfilled'
+        }
+
+        batch.set(order.getRef(orderId), {
+            ...orderData,
+            fullfilled,
+            orderStatus
+        })
+
+        await batch.commit()
+
+        return successUpdated(res)
+
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function cancelOrderAdmin(req: Request, res: Response) {
+    try {
+        const { orderId } = req.params
+        const batch = db.batch()
+        const orderData = await order.get(orderId)
+        const { variants, fullfilled } = orderData
+        let { orderStatus } = orderData
+
+        if (orderStatus === 'cancelled') {
+            return badRequest(res, 'Order already cancelled')
+        }
+        if (orderStatus === 'draft') {
+            return badRequest(res, 'Not a valid order')
+        }
+
+        const variantIds = variants.map(v => v.variantId)
+        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
+        const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
+
+        if (orderStatus === 'fulfilled' || orderStatus === 'partiallyFulfilled') {
+            variantsToTrackInventory.forEach(variantData => {
+                const { variantId, warehouseQuantity } = variantData
+                if (!warehouseQuantity) {
+                    return
+                }
+                const fullfilledVariant = fullfilled.filter(f => f.variantId === variantId)
+                Object.keys(warehouseQuantity).forEach(wId => {
+                    const warehouseData = fullfilledVariant.find(f => f.warehouseId === wId)
+                    if (warehouseData) {
+                        warehouseQuantity[wId] += warehouseData.quantity
+                    }
+                })
+                batch.set(variant.getRef(variantId), { ...variantData, warehouseQuantity })
+            })
+        }
+
+        if (orderStatus === 'unfulfilled') {
+            if (variantsToTrackInventory.length > 0) {
+                variantsToTrackInventory.forEach(variantData => {
+                    const { variantId } = variantData
+                    let { bookedQuantity } = variantData
+                    const orderedVariant = variants.filter(v => v.variantId === variantId)
+                    const totalOrdered = orderedVariant.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
+                    bookedQuantity -= totalOrdered
+                    batch.set(variant.getRef(variantId), { ...variantData, bookedQuantity })
+                })
+            }
+        }
+
+        orderStatus = 'cancelled'
+        batch.set(order.getRef(orderId), { ...orderData, orderStatus })
+        await batch.commit()
+
+        return successUpdated(res)
+
     } catch (err) {
         console.error(err)
         return serverError(res, err)

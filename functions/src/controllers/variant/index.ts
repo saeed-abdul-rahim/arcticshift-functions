@@ -58,7 +58,7 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: VariantType } = req.body
-        const { variantId, sku } = data
+        const { variantId, sku, trackInventory } = data
         if (!variantId) {
             return missingParam(res, 'ID')
         }
@@ -76,6 +76,9 @@ export async function update(req: Request, res: Response) {
             }
         }
         const oldVariantData = await variant.get(variantId)
+        if (trackInventory === false) {
+            data.bookedQuantity = 0
+        }
         data = {
             ...oldVariantData,
             ...data
