@@ -56,10 +56,34 @@ export async function remove(categoryId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return categoriesRef.doc(id)
-    } else {
-        return categoriesRef
+export function getRef(id: string) {
+    return categoriesRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, categoryId: string, order: CategoryType) {
+    try {
+        const dataToInsert = new Category(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(categoryId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, categoryId: string, order: CategoryType) {
+    try {
+        return batch.update(getRef(categoryId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, categoryId: string) {
+    try {
+        return batch.delete(getRef(categoryId))
+    } catch (err) {
+        throw err
     }
 }

@@ -20,11 +20,9 @@ import {
     GIFTCARDS,
     SHIPPING,
     WAREHOUSE,
-    ADVERTS,
     PAGES,
     NAVIGATION,
     SUPPORT,
-    INVENTORY,
     ANALYTICS,
     SHIPPINGRATES,
     SETTINGS
@@ -52,8 +50,6 @@ export const giftCardsRef = dbRef.collection(GIFTCARDS)
 export const shippingsRef = dbRef.collection(SHIPPING)
 export const shippingRatesRef = dbRef.collection(SHIPPINGRATES)
 export const warehouseRef = dbRef.collection(WAREHOUSE)
-export const inventoryRef = dbRef.collection(INVENTORY)
-export const advertsRef = dbRef.collection(ADVERTS)
 export const pagesRef = dbRef.collection(PAGES)
 export const navigationRef = dbRef.collection(NAVIGATION)
 export const supportRef = dbRef.collection(SUPPORT)
@@ -73,7 +69,6 @@ export const userAnalyticsRef = dbRef.collection(ANALYTICS).doc(USERS)
 export const shippingAnalyticsRef = dbRef.collection(ANALYTICS).doc(SHIPPING)
 export const taxAnalyticsRef = dbRef.collection(ANALYTICS).doc(TAXES)
 export const warehouseAnalyticsRef = dbRef.collection(ANALYTICS).doc(WAREHOUSE)
-export const advertAnalyticsRef = dbRef.collection(ANALYTICS).doc(ADVERTS)
 
 const DBROUTE = `${DBVERSION}/${DBNAME}`
 export const supportRoute = `${DBROUTE}/${SUPPORT}`

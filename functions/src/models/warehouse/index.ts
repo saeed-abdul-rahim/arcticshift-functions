@@ -66,11 +66,35 @@ export async function remove(warehouseId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return warehouseRef.doc(id)
-    } else {
-        return warehouseRef
+export function getRef(id: string) {
+    return warehouseRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, warehouseId: string, order: WarehouseType) {
+    try {
+        const dataToInsert = new Warehouse(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(warehouseId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, warehouseId: string, order: WarehouseType) {
+    try {
+        return batch.update(getRef(warehouseId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, warehouseId: string) {
+    try {
+        return batch.delete(getRef(warehouseId))
+    } catch (err) {
+        throw err
     }
 }
 

@@ -6,6 +6,7 @@ export type Role = 'admin' | 'staff'
 export type Status = 'active' | 'inactive'
 export type ValueType = 'fixed' | 'percent'
 export type PriceType = 'original' | 'override' | 'strike' | 'discount' | 'cost'
+export type FullfillmentStatus = 'unfullfilled' | 'partiallyFullfilled' | 'fullfilled' | 'cancelled'
 
 export type Price = {
     name: PriceType

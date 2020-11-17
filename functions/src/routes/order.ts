@@ -34,6 +34,12 @@ export function orderHandler(app: Application) {
         order.addVariant
     )
 
+    app.patch(`${orderRoute}/:id/fullfill`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.fullfill
+    )
+
     app.patch(`${orderRoute}/:id/${VARIANT}/delete`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
@@ -52,6 +58,12 @@ export function orderHandler(app: Application) {
         isAuthenticated,
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
         order.finalize
+    )
+
+    app.delete(`${orderRoute}/:id/cancel`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.cancelOrder
     )
 
 }

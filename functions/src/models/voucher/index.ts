@@ -80,11 +80,35 @@ export async function remove(voucherId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return vouchersRef.doc(id)
-    } else {
-        return vouchersRef
+export function getRef(id: string) {
+    return vouchersRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, voucherId: string, order: VoucherType) {
+    try {
+        const dataToInsert = new Voucher(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(voucherId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, voucherId: string, order: VoucherType) {
+    try {
+        return batch.update(getRef(voucherId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, voucherId: string) {
+    try {
+        return batch.delete(getRef(voucherId))
+    } catch (err) {
+        throw err
     }
 }
 

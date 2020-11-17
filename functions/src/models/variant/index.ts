@@ -81,6 +81,35 @@ export function getRef(id: string) {
     return variantsRef.doc(id)
 }
 
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, variantId: string, order: VariantType) {
+    try {
+        const dataToInsert = new Variant(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(variantId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, variantId: string, order: VariantType) {
+    try {
+        return batch.update(getRef(variantId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, variantId: string) {
+    try {
+        return batch.delete(getRef(variantId))
+    } catch (err) {
+        throw err
+    }
+}
+
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
     const doc = await ref.get()
     if (doc.empty) return null

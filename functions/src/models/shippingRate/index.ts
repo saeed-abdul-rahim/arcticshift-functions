@@ -76,11 +76,35 @@ export async function remove(shippingRateId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return shippingRatesRef.doc(id)
-    } else {
-        return shippingRatesRef
+export function getRef(id: string) {
+    return shippingRatesRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, order: ShippingRateType) {
+    try {
+        const dataToInsert = new ShippingRate(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(shippingRateId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, order: ShippingRateType) {
+    try {
+        return batch.update(getRef(shippingRateId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, shippingRateId: string) {
+    try {
+        return batch.delete(getRef(shippingRateId))
+    } catch (err) {
+        throw err
     }
 }
 

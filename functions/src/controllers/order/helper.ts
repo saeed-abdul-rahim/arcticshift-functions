@@ -1,4 +1,4 @@
-import { OrderInterface, OrderStatus, OrderType, ProductData, VariantQuantity } from "../../models/order/schema"
+import { Fullfill, OrderInterface, OrderStatus, OrderType, ProductData, VariantQuantity } from "../../models/order/schema"
 import { UserInterface } from "../../models/user/schema"
 import * as shippingRate from "../../models/shippingRate"
 import * as voucher from "../../models/voucher"
@@ -55,6 +55,18 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
     }
 }
 
+export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: VariantQuantity[]): OrderStatus {
+    const totalFullfilled = fullfulled.map(f => f.quantity).reduce((sum, curr) => sum + curr, 0)
+        const toFullfill = variantQty.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
+        if (totalFullfilled === 0) {
+            return 'unfullfilled'
+        } else if (totalFullfilled < toFullfill) {
+            return 'partiallyFullfilled'
+        } else {
+            return 'fullfilled'
+        }
+}
+
 export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
     try {
         return await Promise.all(allVariantData.map(async variantData => {
@@ -75,6 +87,11 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
             if (chargeTax) {
                 taxData = await tax.get(taxId)
             }
+
+            // REMOVE IMAGES FOR ORDER DOCUMENT DATA
+            variantData.images = []
+            baseProduct.images = []
+
             const data = {
                 ...variantData,
                 taxData,

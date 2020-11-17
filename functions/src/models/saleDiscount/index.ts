@@ -87,11 +87,35 @@ export async function remove(saleDiscountId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return saleDiscountsRef.doc(id)
-    } else {
-        return saleDiscountsRef
+export function getRef(id: string) {
+    return saleDiscountsRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, order: SaleDiscountType) {
+    try {
+        const dataToInsert = new SaleDiscount(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(saleDiscountId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, order: SaleDiscountType) {
+    try {
+        return batch.update(getRef(saleDiscountId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string) {
+    try {
+        return batch.delete(getRef(saleDiscountId))
+    } catch (err) {
+        throw err
     }
 }
 

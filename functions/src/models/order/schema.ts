@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Address, Condition, OrderBy } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, Condition, OrderBy, FullfillmentStatus } from '../common/schema'
 import { ProductInterface } from '../product/schema'
 import { ProductTypeInterface } from '../productType/schema'
 import { SaleDiscountInterface } from '../saleDiscount/schema'
@@ -191,8 +191,7 @@ export type OrderOrderBy = OrderBy & {
     field: OrderFields
 }
 
-
-export type OrderStatus = 'draft' | 'unfulfilled' | 'partiallyFulfilled' | 'fulfilled' | 'cancelled'
+export type OrderStatus = FullfillmentStatus | 'draft'
 export type PaymentStatus = 'notCharged' | 'partiallyCharged' | 'fullyCharged' | 'partiallyRefunded' | 'fullyRefunded'
 
 export type VariantQuantity = {
@@ -215,8 +214,8 @@ export type ProductData = VariantInterface & {
 
 type OrderData = {
     productsData: ProductData[]
-    shippingRateData: ShippingRateInterface
-    voucherData: VoucherInterface
+    shippingRateData: ShippingRateInterface | undefined | null
+    voucherData: VoucherInterface | undefined | null
 }
 
 type OrderFields = keyof OrderType

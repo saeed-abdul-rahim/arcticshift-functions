@@ -51,10 +51,34 @@ export async function update(shop: ShopType): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return shopsRef.doc(id)
-    } else {
-        return shopsRef
+export function getRef(id: string) {
+    return shopsRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, shopId: string, order: ShopType) {
+    try {
+        const dataToInsert = new Shop(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(shopId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shopId: string, order: ShopType) {
+    try {
+        return batch.update(getRef(shopId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, shopId: string) {
+    try {
+        return batch.delete(getRef(shopId))
+    } catch (err) {
+        throw err
     }
 }

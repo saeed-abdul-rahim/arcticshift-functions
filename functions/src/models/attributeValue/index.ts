@@ -63,11 +63,35 @@ export async function remove(attributeValueId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return attributeValuesRef.doc(id)
-    } else {
-        return attributeValuesRef
+export function getRef(id: string) {
+    return attributeValuesRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, attributeId: string, order: AttributeValueType) {
+    try {
+        const dataToInsert = new AttributeValue(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(attributeId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, attributeId: string, order: AttributeValueType) {
+    try {
+        return batch.update(getRef(attributeId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, attributeId: string) {
+    try {
+        return batch.delete(getRef(attributeId))
+    } catch (err) {
+        throw err
     }
 }
 

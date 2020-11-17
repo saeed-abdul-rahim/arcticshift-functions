@@ -56,10 +56,34 @@ export async function remove(collectionId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return collectionsRef.doc(id)
-    } else {
-        return collectionsRef
+export function getRef(id: string) {
+    return collectionsRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, collectionsId: string, order: CollectionType) {
+    try {
+        const dataToInsert = new Collection(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(collectionsId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, collectionsId: string, order: CollectionType) {
+    try {
+        return batch.update(getRef(collectionsId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, collectionsId: string) {
+    try {
+        return batch.delete(getRef(collectionsId))
+    } catch (err) {
+        throw err
     }
 }

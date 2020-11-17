@@ -56,11 +56,35 @@ export async function remove(taxId: string): Promise<boolean> {
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return taxesRef.doc(id)
-    } else {
-        return taxesRef
+export function getRef(id: string) {
+    return taxesRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, taxId: string, order: TaxType) {
+    try {
+        const dataToInsert = new Tax(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(taxId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, taxId: string, order: TaxType) {
+    try {
+        return batch.update(getRef(taxId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, taxId: string) {
+    try {
+        return batch.delete(getRef(taxId))
+    } catch (err) {
+        throw err
     }
 }
 

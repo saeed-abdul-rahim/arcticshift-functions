@@ -5,7 +5,7 @@ import { OrderInterface, OrderType, Order, OrderCondition, OrderOrderBy } from '
 
 export async function get(orderId: string): Promise<OrderInterface> {
     try {
-        const doc = await ordersRef.doc(orderId).get()
+        const doc = await getRef(orderId).get()
         if (!doc.exists) throw new Error('Order not found')
         const data = <OrderInterface>doc.data()
         data.orderId = doc.id
@@ -58,7 +58,7 @@ export async function set(orderId: string, order: OrderType): Promise<boolean> {
     try {
         const dataToInsert = new Order(order).get()
         dataToInsert.updatedAt = Date.now()
-        await ordersRef.doc(orderId).set(dataToInsert)
+        await getRef(orderId).set(dataToInsert)
         return true
     } catch (err) {
         console.error(err)
@@ -68,7 +68,7 @@ export async function set(orderId: string, order: OrderType): Promise<boolean> {
 
 export async function update(orderId: string, order: OrderType): Promise<boolean> {
     try {
-        await ordersRef.doc(orderId).update({ ...order, updatedAt: Date.now() })
+        await getRef(orderId).update({ ...order, updatedAt: Date.now() })
         return true
     } catch (err) {
         console.error(err)
@@ -78,7 +78,7 @@ export async function update(orderId: string, order: OrderType): Promise<boolean
 
 export async function remove(orderId: string): Promise<boolean> {
     try {
-        await ordersRef.doc(orderId).delete()
+        await getRef(orderId).delete()
         await decrementOrder()
         return true
     } catch (err) {
@@ -89,6 +89,34 @@ export async function remove(orderId: string): Promise<boolean> {
 
 export function getRef(id: string) {
     return ordersRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, orderId: string, order: OrderType) {
+    try {
+        const dataToInsert = new Order(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(orderId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, orderId: string, order: OrderType) {
+    try {
+        return batch.update(getRef(orderId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, orderId: string) {
+    try {
+        return batch.delete(getRef(orderId))
+    } catch (err) {
+        throw err
+    }
 }
 
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {

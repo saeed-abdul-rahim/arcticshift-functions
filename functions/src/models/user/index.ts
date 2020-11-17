@@ -85,10 +85,34 @@ async function getOneByCondition(field: string, value: string): Promise<UserInte
     }
 }
 
-export async function getRef(id?: string) {
-    if (id) {
-        return usersRef.doc(id)
-    } else {
-        return usersRef
+export function getRef(id: string) {
+    return usersRef.doc(id)
+}
+
+export function batchSet(batch: FirebaseFirestore.WriteBatch, userId: string, order: UserType) {
+    try {
+        const dataToInsert = new User(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return batch.set(getRef(userId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, userId: string, order: UserType) {
+    try {
+        return batch.update(getRef(userId), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function batchDelete(batch: FirebaseFirestore.WriteBatch, userId: string) {
+    try {
+        return batch.delete(getRef(userId))
+    } catch (err) {
+        throw err
     }
 }
