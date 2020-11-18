@@ -4,7 +4,8 @@ import { successDeleted, successResponse, successUpdated } from '../../responseH
 import { ShopType } from '../../models/shop/schema'
 import { WarehouseType } from '../../models/warehouse/schema'
 import * as warehouse from '../../models/warehouse'
-import * as inventory from '../../models/inventory'
+import * as variant from '../../models/variant'
+import { db } from '../../config/db'
 
 export async function create(req: Request, res: Response) {
     try {
@@ -51,23 +52,21 @@ export async function remove(req: Request, res: Response) {
     try {
         const { id: warehouseId } = req.params
         await warehouse.get(warehouseId)
-        const inventoryData = await inventory.getByCondition([{
-            field: 'warehouseId',
-            type: '==',
-            value: warehouseId,
-            parentFields: ['warehouse']
-        }])
-        if (inventoryData) {
-            await Promise.all(inventoryData.map(async invData => {
-                try {
-                    const { variantId } = invData
-                    await inventory.remove(variantId)
-                } catch (err) {
-                    console.error(err)
+        const batch = db.batch()
+        const variantsData = await variant.getByCondition([
+            { field: warehouseId, type: '>=', value: -99999, parentFields: ['warehouseQuantity'] }
+        ])
+        if (variantsData) {
+            variantsData.forEach(variantData => {
+                if (variantData.warehouseQuantity && variantData.warehouseQuantity[warehouseId]) {
+                    const { variantId } = variantData
+                    delete variantData.warehouseQuantity[warehouseId]
+                    variant.batchSet(batch, variantId, variantData)
                 }
-            }))
+            })
         }
-        await warehouse.remove(warehouseId)
+        warehouse.batchDelete(batch, warehouseId)
+        await batch.commit()
         return successDeleted(res)
     } catch (err) {
         console.error(err)

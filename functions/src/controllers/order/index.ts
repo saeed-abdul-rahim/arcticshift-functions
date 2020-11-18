@@ -1,5 +1,5 @@
 import { Request, Response } from 'express'
-import * as razorpay from '../../payments/razorpay'
+import * as payments from '../../payments'
 import * as settings from '../../models/settings'
 import * as user from '../../models/user'
 import * as voucher from '../../models/voucher'
@@ -8,7 +8,7 @@ import * as productType from '../../models/productType'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as order from '../../models/order'
-import { Fullfill, OrderType } from '../../models/order/schema'
+import { Fullfillment, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
 import { successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, isDraft } from './helper'
@@ -258,18 +258,34 @@ export async function finalize(req: Request, res: Response) {
         }
 
         const settingsData = await settings.getGeneralSettings()
-        const { currency } = settingsData
+        const { currency, paymentGateway } = settingsData
         if (!currency) {
             return badRequest(res, 'Currency required')
         }
 
-        const { total, notes } = orderData
-        const razorpayOrderId = await razorpay.createOrder(total, currency, orderId, notes)
-        await order.set(orderId, {
-            ...orderData,
-            gatewayOrderId: razorpayOrderId.id
+        const batch = db.batch()
+        const { total, notes, variants } = orderData
+        const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
+
+        // BOOK VARIANTS
+        const variantIds = variants.map(v => v.variantId)
+        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
+        variants.forEach(v => {
+            const { variantId, quantity } = v
+            const variantData = variantsData.find(vd => vd.variantId === variantId)!
+            const { trackInventory } = variantData
+            if (trackInventory) {
+                variantData.bookedQuantity += quantity
+                variant.batchSet(batch, variantId, variantData)
+            }
         })
-        return successResponse(res, razorpayOrderId)
+
+        order.batchSet(batch, orderId, {
+            ...orderData,
+            gatewayOrderId: gatewayOrderId.id
+        })
+        await batch.commit()
+        return successResponse(res, gatewayOrderId)
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -278,11 +294,9 @@ export async function finalize(req: Request, res: Response) {
 
 export async function addTrackingCode(req: Request, res: Response) {
     try {
-        const { data }: { data: { orderId?: string, warehouseId?: string, trackingCode?: string } } = req.body
-        const { orderId, warehouseId, trackingCode } = data
-        if (!orderId) {
-            return missingParam(res, 'Order ID')
-        }
+        const { id: orderId } = req.params
+        const { data }: { data: { warehouseId?: string, trackingCode?: string } } = req.body
+        const { warehouseId, trackingCode } = data
         if (!warehouseId) {
             return missingParam(res, 'Warehouse ID')
         }
@@ -343,20 +357,25 @@ export async function fullfill(req: Request, res: Response) {
         if (invalidVariant) {
             return badRequest(res, 'Invalid Variant')
         }
-        const fullfilledVariantIds = orderFullfilled.map(v => v.variantId)
-        const fullfillmentNew = fullfilled.filter(f => !fullfilledVariantIds.includes(f.variantId))
-        const fullfillmentToUpdate = fullfilled.filter(f => fullfilledVariantIds.includes(f.variantId))
-        let updatedFullfillment: Fullfill[] = []
-        if (fullfillmentNew.length > 0) {
-            updatedFullfillment = updatedFullfillment.concat(fullfillmentNew)
-        }
-        if (fullfillmentToUpdate.length > 0) {
-            updatedFullfillment = updatedFullfillment.concat(fullfillmentToUpdate)
-        }
-        const fullfillmentOld = orderFullfilled.filter(f => !updatedFullfillment.map(uf => uf.variantId).includes(f.variantId))
-        if (fullfillmentOld.length > 0) {
-            updatedFullfillment = updatedFullfillment.concat(fullfillmentOld)
-        }
+
+        let fullfillUpdate = fullfilled.concat(orderFullfilled)
+        fullfillUpdate = fullfillUpdate.map(f => new Fullfillment(f).get())
+        fullfillUpdate = Object.values(fullfillUpdate.reduce((acc: any, {quantity, ...rest}) => {
+            const key = Object.values(rest).join('|');
+            acc[key] = acc[key] || {...rest, quantity:0};
+            acc[key].quantity +=+ quantity;
+            return acc;
+          }, {}));
+
+        fullfillUpdate.forEach(f => {
+            const { variantId, quantity } = f
+            const varQty = variantQty.find(v => v.variantId === variantId)
+            if (varQty && quantity > varQty.quantity) {
+                throw new Error('Quantity Exceeded')
+            } else {
+                return
+            }
+        })
 
         const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
         const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
@@ -369,37 +388,18 @@ export async function fullfill(req: Request, res: Response) {
                 throw new Error(`Warehouses not found for variant: ${variantId}`)
             }
 
-            const variantFullfillOld = orderFullfilled.filter(f => f.variantId === variantId)
             const variantFullfillNew = fullfilled.filter(f => f.variantId === variantId)
             const totalNewQuantity = variantFullfillNew.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
 
             // REDUCE BOOKED QUANTITY
-            if (variantFullfillOld.length > 0 && variantFullfillNew.length > 0) {
-                const totalOldQuantity = variantFullfillOld.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
-                if (totalOldQuantity < totalNewQuantity) {
-                    bookedQuantity -= (totalNewQuantity - totalOldQuantity)
-                } else if (totalOldQuantity > totalNewQuantity) {
-                    bookedQuantity += (totalNewQuantity - totalOldQuantity)
-                }
-            } else if (variantFullfillNew.length > 0) {
+            if (variantFullfillNew.length > 0) {
                 bookedQuantity -= totalNewQuantity
             }
 
             // REDUCE WAREHOUSE QUANTITY
             Object.keys(warehouseQuantity).forEach(wId => {
                 const newWarehouseQty = variantFullfillNew.find(f => f.warehouseId === wId)
-                if (variantFullfillOld.length > 0 && variantFullfillNew.length > 0) {
-                    const oldWarehouseQty = variantFullfillOld.find(f => f.warehouseId === wId)
-                    if (oldWarehouseQty && newWarehouseQty) {
-                        if (oldWarehouseQty.quantity < newWarehouseQty.quantity) {
-                            warehouseQuantity[wId] -= newWarehouseQty.quantity - oldWarehouseQty.quantity
-                        } else if (oldWarehouseQty.quantity > newWarehouseQty.quantity) {
-                            warehouseQuantity[wId] += oldWarehouseQty.quantity - newWarehouseQty.quantity
-                        }
-                    } else if (newWarehouseQty) {
-                        warehouseQuantity[wId] -= newWarehouseQty.quantity
-                    }
-                } else if (variantFullfillNew.length > 0 && newWarehouseQty) {
+                if (variantFullfillNew.length > 0 && newWarehouseQty) {
                     warehouseQuantity[wId] -= newWarehouseQty.quantity
                 }
             })
@@ -412,11 +412,11 @@ export async function fullfill(req: Request, res: Response) {
             
         })
 
-        orderStatus = getFullfillmentStatus(updatedFullfillment, variantQty)
+        orderStatus = getFullfillmentStatus(fullfillUpdate, variantQty)
 
         order.batchSet(batch, orderId, {
             ...orderData,
-            fullfilled: updatedFullfillment,
+            fullfilled: fullfillUpdate,
             orderStatus
         })
 
@@ -430,7 +430,7 @@ export async function fullfill(req: Request, res: Response) {
 
 export async function cancelFullfillment(req: Request, res: Response) {
     try {
-        const { orderId } = req.params
+        const { id: orderId } = req.params
         const { data } = req.body
         const { warehouseId }: { warehouseId: string } = data
         const orderData = await order.get(orderId)
@@ -535,6 +535,47 @@ export async function cancelOrder(req: Request, res: Response) {
 
         return successUpdated(res)
 
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function refund(req: Request, res: Response) {
+    try {
+        const { id: orderId } = req.params
+        const { data }: { data: { amount: number }} = req.body
+        let { amount } = data
+        amount = Number(amount.toFixed(2))
+        const orderData = await order.get(orderId)
+        const { payment, capturedAmount } = orderData
+        if (amount > capturedAmount) {
+            return badRequest(res, 'Amount is larger than captured')
+        }
+        const refunds = payment.filter(p => p.type === 'refund')
+        if (refunds.length > 0) {
+            const totalRefund = refunds.map(r => r.amount).reduce((a, b) => a + b, 0)
+            if (totalRefund + amount > capturedAmount) {
+                return badRequest(res, 'Amount is larger than captured')
+            }
+        }
+        const charged = payment.find(p => p.type === 'charge')
+        if (!charged) {
+            return badRequest(res, 'No Payment found')
+        }
+        const { gateway, id: paymentId } = charged
+        const refundId = await payments.refund(gateway, paymentId, amount)
+        payment.push({
+            type: 'refund',
+            id: refundId.id,
+            amount,
+            gateway
+        })
+        await order.set(orderId, {
+            ...orderData,
+            payment
+        })
+        return successUpdated(res)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

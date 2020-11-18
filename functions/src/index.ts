@@ -3,8 +3,8 @@ import * as admin from 'firebase-admin'
 
 admin.initializeApp();
 
-import * as express from 'express'
-import * as cors from 'cors'
+import express from 'express'
+import cors from 'cors'
 
 import { routes } from './routes'
 import { supportRoute } from './config/db';

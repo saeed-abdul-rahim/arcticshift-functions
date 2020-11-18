@@ -3,7 +3,7 @@ import * as functions from 'firebase-functions'
 import { tmpdir } from 'os'
 import { join, dirname } from 'path'
 
-import * as sharp from 'sharp'
+import sharp from 'sharp'
 import * as fs from 'fs-extra'
 import { Metadata } from '../../models/storage/schema'
 import * as product from '../../models/product'

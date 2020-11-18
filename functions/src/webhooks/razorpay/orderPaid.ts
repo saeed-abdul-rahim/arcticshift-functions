@@ -1,6 +1,7 @@
 import { PaymentStatus } from "../../models/order/schema"
 import * as orderModel from "../../models/order"
 import * as variant from "../../models/variant"
+import { incrementOrder } from "../../models/analytics/order"
 
 export async function orderPaid(payload: any) {
     try {
@@ -21,9 +22,16 @@ export async function orderPaid(payload: any) {
         }
 
         orderData.paymentStatus = paymentStatus
-        orderData.orderStatus = 'unfulfilled'
+        orderData.orderStatus = 'unfullfilled'
         orderData.capturedAmount = paymentAmount / 100
+        orderData.payment.push({
+            id: payment.entity.id,
+            type: 'charge',
+            amount: paymentAmount / 100,
+            gateway: 'razorpay'
+        })
         await orderModel.set(orderData.orderId, orderData)
+        await incrementOrder()
 
         const { variants } = orderData
         await Promise.all(variants.map(async v => {

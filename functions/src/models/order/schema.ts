@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Address, Condition, OrderBy, FullfillmentStatus } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, Condition, OrderBy, FullfillmentStatus, PaymentGateway } from '../common/schema'
 import { ProductInterface } from '../product/schema'
 import { ProductTypeInterface } from '../productType/schema'
 import { SaleDiscountInterface } from '../saleDiscount/schema'
@@ -182,6 +182,29 @@ export class Order extends Common implements OrderInterface {
 
 }
 
+export class Fullfillment implements Fullfill {
+    variantId: string
+    quantity: number
+    warehouseId: string
+    trackingId: string
+    
+    constructor(data: Fullfill) {
+        this.variantId = data.variantId
+        this.quantity = data.quantity
+        this.warehouseId = data.warehouseId
+        this.trackingId = data.trackingId ? data.trackingId : ''
+    }
+
+    get(): FullfillInterface {
+        return {
+            variantId: this.variantId,
+            quantity: this.quantity,
+            warehouseId: this.warehouseId,
+            trackingId: this.trackingId
+        }
+    }
+}
+
 export type OrderCondition = Condition & {
     field: AllOrderFields
     parentFields?: OrderFields[]
@@ -204,6 +227,13 @@ export type Fullfill = VariantQuantity & {
     trackingId?: string
 }
 
+export type FullfillInterface = VariantQuantity & {
+    warehouseId: string
+    trackingId: string
+}
+
+export type FullfillFields = keyof FullfillInterface
+
 export type ProductData = VariantInterface & {
     orderQuantity: number
     baseProduct: ProductInterface
@@ -223,6 +253,8 @@ type OrderFields = keyof OrderType
 type AllOrderFields = keyof (OrderType & Address)
 
 type Payment = {
+    id: string
+    gateway: PaymentGateway
     type: 'charge' | 'refund'
     amount: number
 }

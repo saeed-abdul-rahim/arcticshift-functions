@@ -34,10 +34,22 @@ export function orderHandler(app: Application) {
         order.addVariant
     )
 
+    app.patch(`${orderRoute}/:id/fullfill/cancel`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.cancelFullfillment
+    )
+
     app.patch(`${orderRoute}/:id/fullfill`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         order.fullfill
+    )
+
+    app.patch(`${orderRoute}/:id/tracking`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.addTrackingCode
     )
 
     app.patch(`${orderRoute}/:id/${VARIANT}/delete`,

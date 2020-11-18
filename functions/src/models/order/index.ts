@@ -1,5 +1,4 @@
 import { ordersRef } from '../../config/db'
-import { decrementOrder, incrementOrder } from '../analytics/order'
 import { setCondition } from '../common'
 import { OrderInterface, OrderType, Order, OrderCondition, OrderOrderBy } from './schema'
 
@@ -46,7 +45,6 @@ export async function add(order: OrderType): Promise<string> {
         const id = ordersRef.doc().id
         order.orderId = id
         await set(id, order)
-        await incrementOrder()
         return id
     } catch (err) {
         console.error(err)
@@ -79,7 +77,6 @@ export async function update(orderId: string, order: OrderType): Promise<boolean
 export async function remove(orderId: string): Promise<boolean> {
     try {
         await getRef(orderId).delete()
-        await decrementOrder()
         return true
     } catch (err) {
         console.error(err)

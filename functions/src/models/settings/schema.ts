@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType } from '../common/schema'
+import { Common, CommonInterface, CommonType, PaymentGateway } from '../common/schema'
 
 export interface SettingInterface extends CommonInterface {
     settingId: string
@@ -32,24 +32,28 @@ export interface GeneralSettingInterface extends SettingInterface {
     accentColor: string
     currency: string
     weightUnit: string
+    paymentGateway: PaymentGateway
 }
 
 export type GeneralSettingType = SettingType & {
     accentColor?: string
     currency?: string
     weightUnit?: string
+    paymentGateway?: PaymentGateway
 }
 
 export class GeneralSetting extends Setting {
     accentColor: string
     currency: string
     weightUnit: string
+    paymentGateway: PaymentGateway
 
     constructor(data: GeneralSettingType) {
         super(data)
         this.accentColor = data.accentColor ? data.accentColor : ''
         this.currency = data.currency ? data.currency : ''
         this.weightUnit = data.weightUnit ? data.weightUnit : ''
+        this.paymentGateway = data.paymentGateway ? data.paymentGateway : 'razorpay'
     }
 
     get(): GeneralSettingInterface {
@@ -58,7 +62,8 @@ export class GeneralSetting extends Setting {
             settingId: this.settingId,
             accentColor: this.accentColor,
             currency: this.currency,
-            weightUnit: this.weightUnit
+            weightUnit: this.weightUnit,
+            paymentGateway: this.paymentGateway
         }
     }
 

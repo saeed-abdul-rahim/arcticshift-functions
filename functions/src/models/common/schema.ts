@@ -2,6 +2,7 @@ import * as admin from 'firebase-admin'
 
 export type FieldValue = admin.firestore.FieldValue
 
+export type PaymentGateway = 'razorpay' | 'stripe'
 export type Role = 'admin' | 'staff'
 export type Status = 'active' | 'inactive'
 export type ValueType = 'fixed' | 'percent'

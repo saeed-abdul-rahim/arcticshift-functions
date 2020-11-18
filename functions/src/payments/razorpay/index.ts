@@ -33,6 +33,16 @@ export async function createOrder(amount: number, currency: string, orderId: str
     }
 }
 
+export async function createRefund(paymentId: string, amount: number) {
+    try {
+        return await razorpay.payments.payment(paymentId).refund({
+            amount: Math.round(amount * 100)
+        })
+    } catch (err) {
+        throw err
+    }
+}
+
 export function validateWebhook(body: any, signature: any) {
     try {
         return getSHA256(body, razorpayWebhookSecret) === signature

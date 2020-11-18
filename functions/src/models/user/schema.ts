@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType, ObjNumber } from '../common/schema'
+import { Common, CommonInterface, CommonType, Address, ContentStorage, AuthTypeImp, AuthType, ObjNumber, PaymentGateway } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export const genders: Gender[] = [ 'Male', 'Female', 'Transgender' ]
@@ -150,7 +150,7 @@ export class User extends Common implements UserInterface {
 }
 
 type PaymentMethod = {
-    type: 'razorpay' | 'stripe' | 'paypal' | 'gpay' | 'klarna' | 'lazypay'
+    type: PaymentGateway
     id: string
     paymentMethodIds: string[]
 }
