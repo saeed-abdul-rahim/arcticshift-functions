@@ -21,7 +21,7 @@ export interface UserInterface extends CommonInterface, AuthTypeImp {
     access: string[]
     paymentMethods: PaymentMethod[]
     voucherUsed: ObjNumber
-    orderId: string[]
+    totalOrders: number
     billingAddress: Address | null
     shippingAddress: Address | null
     addresses: Address[]
@@ -48,7 +48,7 @@ export type UserType = CommonType & AuthType & {
     access?: string[]
     paymentMethods?: PaymentMethod[]
     voucherUsed?: ObjNumber
-    orderId?: string[]
+    totalOrders?: number
     billingAddress?: Address | null
     shippingAddress?: Address | null
     addresses?: Address[]
@@ -77,7 +77,7 @@ export class User extends Common implements UserInterface {
     staff: string[]
     paymentMethods: PaymentMethod[]
     voucherUsed: ObjNumber
-    orderId: string[]
+    totalOrders: number
     billingAddress: Address | null
     shippingAddress: Address | null
     addresses: Address[]
@@ -106,7 +106,7 @@ export class User extends Common implements UserInterface {
         this.staff = data.staff ? uniqueArr(data.staff) : []
         this.paymentMethods = data.paymentMethods ? data.paymentMethods : []
         this.voucherUsed = data.voucherUsed ? data.voucherUsed : null
-        this.orderId = data.orderId ? uniqueArr(data.orderId) : []
+        this.totalOrders = data.totalOrders ? data.totalOrders : 0
         this.billingAddress = data.billingAddress ? data.billingAddress : null
         this.shippingAddress = data.shippingAddress ? data.shippingAddress : null
         this.addresses = data.addresses ? data.addresses : []
@@ -137,7 +137,7 @@ export class User extends Common implements UserInterface {
             staff: this.staff,
             paymentMethods: this.paymentMethods,
             voucherUsed: this.voucherUsed,
-            orderId: this.orderId,
+            totalOrders: this.totalOrders,
             billingAddress: this.billingAddress,
             shippingAddress: this.shippingAddress,
             addresses: this.addresses,

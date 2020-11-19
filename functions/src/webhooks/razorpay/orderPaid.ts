@@ -1,5 +1,6 @@
 import { PaymentStatus } from "../../models/order/schema"
 import * as orderModel from "../../models/order"
+import * as userModel from "../../models/user"
 import * as variant from "../../models/variant"
 import { incrementOrder } from "../../models/analytics/order"
 
@@ -33,7 +34,7 @@ export async function orderPaid(payload: any) {
         await orderModel.set(orderData.orderId, orderData)
         await incrementOrder()
 
-        const { variants } = orderData
+        const { variants, userId } = orderData
         await Promise.all(variants.map(async v => {
             try {
                 const { variantId, quantity } = v
@@ -48,6 +49,15 @@ export async function orderPaid(payload: any) {
                 return
             }
         }))
+        
+        try {
+            const userData = await userModel.get(userId)
+            userData.totalOrders += 1
+            await userModel.set(userId, userData)
+        } catch (err) {
+            console.log(err)
+        }
+
     } catch (err) {
         console.error(err)
         throw err

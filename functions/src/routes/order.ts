@@ -34,6 +34,12 @@ export function orderHandler(app: Application) {
         order.addVariant
     )
 
+    app.patch(`${orderRoute}/:id/refund`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.refund
+    )
+
     app.patch(`${orderRoute}/:id/fullfill/cancel`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
