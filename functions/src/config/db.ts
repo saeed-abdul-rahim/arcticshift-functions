@@ -14,6 +14,7 @@ import {
     ATTRIBUTES,
     ATTRIBUTEVALUES,
     ORDERS,
+    DRAFTS,
     TAXES,
     SALEDISCOUNTS,
     VOUCHERS,
@@ -44,6 +45,7 @@ export const attributesRef = dbRef.collection(ATTRIBUTES)
 export const attributeValuesRef = dbRef.collection(ATTRIBUTEVALUES)
 export const taxesRef = dbRef.collection(TAXES)
 export const ordersRef = dbRef.collection(ORDERS)
+export const draftsRef = dbRef.collection(DRAFTS)
 export const saleDiscountsRef = dbRef.collection(SALEDISCOUNTS)
 export const vouchersRef = dbRef.collection(VOUCHERS)
 export const giftCardsRef = dbRef.collection(GIFTCARDS)

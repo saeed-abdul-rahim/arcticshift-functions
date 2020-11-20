@@ -2,7 +2,6 @@ import { PaymentStatus } from "../../models/order/schema"
 import * as orderModel from "../../models/order"
 import * as userModel from "../../models/user"
 import * as variant from "../../models/variant"
-import { incrementOrder } from "../../models/analytics/order"
 
 export async function orderPaid(payload: any) {
     try {
@@ -15,7 +14,7 @@ export async function orderPaid(payload: any) {
         } else if (paymentAmount < orderAmount) {
             paymentStatus = 'partiallyCharged'
         }
-        const orderData = await orderModel.getOneByCondition([{
+        const orderData = await orderModel.getOneByCondition('draft', [{
             field: 'gatewayOrderId', type: '==', value: order.entity.id
         }])
         if (!orderData) {
@@ -31,10 +30,11 @@ export async function orderPaid(payload: any) {
             amount: paymentAmount / 100,
             gateway: 'razorpay'
         })
-        await orderModel.set(orderData.orderId, orderData)
-        await incrementOrder()
+        const { variants, userId, orderId } = orderData
 
-        const { variants, userId } = orderData
+        await orderModel.add(orderData, 'order')
+        await orderModel.remove(orderId, 'draft')
+
         await Promise.all(variants.map(async v => {
             try {
                 const { variantId, quantity } = v

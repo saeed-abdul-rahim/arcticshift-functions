@@ -35,9 +35,8 @@ export async function calculateDraft(req: Request, res: Response) {
     try {
         const { uid } = res.locals
         const now = Date.now()
-        const orderData = await order.getOneByCondition([
-            { field: 'userId', type: '==', value: uid },
-            { field: 'orderStatus', type: '==', value: 'draft' }
+        const orderData = await order.getOneByCondition('draft', [
+            { field: 'userId', type: '==', value: uid }
         ])
         if (!orderData) {
             return badRequest(res, 'No draft found')
@@ -100,7 +99,7 @@ export async function calculateDraft(req: Request, res: Response) {
                 voucherData
             }
         }
-        order.batchSet(batch, orderData.orderId, updatedOrderData)
+        order.batchSet(batch, orderData.orderId, updatedOrderData, 'draft')
         await batch.commit()
         return successUpdated(res)
     } catch (err) {
@@ -135,7 +134,7 @@ export async function addVoucher(req: Request, res: Response, next: Function) {
         if (endDate > 0 && endDate < now) {
             return badRequest(res, 'Voucher Expired')
         }
-        const orderData = await order.get(draftId)
+        const orderData = await order.get(draftId, 'draft')
         if (!isDraft(orderData)) {
             return badRequest(res, 'Not a draft')
         }
@@ -143,7 +142,7 @@ export async function addVoucher(req: Request, res: Response, next: Function) {
             return badRequest(res, 'Voucher already applied')
         }
         orderData.voucherId = voucherId
-        await order.set(draftId, orderData)
+        await order.set(draftId, orderData, 'draft')
         return next()
     } catch (err) {
         console.error(err)
@@ -159,14 +158,13 @@ export async function addVariant(req: Request, res: Response) {
         if (!variants || !Array.isArray(variants) || variants.length <= 0) {
             return missingParam(res, 'Variant')
         }
-        let orderData = await order.getOneByCondition([
-            { field: 'userId', type: '==', value: userId || uid },
-            { field: 'orderStatus', type: '==', value: 'draft' }
+        let orderData = await order.getOneByCondition('draft', [
+            { field: 'userId', type: '==', value: userId || uid }
         ]);
         if (orderData) {
             const { orderId } = orderData
             orderData = addVariantToOrder(orderData, variants)
-            await order.set(orderId, orderData)
+            await order.set(orderId, orderData, 'draft')
             return successUpdated(res)
         } else {
             const userData = await user.get(userId || uid)
@@ -187,7 +185,7 @@ export async function removeVariant(req: Request, res: Response, next: Function)
         if (!variantId) {
             return missingParam(res, 'Variant')
         }
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'draft')
         if (!isDraft(orderData)) {
             return badRequest(res, 'Not a draft')
         }
@@ -197,7 +195,7 @@ export async function removeVariant(req: Request, res: Response, next: Function)
             orderData.voucherId = ''
             orderData.giftCardId = ''
         }
-        await order.set(orderId, orderData)
+        await order.set(orderId, orderData, 'draft')
         return next()
     } catch (err) {
         console.error(err)
@@ -213,12 +211,12 @@ export async function updateVariants(req: Request, res: Response, next: Function
         if (!variants) {
             return missingParam(res, 'Variant')
         }
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'draft')
         if (!isDraft(orderData)) {
             return badRequest(res, 'Not a draft')
         }
         orderData.variants = variants
-        await order.set(orderId, orderData)
+        await order.set(orderId, orderData, 'draft')
         return next()
     } catch (err) {
         console.error(err)
@@ -235,7 +233,7 @@ export async function finalize(req: Request, res: Response) {
             return missingParam(res, 'Order ID')
         }
 
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'draft')
         if (orderData.orderStatus !== 'draft') {
             return badRequest(res, 'Not a draft')
         }
@@ -283,7 +281,7 @@ export async function finalize(req: Request, res: Response) {
         order.batchSet(batch, orderId, {
             ...orderData,
             gatewayOrderId: gatewayOrderId.id
-        })
+        }, 'draft')
         await batch.commit()
         return successResponse(res, gatewayOrderId)
     } catch (err) {
@@ -303,7 +301,7 @@ export async function addTrackingCode(req: Request, res: Response) {
         if (!trackingCode) {
             return missingParam(res, 'Tracking Code')
         }
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'order')
         const { fullfilled } = orderData
         const otherData = fullfilled.filter(f => f.warehouseId !== warehouseId)
         let warehouseData = fullfilled.filter(f => f.warehouseId === warehouseId)
@@ -315,7 +313,7 @@ export async function addTrackingCode(req: Request, res: Response) {
         await order.set(orderId, {
             ...orderData,
             fullfilled: warehouseData
-        })
+        }, 'order')
         return successUpdated(res)
     } catch (err) {
         console.error(err)
@@ -342,7 +340,7 @@ export async function fullfill(req: Request, res: Response) {
         }
 
         // GET ORDER ID
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'order')
         const { variants: variantQty, fullfilled: orderFullfilled } = orderData
         let { orderStatus } = orderData
         if (orderStatus === 'draft') {
@@ -418,7 +416,7 @@ export async function fullfill(req: Request, res: Response) {
             ...orderData,
             fullfilled: fullfillUpdate,
             orderStatus
-        })
+        }, 'order')
 
         await batch.commit()
         return successUpdated(res)
@@ -433,7 +431,7 @@ export async function cancelFullfillment(req: Request, res: Response) {
         const { id: orderId } = req.params
         const { data } = req.body
         const { warehouseId }: { warehouseId: string } = data
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'order')
         const batch = db.batch()
         const { fullfilled, variants: variantQty } = orderData
         let { orderStatus } = orderData
@@ -469,7 +467,7 @@ export async function cancelFullfillment(req: Request, res: Response) {
             ...orderData,
             fullfilled: updatedFullfilled,
             orderStatus
-        })
+        }, 'order')
 
         await batch.commit()
         return successUpdated(res)
@@ -484,7 +482,7 @@ export async function cancelOrder(req: Request, res: Response) {
         const { role }: Record<string, Role> = res.locals
         const { orderId } = req.params
         const batch = db.batch()
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'order')
         const { variants, fullfilled } = orderData
         let { orderStatus } = orderData
 
@@ -530,7 +528,7 @@ export async function cancelOrder(req: Request, res: Response) {
         }
 
         orderStatus = 'cancelled'
-        order.batchSet(batch, orderId, { ...orderData, orderStatus})
+        order.batchSet(batch, orderId, { ...orderData, orderStatus}, 'order')
         await batch.commit()
 
         return successUpdated(res)
@@ -547,7 +545,7 @@ export async function refund(req: Request, res: Response) {
         const { data }: { data: { amount: number }} = req.body
         let { amount } = data
         amount = Number(amount.toFixed(2))
-        const orderData = await order.get(orderId)
+        const orderData = await order.get(orderId, 'order')
         const { payment, capturedAmount } = orderData
         if (amount > capturedAmount) {
             return badRequest(res, 'Amount is larger than captured')
@@ -574,7 +572,7 @@ export async function refund(req: Request, res: Response) {
         await order.set(orderId, {
             ...orderData,
             payment
-        })
+        }, 'order')
         return successUpdated(res)
     } catch (err) {
         console.error(err)

@@ -26,7 +26,7 @@ export async function createDraft(userData: UserInterface, orderdata: OrderType)
             orderStatus,
             customerName
         }
-        return await order.add(orderData)
+        return await order.add(orderData, 'draft')
     } catch (err) {
         throw err
     }
