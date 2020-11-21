@@ -13,7 +13,22 @@ import * as collection from '../../models/collection'
 import { download, getUrl, upload } from '../../storage'
 import { Content, ContentStorage } from '../../models/common/schema'
 import { isDefined } from '../../utils/isDefined'
-import { CATEGORY, COLLECTION, PRODUCT, VARIANT } from '../../config/constants'
+import {
+    CATEGORY,
+    COLLECTION,
+    PRODUCT,
+    VARIANT,
+    IMAGE_L,
+    IMAGE_M,
+    IMAGE_ML,
+    IMAGE_S,
+    IMAGE_SM,
+    IMAGE_SS,
+    IMAGE_XL,
+    IMAGE_XS,
+    IMAGE_XXS,
+    IMAGE_FONT
+} from '../../config/constants'
 
 export async function generateThumbnails(object: functions.storage.ObjectMetadata) {
     try {
@@ -81,7 +96,7 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
 
         await download(filePath, tmpFilePath)
 
-        const sizes = [72, 96, 128, 144, 152, 192, 384, 512]
+        const sizes = [IMAGE_FONT, IMAGE_XXS, IMAGE_XS, IMAGE_SS, IMAGE_S, IMAGE_SM, IMAGE_M, IMAGE_ML, IMAGE_L, IMAGE_XL]
 
         const uploadPromises = sizes.map(async size => {
             const thumbName = `thumb@${size}_${fileName}`

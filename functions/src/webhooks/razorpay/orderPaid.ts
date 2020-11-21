@@ -1,7 +1,14 @@
 import { PaymentStatus } from "../../models/order/schema"
+import * as settings from "../../models/settings"
 import * as orderModel from "../../models/order"
 import * as userModel from "../../models/user"
 import * as variant from "../../models/variant"
+import * as category from "../../models/category"
+import * as collection from "../../models/collection"
+import { CategoryInterface } from "../../models/category/schema"
+import { CollectionInterface } from "../../models/collection/schema"
+import { orderPlacedHTML } from "../../mail/templates/orderPlacedHTML"
+import { sendMail } from "../../mail"
 
 export async function orderPaid(payload: any) {
     try {
@@ -30,7 +37,7 @@ export async function orderPaid(payload: any) {
             amount: paymentAmount / 100,
             gateway: 'razorpay'
         })
-        const { variants, userId, orderId } = orderData
+        const { variants, userId, orderId, email } = orderData
 
         await orderModel.add(orderData, 'order')
         await orderModel.remove(orderId, 'draft')
@@ -56,6 +63,37 @@ export async function orderPaid(payload: any) {
             await userModel.set(userId, userData)
         } catch (err) {
             console.log(err)
+        }
+
+        let categoriesData: CategoryInterface[] | null = null
+        let collectionData: CollectionInterface | null = null
+
+        try {
+            categoriesData = await category.getByCondition([], {
+                field: 'createdAt', direction: 'desc'
+            }, 6)
+        } catch (err) {
+            console.error(err)
+        }
+
+        try {
+            collectionData = await collection.getOneByCondition([], {
+                field: 'createdAt', direction: 'desc'
+            })
+        } catch (err) {
+            console.error(err)
+        }
+
+        try {
+            const settingsData = await settings.getGeneralSettings()
+            const orderPaidMail = orderPlacedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined)
+            await sendMail({
+                to: email,
+                subject: 'Order Placed!',
+                html: orderPaidMail
+            })
+        } catch (err) {
+            console.error(err)
         }
 
     } catch (err) {

@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Content, Condition } from '../common/schema'
+import { Common, CommonInterface, CommonType, Content, Condition, OrderBy } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface CollectionInterface extends CommonInterface {
@@ -71,4 +71,8 @@ export type CollectionCondition = Condition & {
     parentFields?: (keyof CollectionType)[]
 }
 
-type CollectionFields = keyof (CollectionType & Content)
+export type CollectionOrderBy = OrderBy & {
+    field: CollectionFields
+}
+
+type CollectionFields = keyof CollectionType

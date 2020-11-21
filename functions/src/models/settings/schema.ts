@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, PaymentGateway } from '../common/schema'
+import { Common, CommonInterface, CommonType, Content, PaymentGateway } from '../common/schema'
 
 export interface SettingInterface extends CommonInterface {
     settingId: string
@@ -33,6 +33,12 @@ export interface GeneralSettingInterface extends SettingInterface {
     currency: string
     weightUnit: string
     paymentGateway: PaymentGateway
+    logo: Content | null
+    logoLong: Content | null
+    name: string
+    facebook: string
+    instagram: string
+    twitter: string
 }
 
 export type GeneralSettingType = SettingType & {
@@ -40,6 +46,12 @@ export type GeneralSettingType = SettingType & {
     currency?: string
     weightUnit?: string
     paymentGateway?: PaymentGateway
+    logo?: Content | null
+    logoLong?: Content | null
+    name?: string
+    facebook?: string
+    instagram?: string
+    twitter?: string
 }
 
 export class GeneralSetting extends Setting {
@@ -47,6 +59,12 @@ export class GeneralSetting extends Setting {
     currency: string
     weightUnit: string
     paymentGateway: PaymentGateway
+    logo: Content | null
+    logoLong: Content | null
+    name: string
+    facebook: string
+    instagram: string
+    twitter: string
 
     constructor(data: GeneralSettingType) {
         super(data)
@@ -54,6 +72,12 @@ export class GeneralSetting extends Setting {
         this.currency = data.currency ? data.currency : ''
         this.weightUnit = data.weightUnit ? data.weightUnit : ''
         this.paymentGateway = data.paymentGateway ? data.paymentGateway : 'razorpay'
+        this.logo = data.logo ? data.logo : null
+        this.logoLong = data.logoLong ? data.logoLong : null
+        this.name = data.name ? data.name : ''
+        this.facebook = data.facebook ? data.facebook : ''
+        this.instagram = data.instagram ? data.instagram : ''
+        this.twitter = data.twitter ? data.twitter : ''
     }
 
     get(): GeneralSettingInterface {
@@ -63,7 +87,13 @@ export class GeneralSetting extends Setting {
             accentColor: this.accentColor,
             currency: this.currency,
             weightUnit: this.weightUnit,
-            paymentGateway: this.paymentGateway
+            paymentGateway: this.paymentGateway,
+            logo: this.logo,
+            logoLong: this.logo,
+            name: this.name,
+            facebook: this.facebook,
+            instagram: this.instagram,
+            twitter: this.twitter
         }
     }
 

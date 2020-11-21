@@ -5,10 +5,7 @@ const { config } = functions
 
 export const TITLE = 'PROLR'
 export const URL = {
-    base: 'https://articshift-7f9cd.web.app',
-    support: '/support',
-    home: '/',
-    logo: '/assets/icons/icon-72x72.png'
+    base: 'http://localhost:4200'
 }
 export const appId = config().app.id
 export const gmail = config().gmail.email
