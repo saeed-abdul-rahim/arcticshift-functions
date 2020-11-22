@@ -226,6 +226,7 @@ export async function updateVariants(req: Request, res: Response, next: Function
 
 export async function finalize(req: Request, res: Response) {
     try {
+        const batch = db.batch()
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
         const { orderId, shippingAddress, billingAddress } = data
@@ -254,6 +255,7 @@ export async function finalize(req: Request, res: Response) {
         } else {
             return badRequest(res, 'Invalid Shipping Address')
         }
+        user.batchSet(batch, uid, userData)
 
         const settingsData = await settings.getGeneralSettings()
         const { currency, paymentGateway } = settingsData
@@ -261,7 +263,6 @@ export async function finalize(req: Request, res: Response) {
             return badRequest(res, 'Currency required')
         }
 
-        const batch = db.batch()
         const { total, notes, variants } = orderData
         const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
 
@@ -280,6 +281,7 @@ export async function finalize(req: Request, res: Response) {
 
         order.batchSet(batch, orderId, {
             ...orderData,
+            ...data,
             gatewayOrderId: gatewayOrderId.id
         }, 'draft')
         await batch.commit()

@@ -85,6 +85,7 @@ export async function orderPaid(payload: any) {
         }
 
         try {
+            console.error(orderData.orderId, orderData.email, orderData.customerName)
             const settingsData = await settings.getGeneralSettings()
             const orderPaidMail = orderPlacedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined)
             await sendMail({

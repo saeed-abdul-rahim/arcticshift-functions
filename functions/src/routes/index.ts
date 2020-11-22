@@ -15,6 +15,7 @@ import { warehouseHandler } from './warehouse'
 import { shippingHandler } from './shipping'
 import { orderHandler } from './order'
 import { webhookHandler } from './webhook'
+import { settingsHandler } from './settings'
 
 export function routes(app: Application) {
     userHandler(app)
@@ -32,4 +33,5 @@ export function routes(app: Application) {
     warehouseHandler(app)
     shippingHandler(app)
     webhookHandler(app)
+    settingsHandler(app)
 }

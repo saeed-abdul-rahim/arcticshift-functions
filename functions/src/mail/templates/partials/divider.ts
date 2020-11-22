@@ -1,4 +1,4 @@
-const divider = (solid?: boolean) => `
+export const divider = (solid?: boolean) => `
 <div style="background-color:transparent;">
     <div class="block-grid"
         style="min-width: 320px; max-width: 620px; overflow-wrap: break-word; word-wrap: break-word; word-break: break-word; Margin: 0 auto; background-color: transparent;">

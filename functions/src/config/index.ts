@@ -9,10 +9,10 @@ export const URL = {
 }
 export const appId = config().app.id
 export const gmail = config().gmail.email
-export const clientId = config().service.id
-export const clientSecret = config().service.secret
-export const refreshToken = config().service.refresh
-export const accessToken = config().service.access
+export const clientId = config().gmail.id
+export const clientSecret = config().gmail.secret
+export const refreshToken = config().gmail.refresh
+export const accessToken = config().gmail.access
 
 export const razorpay: Razorpay = new Razorpay({
     authKey: {   

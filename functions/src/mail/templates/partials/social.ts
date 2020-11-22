@@ -1,3 +1,5 @@
+import { divider } from "./divider"
+
 export const social = (facebook?: string, twitter?: string, instagram?: string) => {
     if (!facebook && !twitter && !instagram) {
         return ''

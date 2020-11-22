@@ -1,4 +1,4 @@
-import currencySymbols from 'currency-symbols'
+const getSymbolFromCurrency = require('currency-symbol-map')
 import { URL } from '../../config'
 import { COLLECTION, IMAGE_FONT, IMAGE_L } from '../../config/constants';
 import { CategoryInterface } from '../../models/category/schema';
@@ -9,6 +9,7 @@ import { GeneralSettingInterface } from '../../models/settings/schema';
 import { getThumbnail } from '../../utils/content';
 import { banner } from './partials/banner';
 import { categoryLabels } from './partials/categoryLabels';
+import { divider } from './partials/divider';
 import { footer } from './partials/footer';
 import { headContent } from './partials/headContent';
 import { header } from './partials/header';
@@ -18,7 +19,7 @@ import { social } from './partials/social';
 export const orderPlacedHTML = (settings: GeneralSettingInterface, order: OrderInterface, collection?: CollectionInterface, categories?: CategoryInterface[]) => {
     const { base: homeUrl } = URL
     const { currency, logoLong, name: shopName, facebook, twitter, instagram } = settings
-    const currencySymbol = currencySymbols.getCurrencySymbol(currency)
+    const currencySymbol = getSymbolFromCurrency(currency)
     const { data, total, saleDiscount, voucherDiscount, taxCharge, shippingCharge } = order
 
     let logoContent: ContentStorage | undefined = undefined

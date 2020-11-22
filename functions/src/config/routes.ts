@@ -16,7 +16,8 @@ import {
     VARIANT,
     VOUCHER,
     WAREHOUSE,
-    WEBHOOK
+    WEBHOOK,
+    SETTINGS
 } from "./constants"
 
 const v1 = '/v1'
@@ -42,6 +43,7 @@ const routes = {
     warehouse: `${v1}/${WAREHOUSE}`,
     shipping: `${v1}/${SHIPPING}`,
     shippingRate: `${v1}/${SHIPPING}/${RATE}`,
+    settings: `${v1}/${SETTINGS}`,
     webhooks
 }
 export default routes

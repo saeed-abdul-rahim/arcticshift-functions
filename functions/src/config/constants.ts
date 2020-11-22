@@ -11,8 +11,6 @@ export const IMAGE_ML: 192 = 192;
 export const IMAGE_L: 384 = 384;
 export const IMAGE_XL: 512 = 512;
 
-// FOR API
-
 export const USER: USER = 'user'
 export const PRODUCT: PRODUCT = 'product'
 export const PRODUCTTYPE: PRODUCTTYPE = 'product-type'
@@ -29,8 +27,6 @@ export const RATE: RATE = 'rate'
 export const SHOP: SHOP = 'shop'
 export const TAX: TAX = 'tax'
 export const WEBHOOK: WEBHOOK = 'webhook'
-
-// FOR DB
 
 export const DBVERSION: DBVERSION = 'v1'
 export const DBNAME: DBNAME = 'db'
@@ -61,8 +57,6 @@ export const SETTINGS: SETTINGS = 'settings'
 export const ANALYTICS: ANALYTICS = 'analytics'
 
 
-// FOR API
-
 type USER = 'user'
 type PRODUCT = 'product'
 type PRODUCTTYPE = 'product-type'
@@ -79,8 +73,6 @@ type RATE = 'rate'
 type SHOP = 'shop'
 type TAX = 'tax'
 type WEBHOOK = 'webhook'
-
-// FOR DB
 
 type DBVERSION = 'v1'
 type DBNAME = 'db'
