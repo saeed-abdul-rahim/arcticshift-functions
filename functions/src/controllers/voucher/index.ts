@@ -20,11 +20,11 @@ export async function create(req: Request, res: Response) {
         if (voucherExists) {
             return badRequest(res, 'Voucher exists')
         }
-        if (!value) {
-            return missingParam(res, 'Value')
-        }
         if (!valueType) {
             return missingParam(res, 'Value Type')
+        }
+        if (!value && valueType !== 'shipping') {
+            return missingParam(res, 'Value')
         }
         if (!startDate) {
             return missingParam(res, 'Start Date')

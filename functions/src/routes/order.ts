@@ -4,7 +4,7 @@ import * as order from '../controllers/order'
 import routes from '../config/routes'
 import { isAuthenticated } from '../auth/authenticated'
 import { isAuthorized } from '../auth/authorized'
-import { VARIANT, VOUCHER } from '../config/constants'
+import { SHIPPING, VARIANT, VOUCHER } from '../config/constants'
 
 export function orderHandler(app: Application) {
 
@@ -58,6 +58,19 @@ export function orderHandler(app: Application) {
         order.addTrackingCode
     )
 
+    app.patch(`${orderRoute}/:id/capture`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.capturePayment
+    )
+
+    app.patch(`${orderRoute}/:id/${SHIPPING}`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.updateShipping,
+        order.calculateDraft
+    )
+
     app.patch(`${orderRoute}/:id/${VARIANT}/delete`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
@@ -70,6 +83,12 @@ export function orderHandler(app: Application) {
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
         order.updateVariants,
         order.calculateDraft
+    )
+
+    app.patch(`${orderRoute}/:id/cod`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.orderCOD
     )
 
     app.patch(orderRoute,

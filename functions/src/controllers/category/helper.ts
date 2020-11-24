@@ -13,7 +13,9 @@ export async function addProductToCategory(productData: ProductInterface, catego
             const parentCategoryData = await category.get(parentCategoryId)
             parentCategoryData.productId.unshift(productId)
             await category.set(parentCategoryId, parentCategoryData)
-        } catch (_) {}
+        } catch (err) {
+            console.error(err)
+        }
     }
     return {
         newCategoryData: categoryData,
@@ -32,7 +34,9 @@ export async function removeProductFromCategory(productData: ProductInterface, c
                 const subCategoryData = await category.get(subId)
                 subCategoryData.productId.filter(pid => pid !== productId)
                 await category.set(subId, subCategoryData)
-            } catch (_) {}
+            } catch (err) {
+                console.error(err)
+            }
         }))
     }
     return {
@@ -71,7 +75,6 @@ export async function addProductToAllCategories(pid: string | string[], category
     }
 }
 
-// 
 export async function removeProductFromAllCategories(pid: string, categoryData: CategoryInterface, direction: 'up' | 'down' = 'up'): Promise<string[]> {
     try {
         const { categoryId } = categoryData
@@ -106,4 +109,3 @@ export async function removeProductFromAllCategories(pid: string, categoryData: 
         throw err
     }
 }
-

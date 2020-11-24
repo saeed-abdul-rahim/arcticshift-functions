@@ -29,7 +29,7 @@ export class Shipping extends Common implements ShippingInterface {
     shopId: string
     shippingId: string
     name: string
-    countries: string[] // ALPHA-3
+    countries: string[]
     zipCode: string[]
     radius: number
     rates: string[]

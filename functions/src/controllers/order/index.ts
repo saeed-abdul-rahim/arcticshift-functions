@@ -1,4 +1,4 @@
-import { Request, Response } from 'express'
+import { NextFunction, Request, Response } from 'express'
 import * as payments from '../../payments'
 import * as settings from '../../models/settings'
 import * as user from '../../models/user'
@@ -8,15 +8,17 @@ import * as productType from '../../models/productType'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as order from '../../models/order'
+import * as shippingRate from '../../models/shippingRate'
 import { Fullfillment, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
 import { successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, isDraft } from './helper'
+import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, placeOrder } from './helper'
 import { uniqueArr } from '../../utils/arrayUtils'
 import { isValidAddress } from '../../models/common'
 import { setUserBillingAddress, setUserShippingAddress } from '../user/helper'
 import { db } from '../../config/db'
 import { Role } from '../../models/common/schema'
+import * as voucherHelper from "../voucher/helper"
 
 export async function create(req: Request, res: Response) {
     try {
@@ -108,7 +110,7 @@ export async function calculateDraft(req: Request, res: Response) {
     }
 }
 
-export async function addVoucher(req: Request, res: Response, next: Function) {
+export async function addVoucher(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: draftId } = req.params
         const { data }: { data: { code: string } } = req.body
@@ -116,12 +118,14 @@ export async function addVoucher(req: Request, res: Response, next: Function) {
         if (!code) {
             return missingParam(res, 'Voucher')
         }
+        const orderData = await order.get(draftId, 'draft')
         const voucherData = await voucher.getOneByCondition([{
             field: 'code', type: '==', value: code
         }])
         if (!voucherData) {
             return badRequest(res, 'Invalid code')
         }
+        const { data: orderCalcData, userId } = orderData
         const { voucherId } = voucherData
         const { startDate, endDate, status } = voucherData
         const now = Date.now()
@@ -134,16 +138,25 @@ export async function addVoucher(req: Request, res: Response, next: Function) {
         if (endDate > 0 && endDate < now) {
             return badRequest(res, 'Voucher Expired')
         }
-        const orderData = await order.get(draftId, 'draft')
-        if (!isDraft(orderData)) {
-            return badRequest(res, 'Not a draft')
-        }
         if (orderData.voucherId === voucherId) {
             return badRequest(res, 'Voucher already applied')
         }
+        if (orderCalcData) {
+            const { productsData } = orderCalcData
+            const areProductsEligible = productsData.map(p => {
+                return voucherHelper.isProductEligible(voucherData, p.baseProduct)
+            }).some(p => p)
+            if (!areProductsEligible) {
+                return badRequest(res, 'Products not eligible')
+            }
+        }
+        if (!await voucherHelper.isValidUse(voucherData, userId)) {
+            return badRequest(res, 'Voucher Expired')
+        }
         orderData.voucherId = voucherId
         await order.set(draftId, orderData, 'draft')
-        return next()
+        next()
+        return
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -177,7 +190,40 @@ export async function addVariant(req: Request, res: Response) {
     }
 }
 
-export async function removeVariant(req: Request, res: Response, next: Function) {
+export async function updateShipping(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { id: orderId } = req.params
+        const { data }: { data: OrderType } = req.body
+        const { shippingRateId, shippingAddress, billingAddress } = data
+        const orderData = await order.get(orderId, 'draft')
+        if (shippingRateId) {
+            await shippingRate.get(shippingRateId)
+            orderData.shippingRateId = shippingRateId
+        } else {
+            orderData.shippingRateId = ''
+        }
+        if (billingAddress && !isValidAddress(billingAddress)) {
+            return badRequest(res, 'Invalid Billing Address')
+        } else if (billingAddress) {
+            orderData.billingAddress = billingAddress
+        }
+        if (billingAddress && !shippingAddress && isValidAddress(billingAddress)) {
+            orderData.shippingAddress = billingAddress
+        } else if (shippingAddress && !isValidAddress(shippingAddress)) {
+            return badRequest(res, 'Invalid Shipping Address')
+        } else if (shippingAddress) {
+            orderData.shippingAddress = shippingAddress
+        }
+        await order.set(orderId, orderData, 'draft')
+        next()
+        return
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function removeVariant(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: orderId } = req.params
         const { data }: { data: { variantId: string } } = req.body
@@ -186,9 +232,6 @@ export async function removeVariant(req: Request, res: Response, next: Function)
             return missingParam(res, 'Variant')
         }
         const orderData = await order.get(orderId, 'draft')
-        if (!isDraft(orderData)) {
-            return badRequest(res, 'Not a draft')
-        }
         const { variants } = orderData
         orderData.variants = variants.filter(v => v.variantId !== variantId)
         if (orderData.variants.length === 0) {
@@ -196,14 +239,15 @@ export async function removeVariant(req: Request, res: Response, next: Function)
             orderData.giftCardId = ''
         }
         await order.set(orderId, orderData, 'draft')
-        return next()
+        next()
+        return
     } catch (err) {
         console.error(err)
         return serverError(res, err)
     }
 }
 
-export async function updateVariants(req: Request, res: Response, next: Function) {
+export async function updateVariants(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -212,12 +256,10 @@ export async function updateVariants(req: Request, res: Response, next: Function
             return missingParam(res, 'Variant')
         }
         const orderData = await order.get(orderId, 'draft')
-        if (!isDraft(orderData)) {
-            return badRequest(res, 'Not a draft')
-        }
         orderData.variants = variants
         await order.set(orderId, orderData, 'draft')
-        return next()
+        next()
+        return
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -264,20 +306,23 @@ export async function finalize(req: Request, res: Response) {
         }
 
         const { total, notes, variants } = orderData
-        const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
 
-        // BOOK VARIANTS
+        // Check Stock
         const variantIds = variants.map(v => v.variantId)
         const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
         variants.forEach(v => {
             const { variantId, quantity } = v
             const variantData = variantsData.find(vd => vd.variantId === variantId)!
-            const { trackInventory } = variantData
-            if (trackInventory) {
-                variantData.bookedQuantity += quantity
-                variant.batchSet(batch, variantId, variantData)
+            const { trackInventory, bookedQuantity, warehouseQuantity, name } = variantData
+            if (trackInventory && warehouseQuantity) {
+                const totalQty = Object.values(warehouseQuantity).reduce((sum, qty) => sum + qty, 0)
+                if (quantity > totalQty - bookedQuantity) {
+                    throw new Error(`${name} out of stock!`)
+                }
             }
         })
+
+        const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
 
         order.batchSet(batch, orderId, {
             ...orderData,
@@ -286,6 +331,37 @@ export async function finalize(req: Request, res: Response) {
         }, 'draft')
         await batch.commit()
         return successResponse(res, gatewayOrderId)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function orderCOD(req: Request, res: Response) {
+    try {
+        const { id: orderId } = req.params
+        const orderData = await order.get(orderId, 'draft')
+        orderData.paymentStatus = 'notCharged'
+        await placeOrder(orderData)
+        return successUpdated(res)
+    } catch (err) {
+        console.error(err)
+        return serverError(res, err)
+    }
+}
+
+export async function capturePayment(req: Request, res: Response) {
+    try {
+        const { id: orderId } = req.params
+        const { data }: { data: OrderType } = req.body
+        const { capturedAmount } = data
+        if (!capturedAmount) {
+            return missingParam(res, 'Amount Required')
+        }
+        const orderData = await order.get(orderId, 'order')
+        orderData.capturedAmount = capturedAmount
+        await order.set(orderId, orderData, 'order')
+        return successUpdated(res)
     } catch (err) {
         console.error(err)
         return serverError(res, err)

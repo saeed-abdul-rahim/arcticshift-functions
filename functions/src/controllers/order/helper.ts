@@ -5,6 +5,10 @@ import * as voucher from "../../models/voucher"
 import * as order from "../../models/order"
 import * as user from "../../models/user"
 import * as tax from "../../models/tax"
+import * as category from "../../models/category"
+import * as collection from "../../models/collection"
+import * as variant from "../../models/variant"
+import * as settings from "../../models/settings"
 import { isDefined } from "../../utils/isDefined"
 import { ValueType } from "../../models/common/schema"
 import { getDiscountValue, getTax } from "../../utils/calculation"
@@ -16,6 +20,11 @@ import { mergeDuplicatesArrObj, uniqueArr } from "../../utils/arrayUtils"
 import { VoucherInterface } from "../../models/voucher/schema"
 import { ShippingRateInterface } from "../../models/shippingRate/schema"
 import { TaxInterface } from "../../models/tax/schema"
+import { CategoryInterface } from "../../models/category/schema"
+import { CollectionInterface } from "../../models/collection/schema"
+import { orderPlacedHTML } from "../../mail/templates/orderPlacedHTML"
+import { sendMail } from "../../mail"
+import * as voucherHelper from "../voucher/helper"
 
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
     try {
@@ -35,14 +44,14 @@ export async function createDraft(userData: UserInterface, orderdata: OrderType)
 export function addVariantToOrder(orderData: OrderInterface, variants: VariantQuantity[]) {
     if (orderData.orderStatus === 'draft') {
         // Existing variants
-        const newVariants = variants.map(variant => {
-            const { variantId } = variant
+        const newVariants = variants.map(variantQty => {
+            const { variantId } = variantQty
             const varIdx = orderData.variants.findIndex(v => v.variantId === variantId)
             if (varIdx > -1) {
-                orderData.variants[varIdx] = variant
+                orderData.variants[varIdx] = variantQty
                 return undefined
             } else {
-                return variant
+                return variantQty
             }
         }).filter(isDefined)
         // New variants
@@ -204,17 +213,13 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
         let voucherData: VoucherInterface | null = null
         if (voucherId) {
             voucherData = await voucher.get(voucherId)
+
             const {
                 status,
                 startDate,
                 endDate,
-                onePerUser,
                 oncePerOrder,
-                totalUsage,
                 minimumRequirement,
-                productId,
-                categoryId,
-                collectionId,
                 orderType,
                 valueType,
                 value
@@ -237,18 +242,7 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
                     }
                 }
 
-                let isValidUse = true
-                if (onePerUser || totalUsage > 0) {
-                    const userData = await user.get(uid)
-                    const { voucherUsed } = userData
-                    if (voucherUsed && voucherUsed[voucherId] && voucherUsed[voucherId] > 0) {
-                        if (onePerUser) {
-                            isValidUse = false
-                        } else if (totalUsage > 0 && voucherUsed[voucherId] > totalUsage) {
-                            isValidUse = false
-                        }
-                    }
-                }
+                const isValidUse = await voucherHelper.isValidUse(voucherData, uid)
 
                 if (!isValidMinimum || !isValidUse) {
                     return {
@@ -273,12 +267,8 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
                         const eligibleProducts = allDataCalculated.map(dc => {
                             const { data } = dc
                             const { productId: pId } = data
-                            const productData = allProductData.find(p => p.productId)!
-                            const { categoryId: catId, collectionId: colId } = productData
-                            const isValidProduct = productId.includes(pId)
-                            const isValidCategory = categoryId.some(c => catId.includes(c))
-                            const isValidCollection = collectionId.some(c => colId.includes(c))
-                            if (isValidProduct || isValidCategory || isValidCollection) {
+                            const productData = allProductData.find(p => p.productId === pId)!
+                            if (voucherHelper.isProductEligible(voucherData!, productData)) {
                                 return dc
                             } else {
                                 return
@@ -304,6 +294,81 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
             voucherDiscount, shippingCharge, voucherData
         }
     } catch (err) {
+        throw err
+    }
+}
+
+export async function placeOrder(orderData: OrderInterface) {
+    try {
+        const { variants, userId, orderId, email, voucherId } = orderData
+        orderData.orderStatus = 'unfullfilled'
+
+        await order.add(orderData, 'order')
+        await order.remove(orderId, 'draft')
+
+        await Promise.all(variants.map(async v => {
+            try {
+                const { variantId, quantity } = v
+                const variantData = await variant.get(variantId)
+                const { trackInventory } = variantData
+                if (trackInventory) {
+                    variantData.bookedQuantity += quantity
+                    await variant.set(variantId, variantData)
+                }
+            } catch (err) {
+                console.log(err)
+                return
+            }
+        }))
+        
+        try {
+            const userData = await user.get(userId)
+            userData.totalOrders += 1
+            if (voucherId && userData.voucherUsed && userData.voucherUsed[voucherId]) {
+                userData.voucherUsed[voucherId] += 1
+            } else if (voucherId && userData.voucherUsed) {
+                userData.voucherUsed[voucherId] = 1
+            } else if (voucherId) {
+                userData.voucherUsed = { [voucherId]: 1 }
+            }
+            await user.set(userId, userData)
+        } catch (err) {
+            console.log(err)
+        }
+
+        let categoriesData: CategoryInterface[] | null = null
+        let collectionData: CollectionInterface | null = null
+
+        try {
+            categoriesData = await category.getByCondition([], {
+                field: 'createdAt', direction: 'desc'
+            }, 6)
+        } catch (err) {
+            console.error(err)
+        }
+
+        try {
+            collectionData = await collection.getOneByCondition([], {
+                field: 'createdAt', direction: 'desc'
+            })
+        } catch (err) {
+            console.error(err)
+        }
+
+        try {
+            const settingsData = await settings.getGeneralSettings()
+            const orderPaidMail = orderPlacedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined)
+            await sendMail({
+                to: email,
+                subject: 'Order Placed!',
+                html: orderPaidMail
+            })
+        } catch (err) {
+            console.error(err)
+        }
+
+    } catch (err) {
+        console.error(err)
         throw err
     }
 }

@@ -3,10 +3,13 @@ import * as voucher from '../../models/voucher'
 import * as category from '../../models/category'
 import * as collection from '../../models/collection'
 import * as product from '../../models/product'
+import * as user from '../../models/user'
+import { ProductInterface } from '../../models/product/schema'
+import { VoucherInterface } from '../../models/voucher/schema'
 
 export async function checkIfVoucherExists(code: string) {
     try {
-        const voucherData = voucher.getOneByCondition([{
+        const voucherData = await voucher.getOneByCondition([{
             field: 'code', type: '==', value: code
         }])
         if (voucherData) {
@@ -34,7 +37,7 @@ export async function updateCatalog(voucherId: string, catalog: CatalogType) {
                     }
                     await collection.set(collId, collectionData)
                     await updateProduct(catProductIds, voucherId)
-                } catch (_) {}
+                } catch (_) { }
             }))
         }
         if (categoryId) {
@@ -93,7 +96,37 @@ async function updateCategory(categoryId: string[], voucherId: string) {
                 console.error(err)
             }
         }))
-    } catch(err) {
+    } catch (err) {
         console.error(err)
     }
+}
+
+export function isProductEligible(voucherData: VoucherInterface, productData: ProductInterface) {
+    const { categoryId, collectionId, productId } = voucherData
+    const { productId: pId } = productData
+    const { categoryId: catId, collectionId: colId } = productData
+    const isValidProduct = productId.includes(pId)
+    const isValidCategory = categoryId.some(c => catId.includes(c))
+    const isValidCollection = collectionId.some(c => colId.includes(c))
+    if (isValidProduct || isValidCategory || isValidCollection) {
+        return true
+    } else {
+        return false
+    }
+}
+
+export async function isValidUse(voucherData: VoucherInterface, uid: string) {
+    const { onePerUser, totalUsage, voucherId } = voucherData
+    if (onePerUser || totalUsage > 0) {
+        const userData = await user.get(uid)
+        const { voucherUsed } = userData
+        if (voucherUsed && voucherUsed[voucherId] && voucherUsed[voucherId] > 0) {
+            if (onePerUser) {
+                return false
+            } else if (totalUsage > 0 && voucherUsed[voucherId] > totalUsage) {
+                return false
+            }
+        }
+    }
+    return true
 }

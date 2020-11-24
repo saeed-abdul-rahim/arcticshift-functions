@@ -33,6 +33,7 @@ export interface GeneralSettingInterface extends SettingInterface {
     currency: string
     weightUnit: string
     paymentGateway: PaymentGateway
+    cod: boolean
     logo: Content | null
     logoLong: Content | null
     name: string
@@ -46,6 +47,7 @@ export type GeneralSettingType = SettingType & {
     currency?: string
     weightUnit?: string
     paymentGateway?: PaymentGateway
+    cod?: boolean
     logo?: Content | null
     logoLong?: Content | null
     name?: string
@@ -59,6 +61,7 @@ export class GeneralSetting extends Setting {
     currency: string
     weightUnit: string
     paymentGateway: PaymentGateway
+    cod: boolean
     logo: Content | null
     logoLong: Content | null
     name: string
@@ -72,6 +75,7 @@ export class GeneralSetting extends Setting {
         this.currency = data.currency ? data.currency : ''
         this.weightUnit = data.weightUnit ? data.weightUnit : ''
         this.paymentGateway = data.paymentGateway ? data.paymentGateway : 'razorpay'
+        this.cod = data.cod ? data.cod : false
         this.logo = data.logo ? data.logo : null
         this.logoLong = data.logoLong ? data.logoLong : null
         this.name = data.name ? data.name : ''
@@ -88,6 +92,7 @@ export class GeneralSetting extends Setting {
             currency: this.currency,
             weightUnit: this.weightUnit,
             paymentGateway: this.paymentGateway,
+            cod: this.cod,
             logo: this.logo,
             logoLong: this.logo,
             name: this.name,

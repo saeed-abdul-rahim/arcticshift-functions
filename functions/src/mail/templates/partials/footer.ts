@@ -24,8 +24,7 @@ export const footer = (name: string) => {
                                     style="font-size: 12px; line-height: 1.2; color: #374151; font-family: 'Montserrat', 'Trebuchet MS', 'Lucida Grande', 'Lucida Sans Unicode', 'Lucida Sans', Tahoma, sans-serif; mso-line-height-alt: 14px;">
                                     <p
                                         style="font-size: 12px; line-height: 1.2; word-break: break-word; mso-line-height-alt: 14px; margin: 0;">
-                                        <span style="font-size: 12px;">Copyright © ${year} <a href="${URL.base}" style="color: #9ca3af">${name}</a>, All
-                                            rights reserved. </span><br /></p>
+                                        <span style="font-size: 12px;"><a href="${URL.base}" style="color: #9ca3af">${name}</a>, ${year}</span><br /></p>
                                     <p
                                         style="font-size: 14px; line-height: 1.2; word-break: break-word; mso-line-height-alt: 17px; margin: 0;">
                                          <br /></p>
