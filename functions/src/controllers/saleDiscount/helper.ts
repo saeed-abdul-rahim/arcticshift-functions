@@ -6,7 +6,7 @@ import * as product from '../../models/product'
 
 export async function checkIfSaleDiscountExists(name: string) {
     try {
-        const saleData = saleDiscount.getOneByCondition([{
+        const saleData = await saleDiscount.getOneByCondition([{
             field: 'name', type: '==', value: name
         }])
         if (saleData) {

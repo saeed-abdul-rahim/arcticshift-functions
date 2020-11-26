@@ -35,7 +35,7 @@ export function shippingHandler(app: Application) {
         shipping.update
     )
 
-    app.patch(`${shippingRateRoute}/:id`,
+    app.delete(`${shippingRateRoute}/:id`,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff']}),
         shippingRate.remove

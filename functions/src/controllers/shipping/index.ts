@@ -95,7 +95,7 @@ export async function remove(req: Request, res: Response) {
         const { rates } = shippingData
         const warehouseData = await warehouse.getByCondition([{
             field: 'shippingId',
-            type: '==',
+            type: 'array-contains',
             value: shippingId
         }])
         if (warehouseData && warehouseData.length > 0) {

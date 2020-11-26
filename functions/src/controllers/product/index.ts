@@ -8,7 +8,7 @@ import { ShopType } from '../../models/shop/schema'
 import { ProductType } from '../../models/product/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { createKeywords } from '../../utils/createKeywords'
+import { createKeywords } from '../../utils/strUtils'
 import { removeProductFromAllCategories } from '../category/helper'
 import { organizeProduct, removeFromProductType, organizeProductUpdate } from './helper'
 

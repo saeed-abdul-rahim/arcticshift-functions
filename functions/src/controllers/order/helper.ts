@@ -93,7 +93,7 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
             const productDiscount = saleDiscounts?.find(sd => sd.productId.includes(productId))
             const categoryDiscount = saleDiscounts?.find(sd => sd.categoryId.some(cid => cids.includes(cid)))
             const collectionDiscount = saleDiscounts?.find(sd => sd.collectionId.some(cid => collectionId.includes(cid)))
-            if (chargeTax) {
+            if (chargeTax && taxId) {
                 taxData = await tax.get(taxId)
             }
 

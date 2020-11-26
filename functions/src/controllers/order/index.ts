@@ -8,10 +8,11 @@ import * as productType from '../../models/productType'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as order from '../../models/order'
+import * as shipping from '../../models/shipping'
 import * as shippingRate from '../../models/shippingRate'
 import { Fullfillment, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
-import { successResponse, successUpdated } from '../../responseHandler/successHandler'
+import { successCreated, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, placeOrder } from './helper'
 import { uniqueArr } from '../../utils/arrayUtils'
 import { isValidAddress } from '../../models/common'
@@ -194,8 +195,14 @@ export async function updateShipping(req: Request, res: Response, next: NextFunc
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
-        const { shippingRateId, shippingAddress, billingAddress } = data
+        const { shippingId, shippingRateId, shippingAddress, billingAddress } = data
         const orderData = await order.get(orderId, 'draft')
+        if (shippingId) {
+            await shipping.get(shippingId)
+            orderData.shippingId = shippingId
+        } else {
+            orderData.shippingId = ''
+        }
         if (shippingRateId) {
             await shippingRate.get(shippingRateId)
             orderData.shippingRateId = shippingRateId
@@ -271,14 +278,19 @@ export async function finalize(req: Request, res: Response) {
         const batch = db.batch()
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
-        const { orderId, shippingAddress, billingAddress } = data
+        const { orderId, shippingAddress, billingAddress, cod } = data
         if (!orderId) {
             return missingParam(res, 'Order ID')
         }
 
         const orderData = await order.get(orderId, 'draft')
-        if (orderData.orderStatus !== 'draft') {
+        const { orderStatus, shippingId } = orderData
+        
+        if (orderStatus !== 'draft') {
             return badRequest(res, 'Not a draft')
+        }
+        if (!shippingId) {
+            return badRequest(res, 'Shipping Details required')
         }
 
         let userData = await user.get(uid)
@@ -299,6 +311,18 @@ export async function finalize(req: Request, res: Response) {
         }
         user.batchSet(batch, uid, userData)
 
+        const shippingData = await shipping.get(shippingId)
+        const { zipCode, warehouseId } = shippingData
+        const { zip } = orderData.shippingAddress
+        if (zipCode.length > 0 && zip && !zipCode.includes(zip)) {
+            return badRequest(res, 'Not deliverable to this address')
+        }
+        if (!orderData.shippingRateId) {
+            if (shippingData && shippingData.rates.length > 0) {
+                return badRequest(res, 'Select shipping rate')
+            }
+        }
+
         const settingsData = await settings.getGeneralSettings()
         const { currency, paymentGateway } = settingsData
         if (!currency) {
@@ -315,22 +339,42 @@ export async function finalize(req: Request, res: Response) {
             const variantData = variantsData.find(vd => vd.variantId === variantId)!
             const { trackInventory, bookedQuantity, warehouseQuantity, name } = variantData
             if (trackInventory && warehouseQuantity) {
+                const productWarehouses = Object.keys(warehouseQuantity)
                 const totalQty = Object.values(warehouseQuantity).reduce((sum, qty) => sum + qty, 0)
                 if (quantity > totalQty - bookedQuantity) {
                     throw new Error(`${name} out of stock!`)
                 }
+                // IS Deliverable ?
+                if (warehouseId.length > 0) {
+                    if (warehouseId.some(id => !productWarehouses.includes(id))) {
+                        throw new Error(`${name} not deliverable to your location`)
+                    }
+                }
             }
         })
 
-        const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
-
-        order.batchSet(batch, orderId, {
+        const setOrder = {
             ...orderData,
-            ...data,
-            gatewayOrderId: gatewayOrderId.id
-        }, 'draft')
-        await batch.commit()
-        return successResponse(res, gatewayOrderId)
+            ...data
+        }
+
+        if (cod) {
+            order.batchSet(batch, orderId, {
+                ...setOrder,
+                cod
+            }, 'draft')
+            await batch.commit()
+            await placeOrder(orderData)
+            return successCreated(res)
+        } else {
+            const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
+            order.batchSet(batch, orderId, {
+                ...setOrder,
+                gatewayOrderId: gatewayOrderId.id
+            }, 'draft')
+            await batch.commit()
+            return successResponse(res, gatewayOrderId)
+        }
     } catch (err) {
         console.error(err)
         return serverError(res, err)
@@ -355,11 +399,24 @@ export async function capturePayment(req: Request, res: Response) {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
         const { capturedAmount } = data
-        if (!capturedAmount) {
+        if (!capturedAmount && capturedAmount !== 0) {
             return missingParam(res, 'Amount Required')
         }
+        if (capturedAmount < 0) {
+            return badRequest(res, "Amount can't be negative")
+        }
         const orderData = await order.get(orderId, 'order')
-        orderData.capturedAmount = capturedAmount
+        orderData.capturedAmount = Number(capturedAmount.toFixed(2))
+        if (orderData.capturedAmount > orderData.total) {
+            return badRequest(res, "Captured Amount can't be greater than total")
+        }
+        if (orderData.capturedAmount === 0) {
+            orderData.paymentStatus = 'notCharged'
+        } else if (orderData.capturedAmount < orderData.total) {
+            orderData.paymentStatus = 'partiallyCharged'
+        } else {
+            orderData.paymentStatus = 'fullyCharged'
+        }
         await order.set(orderId, orderData, 'order')
         return successUpdated(res)
     } catch (err) {
@@ -623,6 +680,9 @@ export async function refund(req: Request, res: Response) {
         const { data }: { data: { amount: number }} = req.body
         let { amount } = data
         amount = Number(amount.toFixed(2))
+        if (amount < 0) {
+            return badRequest(res, "Amount can't be negative'")
+        }
         const orderData = await order.get(orderId, 'order')
         const { payment, capturedAmount } = orderData
         if (amount > capturedAmount) {

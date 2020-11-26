@@ -7,6 +7,7 @@ import { ContentStorage } from '../../models/common/schema';
 import { OrderInterface } from "../../models/order/schema";
 import { GeneralSettingInterface } from '../../models/settings/schema';
 import { getThumbnail } from '../../utils/content';
+import { urlEncode } from '../../utils/strUtils';
 import { banner } from './partials/banner';
 import { categoryLabels } from './partials/categoryLabels';
 import { divider } from './partials/divider';
@@ -41,7 +42,7 @@ export const orderPlacedHTML = (settings: GeneralSettingInterface, order: OrderI
     }
     if (collection) {
         collectionName = collection.name
-        collectionLink = `${URL.base}/${COLLECTION}/${collectionName}/${collection.collectionId}`
+        collectionLink = `${URL.base}/${COLLECTION}/${urlEncode(collectionName)}/${collection.collectionId}`
         if (collection.images.length > 0) {
             const collectionImage = collection.images[0]
             collectionImageLink = getThumbnail(collectionImage, IMAGE_L)?.url || ''

@@ -50,7 +50,7 @@ export async function update(req: Request, res: Response) {
             return missingParam(res, 'ID')
         }
         const saleDiscountData = await saleDiscount.get(saleDiscountId)
-        if (name) {
+        if (name && saleDiscountData.name !== name) {
             const saleExists = await checkIfSaleDiscountExists(name)
             if (saleExists) {
                 return badRequest(res, 'Sale Discount Exists')

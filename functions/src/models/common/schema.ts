@@ -92,6 +92,8 @@ export interface CommonInterface extends TimestampInterface {
 
 export type Address = {
     name?: string
+    firstName?: string
+    lastName?: string
     company?: string
     phone?: string
     email?: string

@@ -15,7 +15,7 @@ import { isValidAddress } from '../../models/common'
 import { ShopType } from '../../models/shop/schema'
 import { Role } from '../../models/common/schema'
 import { UserType, genders } from '../../models/user/schema'
-import { randomString } from '../../utils/randomString'
+import { randomString } from '../../utils/strUtils'
 import { sendMail } from '../../mail'
 
 export async function createUserDb(userRecord: admin.auth.UserRecord, context: functions.EventContext) {

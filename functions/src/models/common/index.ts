@@ -5,7 +5,7 @@ export const roles: Role[] = ['admin', 'staff']
 export const valueTypes: ValueType[] = ['fixed', 'percent']
 
 export function isOfTypeAddress(keyInput: string): keyInput is AddressKey {
-    return ['name', 'company', 'phone', 'email', 'line1', 'line2', 'city', 'zip', 'area', 'country'].includes(keyInput);
+    return ['name', 'firstName', 'lastName', 'company', 'phone', 'email', 'line1', 'line2', 'city', 'zip', 'area', 'country'].includes(keyInput);
 }
 
 export function isValidAddress(object: any): boolean {

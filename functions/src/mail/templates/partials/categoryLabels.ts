@@ -1,6 +1,7 @@
 import { URL } from "../../../config"
 import { CATEGORY } from "../../../config/constants"
 import { CategoryInterface } from "../../../models/category/schema"
+import { urlEncode } from "../../../utils/strUtils"
 
 export const categoryLabels = (categories: CategoryInterface[]) => {
 
@@ -65,7 +66,7 @@ const itemLabel = (name: string, link: string) => `
                 <span style="color: #1F2937; font-size: 12px;"><a
                         href="${link}"
                         style="text-decoration: none; color: #1F2937;"
-                        target="_blank">${name}</a></span></p>
+                        target="_blank">${(name)}</a></span></p>
         </div>
     </div>
     <!--[if mso]></td></tr></table><![endif]-->
@@ -75,7 +76,7 @@ const getCategoryLabel = (categories: CategoryInterface[]) => {
     let content = ''
     categories.forEach(category => {
         const { name, categoryId } = category
-        const url = `${URL.base}/${CATEGORY}/${name}/${categoryId}`
+        const url = `${URL.base}/${CATEGORY}/${urlEncode(name)}/${categoryId}`
         content += itemLabel(name.toUpperCase(), url)
     })
     return content
