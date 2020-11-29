@@ -3,9 +3,14 @@ import { decrementAttribute, incrementAttribute } from '../analytics/attribute'
 import { setCondition } from '../common'
 import { AttributeInterface, AttributeType, Attribute, AttributeCondition } from './schema'
 
-export async function get(attributeId: string): Promise<AttributeInterface> {
+export async function get(attributeId: string, transaction?: FirebaseFirestore.Transaction): Promise<AttributeInterface> {
     try {
-        const doc = await attributesRef.doc(attributeId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(attributeId))
+        } else {
+            doc = await getRef(attributeId).get()
+        }
         if (!doc.exists) throw new Error('Attribute not found')
         const data = <AttributeInterface>doc.data()
         data.attributeId = doc.id
@@ -40,7 +45,7 @@ export async function set(attributeId: string, attribute: AttributeType): Promis
     try {
         const dataToInsert = new Attribute(attribute).get()
         dataToInsert.updatedAt = Date.now()
-        await attributesRef.doc(attributeId).set(dataToInsert)
+        await getRef(attributeId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
@@ -49,7 +54,7 @@ export async function set(attributeId: string, attribute: AttributeType): Promis
 
 export async function update(attributeId: string, attribute: AttributeType): Promise<boolean> {
     try {
-        await attributesRef.doc(attributeId).update({ ...attribute, updatedAt: Date.now() })
+        await getRef(attributeId).update({ ...attribute, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -58,7 +63,7 @@ export async function update(attributeId: string, attribute: AttributeType): Pro
 
 export async function remove(attributeId: string): Promise<boolean> {
     try {
-        await attributesRef.doc(attributeId).delete()
+        await getRef(attributeId).delete()
         await decrementAttribute()
         return true
     } catch (err) {
@@ -70,9 +75,9 @@ export function getRef(id: string) {
     return attributesRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, attributeId: string, order: AttributeType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, attributeId: string, attribute: AttributeType) {
     try {
-        const dataToInsert = new Attribute(order).get()
+        const dataToInsert = new Attribute(attribute).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(attributeId), dataToInsert)
     } catch (err) {
@@ -81,9 +86,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, attributeId: strin
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, attributeId: string, order: AttributeType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, attributeId: string, attribute: AttributeType) {
     try {
-        return batch.update(getRef(attributeId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(attributeId), { ...attribute, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -93,6 +98,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, attributeId: st
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, attributeId: string) {
     try {
         return batch.delete(getRef(attributeId))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, attributeId: string, attribute: AttributeType) {
+    try {
+        const dataToInsert = new Attribute(attribute).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(attributeId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, attributeId: string, attribute: AttributeType) {
+    try {
+        return transaction.update(getRef(attributeId), { ...attribute, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, attributeId: string) {
+    try {
+        return transaction.delete(getRef(attributeId))
     } catch (err) {
         throw err
     }

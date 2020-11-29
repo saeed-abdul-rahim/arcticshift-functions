@@ -3,9 +3,14 @@ import { decrementSaleDiscount, incrementSaleDiscount } from '../analytics/saleD
 import { setCondition } from '../common'
 import { SaleDiscountInterface, SaleDiscountType, SaleDiscount, SaleDiscountCondition } from './schema'
 
-export async function get(saleDiscountId: string): Promise<SaleDiscountInterface> {
+export async function get(saleDiscountId: string, transaction?: FirebaseFirestore.Transaction): Promise<SaleDiscountInterface> {
     try {
-        const doc = await saleDiscountsRef.doc(saleDiscountId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(saleDiscountId))
+        } else {
+            doc = await getRef(saleDiscountId).get()
+        }
         if (!doc.exists) throw new Error('SaleDiscount not found')
         const data = <SaleDiscountInterface>doc.data()
         data.saleDiscountId = doc.id
@@ -58,7 +63,7 @@ export async function set(saleDiscountId: string, saleDiscount: SaleDiscountType
     try {
         const dataToInsert = new SaleDiscount(saleDiscount).get()
         dataToInsert.updatedAt = Date.now()
-        await saleDiscountsRef.doc(saleDiscountId).set(dataToInsert)
+        await getRef(saleDiscountId).set(dataToInsert)
         return true
     } catch (err) {
         console.error(err)
@@ -68,7 +73,7 @@ export async function set(saleDiscountId: string, saleDiscount: SaleDiscountType
 
 export async function update(saleDiscountId: string, saleDiscount: SaleDiscountType): Promise<boolean> {
     try {
-        await saleDiscountsRef.doc(saleDiscountId).update({ ...saleDiscount, updatedAt: Date.now() })
+        await getRef(saleDiscountId).update({ ...saleDiscount, updatedAt: Date.now() })
         return true
     } catch (err) {
         console.error(err)
@@ -78,7 +83,7 @@ export async function update(saleDiscountId: string, saleDiscount: SaleDiscountT
 
 export async function remove(saleDiscountId: string): Promise<boolean> {
     try {
-        await saleDiscountsRef.doc(saleDiscountId).delete()
+        await getRef(saleDiscountId).delete()
         await decrementSaleDiscount()
         return true
     } catch (err) {
@@ -91,9 +96,9 @@ export function getRef(id: string) {
     return saleDiscountsRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, order: SaleDiscountType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, saleDiscount: SaleDiscountType) {
     try {
-        const dataToInsert = new SaleDiscount(order).get()
+        const dataToInsert = new SaleDiscount(saleDiscount).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(saleDiscountId), dataToInsert)
     } catch (err) {
@@ -102,9 +107,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, saleDiscountId: st
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, order: SaleDiscountType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string, saleDiscount: SaleDiscountType) {
     try {
-        return batch.update(getRef(saleDiscountId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(saleDiscountId), { ...saleDiscount, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -114,6 +119,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, saleDiscountId:
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, saleDiscountId: string) {
     try {
         return batch.delete(getRef(saleDiscountId))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, saleDiscountId: string, saleDiscount: SaleDiscountType) {
+    try {
+        const dataToInsert = new SaleDiscount(saleDiscount).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(saleDiscountId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, saleDiscountId: string, saleDiscount: SaleDiscountType) {
+    try {
+        return transaction.update(getRef(saleDiscountId), { ...saleDiscount, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, saleDiscountId: string) {
+    try {
+        return transaction.delete(getRef(saleDiscountId))
     } catch (err) {
         throw err
     }

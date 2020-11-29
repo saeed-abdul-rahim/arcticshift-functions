@@ -2,9 +2,14 @@ import { variantsRef } from '../../config/db'
 import { VariantInterface, VariantType, Variant, VariantCondition } from './schema'
 import { setCondition } from '../common'
 
-export async function get(variantId: string): Promise<VariantInterface> {
+export async function get(variantId: string, transaction?: FirebaseFirestore.Transaction): Promise<VariantInterface> {
     try {
-        const doc = await variantsRef.doc(variantId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(variantId))
+        } else {
+            doc = await getRef(variantId).get()
+        }
         if (!doc.exists) throw new Error('Variant not found')
         const data = <VariantInterface>doc.data()
         data.variantId = doc.id
@@ -52,7 +57,7 @@ export async function set(variantId: string, variant: VariantType): Promise<bool
     try {
         const dataToInsert = new Variant(variant).get()
         dataToInsert.updatedAt = Date.now()
-        await variantsRef.doc(variantId).set(dataToInsert)
+        await getRef(variantId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
@@ -61,7 +66,7 @@ export async function set(variantId: string, variant: VariantType): Promise<bool
 
 export async function update(variantId: string, variant: VariantType): Promise<boolean> {
     try {
-        await variantsRef.doc(variantId).update({ ...variant, updatedAt: Date.now() })
+        await getRef(variantId).update({ ...variant, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -70,7 +75,7 @@ export async function update(variantId: string, variant: VariantType): Promise<b
 
 export async function remove(variantId: string): Promise<boolean> {
     try {
-        await variantsRef.doc(variantId).delete()
+        await getRef(variantId).delete()
         return true
     } catch (err) {
         throw err
@@ -82,9 +87,9 @@ export function getRef(id: string) {
 }
 
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, variantId: string, order: VariantType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, variantId: string, variant: VariantType) {
     try {
-        const dataToInsert = new Variant(order).get()
+        const dataToInsert = new Variant(variant).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(variantId), dataToInsert)
     } catch (err) {
@@ -93,9 +98,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, variantId: string,
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, variantId: string, order: VariantType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, variantId: string, variant: VariantType) {
     try {
-        return batch.update(getRef(variantId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(variantId), { ...variant, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -110,12 +115,40 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, variantId: stri
     }
 }
 
+export function transactionSet(transaction: FirebaseFirestore.Transaction, variantId: string, variant: VariantType) {
+    try {
+        const dataToInsert = new Variant(variant).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(variantId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, variantId: string, variant: VariantType) {
+    try {
+        return transaction.update(getRef(variantId), { ...variant, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, variantId: string) {
+    try {
+        return transaction.delete(getRef(variantId))
+    } catch (err) {
+        throw err
+    }
+}
+
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
     const doc = await ref.get()
     if (doc.empty) return null
     return doc.docs.map(d => {
         let data = d.data() as VariantInterface
-        data.productId = d.id
+        data.variantId = d.id
         data = new Variant(data).get()
         return data
     })

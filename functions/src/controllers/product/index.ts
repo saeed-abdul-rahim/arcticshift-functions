@@ -8,7 +8,7 @@ import { ShopType } from '../../models/shop/schema'
 import { ProductType } from '../../models/product/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { createKeywords } from '../../utils/strUtils'
+import { wordKeys } from '../../utils/strUtils'
 import { removeProductFromAllCategories } from '../category/helper'
 import { organizeProduct, removeFromProductType, organizeProductUpdate } from './helper'
 
@@ -26,7 +26,7 @@ export async function create(req: Request, res: Response) {
         if (!price) {
             return missingParam(res, 'Price')
         }
-        const keywords = createKeywords(name)
+        const keywords = wordKeys(name)
         const { shopId } = shopData
         data = {
             ...data,
@@ -53,7 +53,7 @@ export async function update(req: Request, res: Response) {
         const oldProductData = await product.get(productId)
         let keywords = oldProductData.keywords
         if (name && oldProductData.name !== name) {
-            keywords = createKeywords(name)
+            keywords = wordKeys(name)
             const { variantId } = oldProductData
             await Promise.all(variantId.map(async varId => {
                 try {

@@ -10,7 +10,8 @@ import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as category from '../../models/category'
 import * as collection from '../../models/collection'
-import { download, getUrl, upload } from '../../storage'
+import * as settings from '../../models/settings'
+import { download, getUrl, remove, upload } from '../../storage'
 import { Content, ContentStorage } from '../../models/common/schema'
 import { isDefined } from '../../utils/isDefined'
 import {
@@ -27,8 +28,9 @@ import {
     IMAGE_XL,
     IMAGE_XS,
     IMAGE_XXS,
-    IMAGE_FONT
+    IMAGE_FONT, SETTINGS
 } from '../../config/constants'
+import { db } from '../../config/db'
 
 export async function generateThumbnails(object: functions.storage.ObjectMetadata) {
     try {
@@ -58,34 +60,6 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
         if (!type) {
             return false
         }
-
-        let images: Content[] = []
-
-        switch (type) {
-
-            case PRODUCT:
-                const productData = await product.get(id)
-                images = productData && productData.images
-                break
-
-            case VARIANT:
-                const variantData = await variant.get(id)
-                images = variantData && variantData.images
-                break
-
-            case CATEGORY:
-                const categoryData = await category.get(id)
-                images = categoryData && categoryData.images
-                break
-
-            case COLLECTION:
-                const collectionData = await collection.get(id)
-                images = collectionData && collectionData.images
-                break
-
-            default:
-                return false
-        }
         
         const bucketDir = dirname(filePath)
 
@@ -105,7 +79,7 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
 
             try {
                 await sharp(tmpFilePath)
-                    .resize(size, null, {
+                    .resize(type === SETTINGS ? null : size, type === SETTINGS ? size : null, {
                         fit: 'contain',
                         background: {
                             r: 0, g: 0, b: 0, alpha: 0
@@ -114,7 +88,6 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
                     .png({ progressive: true })
                     .toFile(thumbPath)
             } catch (err) {
-                console.error(err)
                 return undefined
             }
 
@@ -129,24 +102,92 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
 
         const allUploads = await Promise.all(uploadPromises)
 
-        images = pushContent(images, filePath, allUploads.filter(isDefined))
+        let images: Content[] = []
 
-        switch (type) {
+        await db.runTransaction(async transaction => {
+            switch (type) {
 
-            case PRODUCT:
-                await product.update(id, { images })
-                break
-            
-            case VARIANT:
-                await variant.update(id, { images })
-            
-            case CATEGORY:
-                await category.update(id, { images })
-            
-            case COLLECTION:
-                await collection.update(id, { images })
+                case PRODUCT:
+                    const productData = await product.get(id, transaction)
+                    images = productData && productData.images
+                    break
 
-        }
+                case VARIANT:
+                    const variantData = await variant.get(id, transaction)
+                    images = variantData && variantData.images
+                    break
+
+                case CATEGORY:
+                    const categoryData = await category.get(id, transaction)
+                    images = categoryData && categoryData.images
+                    break
+
+                case COLLECTION:
+                    const collectionData = await collection.get(id, transaction)
+                    images = collectionData && collectionData.images
+                    break
+                
+                case SETTINGS:
+                    const settingsData = await settings.getGeneralSettings()
+                    images = settingsData && settingsData.images
+                    break
+
+                default:
+                    return false
+            }
+
+            if (type !== SETTINGS) {
+                images = pushContent(images, filePath, allUploads.filter(isDefined))
+            } else if (type === SETTINGS) {
+                if (images.length > 0) {
+                    const image = images.find(i => i.id === id)
+                    if (image) {
+                        if (image.content) {
+                            try {
+                                await remove(image.content.path)
+                            } catch (err) {
+                                console.error(err)
+                            }
+                        }
+                        if (image.thumbnails && image.thumbnails.length > 0) {
+                            await Promise.all(image.thumbnails.map(async thumbnail => {
+                                try {
+                                    await remove(thumbnail.path)
+                                } catch (err) {
+                                    console.error(err)
+                                }
+                            }))
+                        }
+                    }
+                }
+                images = pushContent(images, filePath, allUploads.filter(isDefined), id)
+            }
+
+            switch (type) {
+
+                case PRODUCT:
+                    product.transactionUpdate(transaction, id, { images })
+                    break
+                
+                case VARIANT:
+                    variant.transactionUpdate(transaction, id, { images })
+                    break
+                
+                case CATEGORY:
+                    category.transactionUpdate(transaction, id, { images })
+                    break
+                
+                case COLLECTION:
+                    collection.transactionUpdate(transaction, id, { images })
+                    break
+
+                case SETTINGS:
+                    await settings.updateGeneralSettings({ images })
+                    break
+
+            }
+            return
+        })
 
         await fs.remove(workingDir)
 
@@ -158,8 +199,9 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
 
 }
 
-function pushContent(images: Content[], filePath: string, thumbnails: ContentStorage[] = []) {
+function pushContent(images: Content[], filePath: string, thumbnails: ContentStorage[] = [], id?: string) {
     images.push({
+        id: id || '',
         content: {
             path: filePath,
             url: getUrl(filePath)

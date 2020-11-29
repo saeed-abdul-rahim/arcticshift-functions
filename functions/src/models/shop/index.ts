@@ -2,9 +2,14 @@ import { shopsRef } from '../../config/db'
 import { setCondition } from '../common'
 import { ShopInterface, ShopType, Shop, ShopCondition } from './schema'
 
-export async function get(shopId: string): Promise<ShopInterface> {
+export async function get(shopId: string, transaction?: FirebaseFirestore.Transaction): Promise<ShopInterface> {
     try {
-        const doc = await shopsRef.doc(shopId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(shopId))
+        } else {
+            doc = await getRef(shopId).get()
+        }
         if (!doc.exists) throw new Error('Shop not found')
         const data = <ShopInterface>doc.data()
         data.shopId = doc.id
@@ -34,7 +39,7 @@ export async function set(shopId: string, shop: ShopType): Promise<boolean> {
     try {
         const dataToInsert = new Shop(shop).get()
         dataToInsert.updatedAt = Date.now()
-        await shopsRef.doc(shopId).set(dataToInsert)
+        await getRef(shopId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
@@ -44,7 +49,7 @@ export async function set(shopId: string, shop: ShopType): Promise<boolean> {
 export async function update(shop: ShopType): Promise<boolean> {
     try {
         const { shopId } = shop
-        await shopsRef.doc(shopId).update({ ...shop, updatedAt: Date.now() })
+        await getRef(shopId).update({ ...shop, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -55,9 +60,9 @@ export function getRef(id: string) {
     return shopsRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, shopId: string, order: ShopType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, shopId: string, shop: ShopType) {
     try {
-        const dataToInsert = new Shop(order).get()
+        const dataToInsert = new Shop(shop).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(shopId), dataToInsert)
     } catch (err) {
@@ -66,11 +71,39 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, shopId: string, or
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shopId: string, order: ShopType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shopId: string, shop: ShopType) {
     try {
-        return batch.update(getRef(shopId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(shopId), { ...shop, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, shopId: string, shop: ShopType) {
+    try {
+        const dataToInsert = new Shop(shop).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(shopId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, shopId: string, shop: ShopType) {
+    try {
+        return transaction.update(getRef(shopId), { ...shop, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, shopId: string) {
+    try {
+        return transaction.delete(getRef(shopId))
+    } catch (err) {
         throw err
     }
 }

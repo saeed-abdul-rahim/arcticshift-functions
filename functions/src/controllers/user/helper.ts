@@ -30,7 +30,12 @@ export function setUserShippingAddress(userData: UserInterface, address: Address
     try {
         if (isValidAddress(address)) {
             userData.shippingAddress = address
-            userData.addresses.unshift(address)
+            const allEqual = userData.addresses.map(addr => {
+                return isBothObjectEqual(addr, address)
+            }).filter(e => e)
+            if (allEqual.length === 0) {
+                userData.addresses.unshift(address)
+            }
         }
         return userData
     } catch (err) {

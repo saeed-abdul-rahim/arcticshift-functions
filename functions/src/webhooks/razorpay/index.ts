@@ -5,6 +5,7 @@ import { successUpdated } from '../../responseHandler/successHandler'
 import { orderPaid } from './orderPaid'
 
 export async function handleEvent(req: Request, res: Response) {
+    const methodName = 'handleEvent'
     try {
         const { headers, body } = req
         const signature = headers['x-razorpay-signature']
@@ -21,7 +22,7 @@ export async function handleEvent(req: Request, res: Response) {
         }
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }

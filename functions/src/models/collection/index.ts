@@ -3,9 +3,14 @@ import { decrementCollection, incrementCollection } from '../analytics/collectio
 import { setCondition } from '../common'
 import { CollectionInterface, CollectionType, Collection, CollectionCondition, CollectionOrderBy } from './schema'
 
-export async function get(collectionId: string): Promise<CollectionInterface> {
+export async function get(collectionId: string, transaction?: FirebaseFirestore.Transaction): Promise<CollectionInterface> {
     try {
-        const doc = await getRef(collectionId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(collectionId))
+        } else {
+            doc = await getRef(collectionId).get()
+        }
         if (!doc.exists) throw new Error('Collection not found')
         const data = <CollectionInterface>doc.data()
         data.collectionId = doc.id
@@ -15,9 +20,9 @@ export async function get(collectionId: string): Promise<CollectionInterface> {
     }
 }
 
-export async function getOneByCondition(conditions: CollectionCondition[], orderBy?: CollectionOrderBy): Promise<CollectionInterface | null> {
+export async function getOneByCondition(conditions: CollectionCondition[], collectionBy?: CollectionOrderBy): Promise<CollectionInterface | null> {
     try {
-        const data = await getByCondition(conditions, orderBy, 1)
+        const data = await getByCondition(conditions, collectionBy, 1)
         if (!data) {
             return data
         }
@@ -30,9 +35,9 @@ export async function getOneByCondition(conditions: CollectionCondition[], order
     }
 }
 
-export async function getByCondition(conditions: CollectionCondition[], orderBy?: CollectionOrderBy, limit?: number): Promise<CollectionInterface[] | null> {
+export async function getByCondition(conditions: CollectionCondition[], collectionBy?: CollectionOrderBy, limit?: number): Promise<CollectionInterface[] | null> {
     try {
-        const ref = setCondition(collectionsRef, conditions, orderBy, limit)
+        const ref = setCondition(collectionsRef, conditions, collectionBy, limit)
         return await getAll(ref)
     } catch (err) {
         console.error(err)
@@ -86,9 +91,9 @@ export function getRef(id: string) {
     return collectionsRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, collectionId: string, order: CollectionType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, collectionId: string, collection: CollectionType) {
     try {
-        const dataToInsert = new Collection(order).get()
+        const dataToInsert = new Collection(collection).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(collectionId), dataToInsert)
     } catch (err) {
@@ -97,9 +102,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, collectionId: stri
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, collectionId: string, order: CollectionType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, collectionId: string, collection: CollectionType) {
     try {
-        return batch.update(getRef(collectionId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(collectionId), { ...collection, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -109,6 +114,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, collectionId: s
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, collectionId: string) {
     try {
         return batch.delete(getRef(collectionId))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, collectionId: string, collection: CollectionType) {
+    try {
+        const dataToInsert = new Collection(collection).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(collectionId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, collectionId: string, collection: CollectionType) {
+    try {
+        return transaction.update(getRef(collectionId), { ...collection, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, collectionId: string) {
+    try {
+        return transaction.delete(getRef(collectionId))
     } catch (err) {
         throw err
     }

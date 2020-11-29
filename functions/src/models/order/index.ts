@@ -3,9 +3,14 @@ import { decrementOrder, incrementOrder } from '../analytics/order'
 import { setCondition } from '../common'
 import { OrderInterface, OrderType, Order, OrderCondition, OrderOrderBy } from './schema'
 
-export async function get(orderId: string, type: OrderDraft): Promise<OrderInterface> {
+export async function get(orderId: string, type: OrderDraft, transaction?: FirebaseFirestore.Transaction): Promise<OrderInterface> {
     try {
-        const doc = await getRef(orderId, type).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(orderId, type))
+        } else {
+            doc = await getRef(orderId, type).get()
+        }
         if (!doc.exists) throw new Error('Order not found')
         const data = <OrderInterface>doc.data()
         data.orderId = doc.id
@@ -118,6 +123,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, orderId: string
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, orderId: string, type: OrderDraft) {
     try {
         return batch.delete(getRef(orderId, type))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, orderId: string, order: OrderType, type: OrderDraft) {
+    try {
+        const dataToInsert = new Order(order).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(orderId, type), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, orderId: string, order: OrderType, type: OrderDraft) {
+    try {
+        return transaction.update(getRef(orderId, type), { ...order, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, orderId: string, type: OrderDraft) {
+    try {
+        return transaction.delete(getRef(orderId, type))
     } catch (err) {
         throw err
     }

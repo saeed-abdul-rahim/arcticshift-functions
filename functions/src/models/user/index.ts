@@ -1,9 +1,14 @@
 import { usersRef } from '../../config/db'
 import { UserInterface, UserType, User } from './schema'
 
-export async function get(uid: string): Promise<UserInterface> {
+export async function get(uid: string, transaction?: FirebaseFirestore.Transaction): Promise<UserInterface> {
     try {
-        const doc = await usersRef.doc(uid).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(uid))
+        } else {
+            doc = await getRef(uid).get()
+        }
         if (!doc.exists) throw new Error('User not found')
         const data = <UserInterface>doc.data()
         data.uid = doc.id
@@ -17,7 +22,7 @@ export async function set(uid: string, user: UserType): Promise<UserInterface> {
     try {
         const dataToInsert = new User(user).get()
         dataToInsert.updatedAt = Date.now()
-        await usersRef.doc(uid).set(dataToInsert)
+        await getRef(uid).set(dataToInsert)
         return dataToInsert
     } catch (err) {
         throw err
@@ -27,7 +32,7 @@ export async function set(uid: string, user: UserType): Promise<UserInterface> {
 export async function update(user: UserType): Promise<boolean> {
     try {
         const { uid } = user
-        await usersRef.doc(uid).update({ ...user, updatedAt: Date.now() })
+        await getRef(uid).update({ ...user, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -89,9 +94,9 @@ export function getRef(id: string) {
     return usersRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, userId: string, order: UserType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, userId: string, user: UserType) {
     try {
-        const dataToInsert = new User(order).get()
+        const dataToInsert = new User(user).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(userId), dataToInsert)
     } catch (err) {
@@ -100,11 +105,39 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, userId: string, or
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, userId: string, order: UserType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, userId: string, user: UserType) {
     try {
-        return batch.update(getRef(userId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(userId), { ...user, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, userId: string, user: UserType) {
+    try {
+        const dataToInsert = new User(user).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(userId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, userId: string, user: UserType) {
+    try {
+        return transaction.update(getRef(userId), { ...user, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, userId: string) {
+    try {
+        return transaction.delete(getRef(userId))
+    } catch (err) {
         throw err
     }
 }

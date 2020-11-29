@@ -77,3 +77,11 @@ export async function setGeneralSettings(setting: GeneralSettingType) {
         throw err
     }
 }
+
+export async function updateGeneralSettings(setting: GeneralSettingType) {
+    try {
+        return await update('general', setting)
+    } catch (err) {
+        throw err
+    }
+}

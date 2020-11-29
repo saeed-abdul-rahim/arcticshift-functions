@@ -43,6 +43,7 @@ export type ContentStorage = {
 }
 
 export type Content = {
+    id?: string
     content: ContentStorage
     thumbnails: ContentStorage[]
 }

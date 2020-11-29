@@ -3,9 +3,14 @@ import { decrementVoucher, incrementVoucher } from '../analytics/voucher'
 import { setCondition } from '../common'
 import { VoucherInterface, VoucherType, Voucher, VoucherCondition, VoucherOrderBy } from './schema'
 
-export async function get(voucherId: string): Promise<VoucherInterface> {
+export async function get(voucherId: string, transaction?: FirebaseFirestore.Transaction): Promise<VoucherInterface> {
     try {
-        const doc = await vouchersRef.doc(voucherId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(voucherId))
+        } else {
+            doc = await getRef(voucherId).get()
+        }
         if (!doc.exists) throw new Error('Voucher not found')
         const data = <VoucherInterface>doc.data()
         data.voucherId = doc.id
@@ -15,9 +20,9 @@ export async function get(voucherId: string): Promise<VoucherInterface> {
     }
 }
 
-export async function getOneByCondition(conditions: VoucherCondition[], orderBy?: VoucherOrderBy): Promise<VoucherInterface | null> {
+export async function getOneByCondition(conditions: VoucherCondition[], voucherBy?: VoucherOrderBy): Promise<VoucherInterface | null> {
     try {
-        const data = await getByCondition(conditions, orderBy, 1)
+        const data = await getByCondition(conditions, voucherBy, 1)
         if (!data) {
             return data
         }
@@ -29,9 +34,9 @@ export async function getOneByCondition(conditions: VoucherCondition[], orderBy?
     }
 }
 
-export async function getByCondition(conditions: VoucherCondition[], orderBy?: VoucherOrderBy, limit?: number): Promise<VoucherInterface[] | null> {
+export async function getByCondition(conditions: VoucherCondition[], voucherBy?: VoucherOrderBy, limit?: number): Promise<VoucherInterface[] | null> {
     try {
-        const ref = setCondition(vouchersRef, conditions, orderBy, limit);
+        const ref = setCondition(vouchersRef, conditions, voucherBy, limit);
         return await getAll(ref)
     } catch (err) {
         throw err;
@@ -54,7 +59,7 @@ export async function set(voucherId: string, voucher: VoucherType): Promise<bool
     try {
         const dataToInsert = new Voucher(voucher).get()
         dataToInsert.updatedAt = Date.now()
-        await vouchersRef.doc(voucherId).set(dataToInsert)
+        await getRef(voucherId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
@@ -63,7 +68,7 @@ export async function set(voucherId: string, voucher: VoucherType): Promise<bool
 
 export async function update(voucherId: string, voucher: VoucherType): Promise<boolean> {
     try {
-        await vouchersRef.doc(voucherId).update({ ...voucher, updatedAt: Date.now() })
+        await getRef(voucherId).update({ ...voucher, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -72,7 +77,7 @@ export async function update(voucherId: string, voucher: VoucherType): Promise<b
 
 export async function remove(voucherId: string): Promise<boolean> {
     try {
-        await vouchersRef.doc(voucherId).delete()
+        await getRef(voucherId).delete()
         await decrementVoucher()
         return true
     } catch (err) {
@@ -84,9 +89,9 @@ export function getRef(id: string) {
     return vouchersRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, voucherId: string, order: VoucherType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, voucherId: string, voucher: VoucherType) {
     try {
-        const dataToInsert = new Voucher(order).get()
+        const dataToInsert = new Voucher(voucher).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(voucherId), dataToInsert)
     } catch (err) {
@@ -95,9 +100,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, voucherId: string,
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, voucherId: string, order: VoucherType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, voucherId: string, voucher: VoucherType) {
     try {
-        return batch.update(getRef(voucherId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(voucherId), { ...voucher, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -107,6 +112,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, voucherId: stri
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, voucherId: string) {
     try {
         return batch.delete(getRef(voucherId))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, voucherId: string, voucher: VoucherType) {
+    try {
+        const dataToInsert = new Voucher(voucher).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(voucherId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, voucherId: string, voucher: VoucherType) {
+    try {
+        return transaction.update(getRef(voucherId), { ...voucher, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, voucherId: string) {
+    try {
+        return transaction.delete(getRef(voucherId))
     } catch (err) {
         throw err
     }

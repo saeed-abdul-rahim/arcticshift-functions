@@ -10,18 +10,20 @@ import * as variant from '../../models/variant'
 import * as order from '../../models/order'
 import * as shipping from '../../models/shipping'
 import * as shippingRate from '../../models/shippingRate'
-import { Fullfillment, OrderType } from '../../models/order/schema'
+import { Fullfill, Fullfillment, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
 import { successCreated, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, placeOrder } from './helper'
+import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, placeOrder, sendOrderMail } from './helper'
 import { uniqueArr } from '../../utils/arrayUtils'
 import { isValidAddress } from '../../models/common'
 import { setUserBillingAddress, setUserShippingAddress } from '../user/helper'
 import { db } from '../../config/db'
 import { Role } from '../../models/common/schema'
 import * as voucherHelper from "../voucher/helper"
+import { isDefined } from '../../utils/isDefined'
 
 export async function create(req: Request, res: Response) {
+    const methodName = 'createOrder'
     try {
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
@@ -29,12 +31,13 @@ export async function create(req: Request, res: Response) {
         const id = await createDraft(userData, data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function calculateDraft(req: Request, res: Response) {
+    const methodName = 'calculateDraft'
     try {
         const { uid } = res.locals
         const now = Date.now()
@@ -106,12 +109,13 @@ export async function calculateDraft(req: Request, res: Response) {
         await batch.commit()
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function addVoucher(req: Request, res: Response, next: NextFunction) {
+    const methodName = 'addVoucher'
     try {
         const { id: draftId } = req.params
         const { data }: { data: { code: string } } = req.body
@@ -159,12 +163,13 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
         next()
         return
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function addVariant(req: Request, res: Response) {
+    const methodName = 'addVariant'
     try {
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
@@ -186,12 +191,13 @@ export async function addVariant(req: Request, res: Response) {
             return successResponse(res, { id })
         }
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function updateShipping(req: Request, res: Response, next: NextFunction) {
+    const methodName = 'updateShipping'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -225,12 +231,13 @@ export async function updateShipping(req: Request, res: Response, next: NextFunc
         next()
         return
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function removeVariant(req: Request, res: Response, next: NextFunction) {
+    const methodName = 'removeVariant'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { variantId: string } } = req.body
@@ -249,12 +256,13 @@ export async function removeVariant(req: Request, res: Response, next: NextFunct
         next()
         return
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function updateVariants(req: Request, res: Response, next: NextFunction) {
+    const methodName = 'updateVariants'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -268,17 +276,18 @@ export async function updateVariants(req: Request, res: Response, next: NextFunc
         next()
         return
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function finalize(req: Request, res: Response) {
+    const methodName = 'finalizeOrder'
     try {
         const batch = db.batch()
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
-        const { orderId, shippingAddress, billingAddress, cod } = data
+        const { orderId, email, phone, notes, shippingAddress, billingAddress, cod } = data
         if (!orderId) {
             return missingParam(res, 'Order ID')
         }
@@ -329,7 +338,11 @@ export async function finalize(req: Request, res: Response) {
             return badRequest(res, 'Currency required')
         }
 
-        const { total, notes, variants } = orderData
+        const { total, variants } = orderData
+
+        orderData.firstName = orderData.shippingAddress.firstName || ''
+        orderData.lastName = orderData.shippingAddress.lastName || ''
+        orderData.customerName = orderData.shippingAddress.name || ''
 
         // Check Stock
         const variantIds = variants.map(v => v.variantId)
@@ -353,14 +366,16 @@ export async function finalize(req: Request, res: Response) {
             }
         })
 
-        const setOrder = {
+        const setData = {
             ...orderData,
-            ...data
+            email,
+            phone,
+            notes
         }
 
         if (cod) {
             order.batchSet(batch, orderId, {
-                ...setOrder,
+                ...setData,
                 cod
             }, 'draft')
             await batch.commit()
@@ -369,19 +384,20 @@ export async function finalize(req: Request, res: Response) {
         } else {
             const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
             order.batchSet(batch, orderId, {
-                ...setOrder,
+                ...setData,
                 gatewayOrderId: gatewayOrderId.id
             }, 'draft')
             await batch.commit()
             return successResponse(res, gatewayOrderId)
         }
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function orderCOD(req: Request, res: Response) {
+    const methodName = 'orderCOD'
     try {
         const { id: orderId } = req.params
         const orderData = await order.get(orderId, 'draft')
@@ -389,12 +405,13 @@ export async function orderCOD(req: Request, res: Response) {
         await placeOrder(orderData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function capturePayment(req: Request, res: Response) {
+    const methodName = 'capturePayment'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -420,12 +437,13 @@ export async function capturePayment(req: Request, res: Response) {
         await order.set(orderId, orderData, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function addTrackingCode(req: Request, res: Response) {
+    const methodName = 'addTrackingCode'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { warehouseId?: string, trackingCode?: string } } = req.body
@@ -451,15 +469,16 @@ export async function addTrackingCode(req: Request, res: Response) {
         }, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function fullfill(req: Request, res: Response) {
+    const methodName = 'fullfill'
     try {
         const { id: orderId } = req.params
-        const { data }: { data: OrderType } = req.body
+        const { data, sendEmail }: { data: OrderType, sendEmail: boolean } = req.body
         const { fullfilled } = data
         const batch = db.batch()
 
@@ -491,6 +510,7 @@ export async function fullfill(req: Request, res: Response) {
             return badRequest(res, 'Invalid Variant')
         }
 
+        // Get old fullfilled values and add up quantity
         let fullfillUpdate = fullfilled.concat(orderFullfilled)
         fullfillUpdate = fullfillUpdate.map(f => new Fullfillment(f).get())
         fullfillUpdate = Object.values(fullfillUpdate.reduce((acc: any, {quantity, ...rest}) => {
@@ -554,14 +574,60 @@ export async function fullfill(req: Request, res: Response) {
         }, 'order')
 
         await batch.commit()
+
+        if (sendEmail) {
+            let partialFullfillment = false
+            const fullfilledVariants = variantQty.map(vq => {
+                const fullfilledVariant = fullfilled.filter(f => f.variantId === vq.variantId)
+                if (!fullfilledVariant || fullfilledVariant.length === 0) {
+                    partialFullfillment = true
+                    return
+                }
+                // Add up values in fullfillment for editing orderQuantity below
+                const qty = fullfilledVariant.map(f => f.quantity).reduce((sum, curr) => sum + curr, 0)
+                const newFullFillData: Fullfill = {
+                    variantId: vq.variantId,
+                    quantity: qty,
+                    warehouseId: ''
+                }
+                if (qty < vq.quantity) {
+                    partialFullfillment = true
+                    return newFullFillData
+                }
+                return newFullFillData
+            }).filter(isDefined)
+            if (!partialFullfillment) {
+                await sendOrderMail(orderData, 'dispatched')
+            }
+            if (partialFullfillment) {
+                // Modify order.data.productData to suit Email view
+                // Delete products that are not dispatched
+                const fullfilledVariantIds = fullfilledVariants.map(v => v.variantId)
+                const filteredProductsData = orderData.data?.productsData.filter(p => fullfilledVariantIds.includes(p.variantId))
+                if (filteredProductsData && filteredProductsData.length > 0) {
+                    const newProductsData = filteredProductsData.map(productData => {
+                        const fullfilledVariant = fullfilled.find(f => f.variantId === productData.variantId)
+                        if (fullfilledVariant) {
+                            productData.orderQuantity = fullfilledVariant.quantity
+                            return productData
+                        }
+                        return
+                    }).filter(isDefined)
+                    orderData.data!.productsData = newProductsData
+                    await sendOrderMail(orderData, 'dispatched', true)
+                }
+            }
+        }
+
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function cancelFullfillment(req: Request, res: Response) {
+    const methodName = 'cancelFullfillment'
     try {
         const { id: orderId } = req.params
         const { data } = req.body
@@ -607,12 +673,13 @@ export async function cancelFullfillment(req: Request, res: Response) {
         await batch.commit()
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function cancelOrder(req: Request, res: Response) {
+    const methodName = 'cancelOrder'
     try {
         const { role }: Record<string, Role> = res.locals
         const { orderId } = req.params
@@ -669,20 +736,21 @@ export async function cancelOrder(req: Request, res: Response) {
         return successUpdated(res)
 
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }
 
 export async function refund(req: Request, res: Response) {
+    const methodName = 'refund'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { amount: number }} = req.body
         let { amount } = data
-        amount = Number(amount.toFixed(2))
-        if (amount < 0) {
-            return badRequest(res, "Amount can't be negative'")
+        if (amount <= 0) {
+            return badRequest(res, "Amount should be a positive value'")
         }
+        amount = Number(amount.toFixed(2))
         const orderData = await order.get(orderId, 'order')
         const { payment, capturedAmount } = orderData
         if (amount > capturedAmount) {
@@ -713,7 +781,7 @@ export async function refund(req: Request, res: Response) {
         }, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         return serverError(res, err)
     }
 }

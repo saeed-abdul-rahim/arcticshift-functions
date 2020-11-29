@@ -1,8 +1,9 @@
 import { PaymentStatus } from "../../models/order/schema"
-import { placeOrder } from "../../controllers/order/helper"
 import * as orderModel from "../../models/order"
+import { placeOrder } from "../../controllers/order/helper"
 
 export async function orderPaid(payload: any) {
+    const methodName = 'orderPaid'
     try {
         const { payment, order } = payload
         let paymentStatus: PaymentStatus = 'notCharged'
@@ -13,6 +14,7 @@ export async function orderPaid(payload: any) {
         } else if (paymentAmount < orderAmount) {
             paymentStatus = 'partiallyCharged'
         }
+        console.error(order.entity.id)
         const orderData = await orderModel.getOneByCondition('draft', [{
             field: 'gatewayOrderId', type: '==', value: order.entity.id
         }])
@@ -20,6 +22,7 @@ export async function orderPaid(payload: any) {
             throw new Error('Order not found')
         }
 
+        console.error(orderData.orderId)
         orderData.paymentStatus = paymentStatus
         orderData.capturedAmount = paymentAmount / 100
         orderData.payment.push({
@@ -31,7 +34,7 @@ export async function orderPaid(payload: any) {
         await placeOrder(orderData)
 
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         throw err
     }
 }

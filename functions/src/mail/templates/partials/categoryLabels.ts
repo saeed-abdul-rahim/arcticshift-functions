@@ -5,9 +5,9 @@ import { urlEncode } from "../../../utils/strUtils"
 
 export const categoryLabels = (categories: CategoryInterface[]) => {
 
-    const rowLimit = Math.ceil(categories.length / 2)
+    const rowLimit = Math.round(categories.length / 2)
     const categorySet1 = categories.slice(0, rowLimit)
-    const categorySet2 = categories.slice(rowLimit, rowLimit)
+    const categorySet2 = categories.slice(rowLimit, rowLimit * 2)
     const col1 = getCategoryLabel(categorySet1)
     const col2 = getCategoryLabel(categorySet2)
     

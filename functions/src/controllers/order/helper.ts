@@ -22,21 +22,26 @@ import { ShippingRateInterface } from "../../models/shippingRate/schema"
 import { TaxInterface } from "../../models/tax/schema"
 import { CategoryInterface } from "../../models/category/schema"
 import { CollectionInterface } from "../../models/collection/schema"
-import { orderPlacedHTML } from "../../mail/templates/orderPlacedHTML"
+import { orderPlacedHTML } from "../../mail/templates/orderPlaced"
 import { sendMail } from "../../mail"
 import * as voucherHelper from "../voucher/helper"
+import { orderShippedHTML } from "../../mail/templates/orderShipped"
 
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
+    const methodName = 'createDraft'
     try {
         const orderStatus: OrderStatus = 'draft'
         const customerName = userData.name || userData.phone || userData.email || 'anonymous'
         const orderData: OrderType = {
             ...orderdata,
             orderStatus,
-            customerName
+            customerName,
+            email: userData.email || userData.billingAddress?.email,
+            phone: userData.phone || userData.billingAddress?.email
         }
         return await order.add(orderData, 'draft')
     } catch (err) {
+        console.error(methodName, err)
         throw err
     }
 }
@@ -66,17 +71,18 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
 
 export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: VariantQuantity[]): OrderStatus {
     const totalFullfilled = fullfulled.map(f => f.quantity).reduce((sum, curr) => sum + curr, 0)
-        const toFullfill = variantQty.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
-        if (totalFullfilled === 0) {
-            return 'unfullfilled'
-        } else if (totalFullfilled < toFullfill) {
-            return 'partiallyFullfilled'
-        } else {
-            return 'fullfilled'
-        }
+    const toFullfill = variantQty.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
+    if (totalFullfilled === 0) {
+        return 'unfullfilled'
+    } else if (totalFullfilled < toFullfill) {
+        return 'partiallyFullfilled'
+    } else {
+        return 'fullfilled'
+    }
 }
 
 export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
+    const methodName = 'combineData'
     try {
         return await Promise.all(allVariantData.map(async variantData => {
 
@@ -119,6 +125,7 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
             }
         })).then(data => data.filter(isDefined))
     } catch (err) {
+        console.error(methodName, err)
         throw err
     }
 }
@@ -206,6 +213,7 @@ export async function calculateShipping(shippingRateId: string, aggregate: Aggre
 }
 
 export async function calculateVoucherDiscount(uid: string, voucherId: string, allProductData: ProductInterface[], allDataCalculated: OrderDataCalc[], allDataAggregated: AggregateType, shipping: number) {
+    const methodName = 'calculateVoucherDiscount'
     try {
         let shippingCharge = shipping
         const now = Date.now()
@@ -294,13 +302,15 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
             voucherDiscount, shippingCharge, voucherData
         }
     } catch (err) {
+        console.error(methodName, err)
         throw err
     }
 }
 
 export async function placeOrder(orderData: OrderInterface) {
+    const methodName = 'placeOrder'
     try {
-        const { variants, userId, orderId, email, voucherId } = orderData
+        const { variants, userId, orderId, voucherId } = orderData
         orderData.orderStatus = 'unfullfilled'
 
         await order.add(orderData, 'order')
@@ -316,11 +326,11 @@ export async function placeOrder(orderData: OrderInterface) {
                     await variant.set(variantId, variantData)
                 }
             } catch (err) {
-                console.log(err)
+                console.error(methodName, err)
                 return
             }
         }))
-        
+
         try {
             const userData = await user.get(userId)
             userData.totalOrders += 1
@@ -333,43 +343,56 @@ export async function placeOrder(orderData: OrderInterface) {
             }
             await user.set(userId, userData)
         } catch (err) {
-            console.log(err)
+            console.error(methodName, err)
         }
 
-        let categoriesData: CategoryInterface[] | null = null
-        let collectionData: CollectionInterface | null = null
-
-        try {
-            categoriesData = await category.getByCondition([], {
-                field: 'createdAt', direction: 'desc'
-            }, 6)
-        } catch (err) {
-            console.error(err)
-        }
-
-        try {
-            collectionData = await collection.getOneByCondition([], {
-                field: 'createdAt', direction: 'desc'
-            })
-        } catch (err) {
-            console.error(err)
-        }
-
-        try {
-            const settingsData = await settings.getGeneralSettings()
-            const orderPaidMail = orderPlacedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined)
-            await sendMail({
-                to: email,
-                subject: 'Order Placed!',
-                html: orderPaidMail
-            })
-        } catch (err) {
-            console.error(err)
-        }
+        return await sendOrderMail(orderData, 'order')
 
     } catch (err) {
-        console.error(err)
+        console.error(methodName, err)
         throw err
+    }
+}
+
+export async function sendOrderMail(orderData: OrderInterface, type: 'order' | 'dispatched', partial = false) {
+    const methodName = 'sendOrderMail'
+    const { email } = orderData
+    let categoriesData: CategoryInterface[] | null = null
+    let collectionData: CollectionInterface | null = null
+
+    try {
+        categoriesData = await category.getByCondition([], {
+            field: 'updatedAt', direction: 'desc'
+        }, 6)
+    } catch (err) {
+        console.error(methodName, err)
+    }
+
+    try {
+        collectionData = await collection.getOneByCondition([], {
+            field: 'updatedAt', direction: 'desc'
+        })
+    } catch (err) {
+        console.error(methodName, err)
+    }
+
+    try {
+        let orderMail = ''
+        const settingsData = await settings.getGeneralSettings()
+        if (type === 'order') {
+            orderMail = orderPlacedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined)
+        } else if (type === 'dispatched') {
+            orderMail = orderShippedHTML(settingsData, orderData, collectionData || undefined, categoriesData || undefined, partial)
+        }
+        if (orderMail) {
+            return await sendMail({
+                to: email,
+                subject: 'Order Placed!',
+                html: orderMail
+            })
+        }
+    } catch (err) {
+        console.error(methodName, err)
     }
 }
 

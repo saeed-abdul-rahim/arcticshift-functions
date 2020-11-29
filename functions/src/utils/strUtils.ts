@@ -1,3 +1,5 @@
+import { uniqueArr } from "./arrayUtils";
+
 export const joinByHyphen = (str: string) => str.split(' ').join('-');
 
 export const urlEncode = (str: string) => encodeURI(joinByHyphen(str))
@@ -16,6 +18,12 @@ export const createKeywords = (name: string) => {
         return []
     }
 }
+
+export const wordKeys = (words: string) => {
+    const mainKeys = createKeywords(words)
+    const keys = words.split(' ').map(word => createKeywords(word))
+    return uniqueArr(mainKeys.concat(...keys))
+  }
 
 export function randomString(keyStr = 'xT0b2N5') {
     const rand = Math.random().toString(36).slice(-8)

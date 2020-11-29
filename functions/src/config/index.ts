@@ -5,7 +5,7 @@ const { config } = functions
 
 export const TITLE = 'PROLR'
 export const URL = {
-    base: 'http://localhost:4200'
+    base: 'https://articshift-7f9cd.web.app'
 }
 export const appId = config().app.id
 export const gmail = config().gmail.email

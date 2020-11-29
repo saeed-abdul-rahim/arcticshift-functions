@@ -2,9 +2,14 @@ import { shippingRatesRef } from '../../config/db'
 import { setCondition } from '../common'
 import { ShippingRateInterface, ShippingRateType, ShippingRate, ShippingRateCondition } from './schema'
 
-export async function get(shippingRateId: string): Promise<ShippingRateInterface> {
+export async function get(shippingRateId: string, transaction?: FirebaseFirestore.Transaction): Promise<ShippingRateInterface> {
     try {
-        const doc = await shippingRatesRef.doc(shippingRateId).get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(getRef(shippingRateId))
+        } else {
+            doc = await getRef(shippingRateId).get()
+        }
         if (!doc.exists) throw new Error('ShippingRate not found')
         const data = <ShippingRateInterface>doc.data()
         data.shippingRateId = doc.id
@@ -51,7 +56,7 @@ export async function set(shippingRateId: string, shipping: ShippingRateType): P
     try {
         const dataToInsert = new ShippingRate(shipping).get()
         dataToInsert.updatedAt = Date.now()
-        await shippingRatesRef.doc(shippingRateId).set(dataToInsert)
+        await getRef(shippingRateId).set(dataToInsert)
         return true
     } catch (err) {
         throw err
@@ -60,7 +65,7 @@ export async function set(shippingRateId: string, shipping: ShippingRateType): P
 
 export async function update(shippingRateId: string, shipping: ShippingRateType): Promise<boolean> {
     try {
-        await shippingRatesRef.doc(shippingRateId).update({ ...shipping, updatedAt: Date.now() })
+        await getRef(shippingRateId).update({ ...shipping, updatedAt: Date.now() })
         return true
     } catch (err) {
         throw err
@@ -69,7 +74,7 @@ export async function update(shippingRateId: string, shipping: ShippingRateType)
 
 export async function remove(shippingRateId: string): Promise<boolean> {
     try {
-        await shippingRatesRef.doc(shippingRateId).delete()
+        await getRef(shippingRateId).delete()
         return true
     } catch (err) {
         throw err
@@ -80,9 +85,9 @@ export function getRef(id: string) {
     return shippingRatesRef.doc(id)
 }
 
-export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, order: ShippingRateType) {
+export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, shippingRate: ShippingRateType) {
     try {
-        const dataToInsert = new ShippingRate(order).get()
+        const dataToInsert = new ShippingRate(shippingRate).get()
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(shippingRateId), dataToInsert)
     } catch (err) {
@@ -91,9 +96,9 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingRateId: st
     }
 }
 
-export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, order: ShippingRateType) {
+export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingRateId: string, shippingRate: ShippingRateType) {
     try {
-        return batch.update(getRef(shippingRateId), { ...order, updatedAt: Date.now() })
+        return batch.update(getRef(shippingRateId), { ...shippingRate, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
         throw err
@@ -103,6 +108,34 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingRateId:
 export function batchDelete(batch: FirebaseFirestore.WriteBatch, shippingRateId: string) {
     try {
         return batch.delete(getRef(shippingRateId))
+    } catch (err) {
+        throw err
+    }
+}
+
+export function transactionSet(transaction: FirebaseFirestore.Transaction, shippingRateId: string, shippingRate: ShippingRateType) {
+    try {
+        const dataToInsert = new ShippingRate(shippingRate).get()
+        dataToInsert.updatedAt = Date.now()
+        return transaction.set(getRef(shippingRateId), dataToInsert)
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionUpdate(transaction: FirebaseFirestore.Transaction, shippingRateId: string, shippingRate: ShippingRateType) {
+    try {
+        return transaction.update(getRef(shippingRateId), { ...shippingRate, updatedAt: Date.now() })
+    } catch (err) {
+        console.error(err)
+        throw err
+    }
+}
+
+export function transactionDelete(transaction: FirebaseFirestore.Transaction, shippingRateId: string) {
+    try {
+        return transaction.delete(getRef(shippingRateId))
     } catch (err) {
         throw err
     }
