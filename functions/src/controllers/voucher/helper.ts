@@ -6,6 +6,10 @@ import * as product from '../../models/product'
 import * as user from '../../models/user'
 import { ProductInterface } from '../../models/product/schema'
 import { VoucherInterface } from '../../models/voucher/schema'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/voucher/helper`
 
 export async function checkIfVoucherExists(code: string) {
     try {
@@ -47,7 +51,7 @@ export async function updateCatalog(voucherId: string, catalog: CatalogType) {
             await updateProduct(productId, voucherId)
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -61,11 +65,11 @@ async function updateProduct(productId: string[], voucherId: string) {
                 }
                 await product.update(pId, { voucherId })
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -75,7 +79,7 @@ async function updatePrevSaleDiscount(voucherId: string, catalog: CatalogTypeKey
         voucherData[catalog] = voucherData[catalog].filter(id => catalogId !== id)
         await voucher.set(voucherId, voucherData)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -93,11 +97,11 @@ async function updateCategory(categoryId: string[], voucherId: string) {
                     await updateCategory(subCategoryId, voucherId)
                 }
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 

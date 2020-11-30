@@ -6,6 +6,10 @@ import { WarehouseType } from '../../models/warehouse/schema'
 import * as warehouse from '../../models/warehouse'
 import * as variant from '../../models/variant'
 import { db } from '../../config/db'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/warehouse/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -23,7 +27,7 @@ export async function create(req: Request, res: Response) {
         const id = await warehouse.add(data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -43,7 +47,7 @@ export async function update(req: Request, res: Response) {
         await warehouse.set(warehouseId, data)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -69,7 +73,7 @@ export async function remove(req: Request, res: Response) {
         await batch.commit()
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

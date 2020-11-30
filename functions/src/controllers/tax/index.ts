@@ -8,6 +8,10 @@ import * as shop from '../../models/shop'
 import * as shipping from '../../models/shipping'
 import * as productType from '../../models/productType'
 import { valueTypes } from '../../models/common'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/tax/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -34,7 +38,7 @@ export async function create(req: Request, res: Response) {
         const id = await tax.add(data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -62,7 +66,7 @@ export async function update(req: Request, res: Response) {
         await tax.set(taxId, taxData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -123,7 +127,7 @@ export async function remove(req: Request, res: Response) {
         await tax.remove(taxId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

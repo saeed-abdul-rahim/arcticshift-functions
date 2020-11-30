@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { warehouseRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementWarehouse, incrementWarehouse } from '../analytics/warehouse'
 import { setCondition } from '../common'
 import { WarehouseInterface, WarehouseType, Warehouse, WarehouseCondition } from './schema'
+
+const functionPath = `${MODELS}/warehouse`
 
 export async function get(warehouseId: string, transaction?: FirebaseFirestore.Transaction): Promise<WarehouseInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(warehouseId: string, transaction?: FirebaseFirestore.T
         data.warehouseId = doc.id
         return new Warehouse(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -25,6 +30,7 @@ export async function getByCondition(conditions: WarehouseCondition[]): Promise<
         const ref = setCondition(warehouseRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -37,6 +43,7 @@ export async function add(warehouse: WarehouseType): Promise<string> {
         await incrementWarehouse()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -48,6 +55,7 @@ export async function set(warehouseId: string, warehouse: WarehouseType): Promis
         await getRef(warehouseId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -57,6 +65,7 @@ export async function update(warehouseId: string, warehouse: WarehouseType): Pro
         await getRef(warehouseId).update({ ...warehouse, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -67,6 +76,7 @@ export async function remove(warehouseId: string): Promise<boolean> {
         await decrementWarehouse()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -81,7 +91,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, warehouseId: strin
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(warehouseId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -90,7 +100,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, warehouseId: st
     try {
         return batch.update(getRef(warehouseId), { ...warehouse, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -99,6 +109,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, warehouseId: st
     try {
         return batch.delete(getRef(warehouseId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -109,7 +120,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, wareh
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(warehouseId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -118,7 +129,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, wa
     try {
         return transaction.update(getRef(warehouseId), { ...warehouse, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -127,17 +138,28 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, wa
     try {
         return transaction.delete(getRef(warehouseId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as WarehouseInterface
-        data.warehouseId = d.id
-        data = new Warehouse(data).get()
-        return data
-    })
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as WarehouseInterface
+            data.warehouseId = d.id
+            data = new Warehouse(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
 }

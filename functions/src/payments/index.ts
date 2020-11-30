@@ -1,5 +1,9 @@
+import { PAYMENT } from "../config/constants";
 import { PaymentGateway } from "../models/common/schema";
+import { callerName } from "../utils/functionUtils";
 import * as razorpay from "./razorpay"
+
+const functionPath = PAYMENT
 
 export async function createOrder(gateway: PaymentGateway, amount: number, currency: string, orderId: string, notes?: string) {
     try {
@@ -10,6 +14,7 @@ export async function createOrder(gateway: PaymentGateway, amount: number, curre
                 throw new Error('Unable to create order')
         }
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -23,6 +28,7 @@ export async function refund(gateway: PaymentGateway, paymentId: string, amount:
                 throw new Error('Unable to refund')
         }
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

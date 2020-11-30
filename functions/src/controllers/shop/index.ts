@@ -1,8 +1,12 @@
 import { Request, Response } from 'express'
+import { CONTROLLERS } from '../../config/constants'
 import * as shop from '../../models/shop'
 import { ShopType } from '../../models/shop/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successCreated, successUpdated } from '../../responseHandler/successHandler'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/shop/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -21,7 +25,7 @@ export async function create(req: Request, res: Response) {
         await shop.set(shopId, data)
         return successCreated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -43,7 +47,7 @@ export async function inviteUser(req: Request, res: Response) {
         })
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

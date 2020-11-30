@@ -6,6 +6,10 @@ import { ShopType } from '../../models/shop/schema'
 import { VoucherType } from '../../models/voucher/schema'
 import { checkIfVoucherExists, updateCatalog } from './helper'
 import * as voucher from '../../models/voucher'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/voucher/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -36,7 +40,7 @@ export async function create(req: Request, res: Response) {
         const id = await voucher.add(data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -62,7 +66,7 @@ export async function update(req: Request, res: Response) {
         await voucher.set(voucherId, newData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -80,7 +84,7 @@ export async function remove(req: Request, res: Response) {
         })
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -108,7 +112,7 @@ export async function addCatalog(req: Request, res: Response) {
         })
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -136,7 +140,7 @@ export async function removeCatalog(req: Request, res: Response) {
         })
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

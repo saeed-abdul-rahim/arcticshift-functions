@@ -2,6 +2,10 @@ import { productsRef } from '../../config/db'
 import { ProductInterface, ProductType, Product, ProductCondition } from './schema'
 import { setCondition } from '../common'
 import { decrementProduct, incrementProduct } from '../analytics/product'
+import { callerName } from '../../utils/functionUtils'
+import { MODELS } from '../../config/constants'
+
+const functionPath = `${MODELS}/product`
 
 export async function get(productId: string, transaction?: FirebaseFirestore.Transaction): Promise<ProductInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(productId: string, transaction?: FirebaseFirestore.Tra
         data.productId = doc.id
         return new Product(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -30,6 +35,7 @@ export async function getOneByCondition(conditions: ProductCondition[]): Promise
         data.productId = doc.docs[0].id
         return new Product(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -39,6 +45,7 @@ export async function getByCondition(conditions: ProductCondition[]): Promise<Pr
         const ref = setCondition(productsRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -51,6 +58,7 @@ export async function add(product: ProductType): Promise<ProductInterface> {
         await incrementProduct()
         return productData
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -62,6 +70,7 @@ export async function set(productId: string, product: ProductType): Promise<Prod
         await getRef(productId).set(dataToInsert)
         return dataToInsert
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -71,6 +80,7 @@ export async function update(productId: string, product: ProductType): Promise<b
         await getRef(productId).update({ ...product, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -81,6 +91,7 @@ export async function remove(productId: string): Promise<boolean> {
         await decrementProduct()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -95,7 +106,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, productId: string,
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(productId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -104,7 +115,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, productId: stri
     try {
         return batch.update(getRef(productId), { ...product, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -113,6 +124,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, productId: stri
     try {
         return batch.delete(getRef(productId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -123,7 +135,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, produ
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(productId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -132,7 +144,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, pr
     try {
         return transaction.update(getRef(productId), { ...product, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -141,17 +153,28 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, pr
     try {
         return transaction.delete(getRef(productId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as ProductInterface
-        data.productId = d.id
-        data = new Product(data).get()
-        return data
-    })
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as ProductInterface
+            data.productId = d.id
+            data = new Product(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
 }

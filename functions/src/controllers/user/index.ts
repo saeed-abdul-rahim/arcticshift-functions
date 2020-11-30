@@ -17,6 +17,10 @@ import { Role } from '../../models/common/schema'
 import { UserType, genders } from '../../models/user/schema'
 import { randomString } from '../../utils/strUtils'
 import { sendMail } from '../../mail'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/user/index`
 
 export async function createUserDb(userRecord: admin.auth.UserRecord, context: functions.EventContext) {
     const { uid, email, phoneNumber, displayName } = userRecord
@@ -52,7 +56,7 @@ export async function signUp(req: Request, res: Response) {
             return successCreated(res)
         }
     } catch(err) {
-        console.error(`${err.code} -  ${err.message}`)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -74,7 +78,7 @@ export async function linkWithPhoneNumber(req: Request, res: Response) {
             return badRequest(res, 'Phone number not found')
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -94,7 +98,7 @@ export async function linkWithEmail(req: Request, res: Response) {
             return badRequest(res, 'Email not found')
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -139,6 +143,7 @@ export async function update(req: Request, res: Response) {
         await user.set(uid, userData)
         return successUpdated(res)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -156,7 +161,7 @@ export async function addToWishlist(req: Request, res: Response) {
         await user.set(uid, userData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -170,29 +175,37 @@ export async function removeFromWishlist(req: Request, res: Response) {
         await user.set(uid, userData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function createAdmin(req: Request, res: Response) {
     const { email, shopId }: { email: string, shopId: string } = req.body
-    await create(res, {
-        shopId,
-        email,
-        role: 'admin'
-    })
+    try {
+        await create(res, {
+            shopId,
+            email,
+            role: 'admin'
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+    }
 }
 
 export async function createStaff(req: Request, res: Response) {
     const { shopData }: { [shopData: string]: ShopType } = res.locals
     const { email }: { email: string } = req.body
     const { shopId } = shopData
-    await create(res, {
-        shopId,
-        email,
-        role: 'staff'
-    })
+    try {
+        await create(res, {
+            shopId,
+            email,
+            role: 'staff'
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+    }
 }
 
 export async function removeStaff(req: Request, res: Response) {
@@ -212,6 +225,7 @@ export async function removeStaff(req: Request, res: Response) {
         await shop.set(shopId, shopData)
         return successUpdated(res)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -256,7 +270,7 @@ async function create(res: Response, data: { shopId: string, email: string, role
         await shop.set(shopId, shopData)
         return successCreated(res)
     } catch (err) {
-        console.error(`${err.code} -  ${err.message}`)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

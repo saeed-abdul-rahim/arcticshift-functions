@@ -1,7 +1,11 @@
+import { CONTROLLERS } from '../../config/constants'
 import * as category from '../../models/category'
 import { CategoryInterface } from "../../models/category/schema"
 import { ProductInterface } from "../../models/product/schema"
 import { isBothArrEqual } from '../../utils/arrayUtils'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/category/helper`
 
 export async function addProductToCategory(productData: ProductInterface, categoryData: CategoryInterface) {
     const { categoryId, parentCategoryId } = categoryData
@@ -14,7 +18,7 @@ export async function addProductToCategory(productData: ProductInterface, catego
             parentCategoryData.productId.unshift(productId)
             await category.set(parentCategoryId, parentCategoryData)
         } catch (err) {
-            console.error(err)
+            console.error(`${functionPath}/${callerName()}`, err)
         }
     }
     return {
@@ -35,7 +39,7 @@ export async function removeProductFromCategory(productData: ProductInterface, c
                 subCategoryData.productId.filter(pid => pid !== productId)
                 await category.set(subId, subCategoryData)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
     }

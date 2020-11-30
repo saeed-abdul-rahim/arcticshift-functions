@@ -1,10 +1,15 @@
 import * as admin from 'firebase-admin'
+import { MODELS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
 import { CustomClaims, CustomClaimsInterface, AllCustomClaimsInterface, CustomClaimsType } from './schema'
+
+const functionPath = `${MODELS}/userClaims`
 
 export async function get(uid: string): Promise<admin.auth.UserRecord> {
     try {
         return await admin.auth().getUser(uid)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
  }
@@ -26,6 +31,7 @@ export async function set(uid: string, newClaims: CustomClaimsType): Promise<boo
         await admin.auth().setCustomUserClaims(uid, { claims: setNewClaims })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
  }
@@ -36,6 +42,7 @@ export async function remove(customClaims: AllCustomClaimsInterface, shopId: str
         await setClaims(uid, customClaims)
         return customClaims
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -52,6 +59,7 @@ export async function update(uid: string, updateClaims: CustomClaimsType): Promi
         await setClaims(uid, claims)
         return claims
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -75,6 +83,7 @@ async function setClaims(uid: string, customClaims: AllCustomClaimsInterface): P
         await admin.auth().setCustomUserClaims(uid, customClaims)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

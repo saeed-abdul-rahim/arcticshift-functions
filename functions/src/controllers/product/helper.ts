@@ -9,6 +9,10 @@ import { addProductToAllCategories, removeProductFromAllCategories } from '../ca
 import { addProductToCollection, removeProductFromCollection } from '../collection/helper';
 import { isBothArrEqual } from '../../utils/arrayUtils';
 import { addProductToAttribute, removeProductFromAttribute } from '../attribute/helper'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/product/helper`
 
 export async function organizeProduct(productData: ProductInterface) {
     try {
@@ -28,7 +32,7 @@ export async function organizeProduct(productData: ProductInterface) {
                 }
             } catch (err) {
                 await product.update(productId, { productTypeId: '', attributes: null })
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         if (categoryId) {
@@ -39,7 +43,7 @@ export async function organizeProduct(productData: ProductInterface) {
                 await product.update(productId, { allCategoryId })
             } catch (err) {
                 await product.update(productId, { categoryId: '', allCategoryId: [] })
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         if (collectionId && collectionId.length > 0) {
@@ -51,12 +55,12 @@ export async function organizeProduct(productData: ProductInterface) {
                 } catch (err) {
                     productData.collectionId = productData.collectionId.filter(cid => cid !== collId)
                     await product.update(productId, { collectionId: productData.collectionId })
-                    console.error(err)
+                    console.error(`${functionPath}/${callerName()}`, err)
                 }
             }))
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -88,7 +92,7 @@ export async function organizeProductUpdate(oldProductData: ProductInterface, pr
                         const { newCollectionData } = removeProductFromCollection(productData, collectionData)
                         await collection.set(collId, newCollectionData)
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }))
             }
@@ -96,7 +100,7 @@ export async function organizeProductUpdate(oldProductData: ProductInterface, pr
         }
         await organizeProduct(productData)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -115,6 +119,6 @@ export async function removeFromProductType(productData: ProductInterface) {
             }))
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }

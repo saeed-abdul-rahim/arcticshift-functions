@@ -26,9 +26,13 @@ import { orderPlacedHTML } from "../../mail/templates/orderPlaced"
 import { sendMail } from "../../mail"
 import * as voucherHelper from "../voucher/helper"
 import { orderShippedHTML } from "../../mail/templates/orderShipped"
+import { db } from "../../config/db"
+import { callerName } from "../../utils/functionUtils"
+import { CONTROLLERS } from "../../config/constants"
+
+const functionPath = `${CONTROLLERS}/order/helper`
 
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
-    const methodName = 'createDraft'
     try {
         const orderStatus: OrderStatus = 'draft'
         const customerName = userData.name || userData.phone || userData.email || 'anonymous'
@@ -41,7 +45,7 @@ export async function createDraft(userData: UserInterface, orderdata: OrderType)
         }
         return await order.add(orderData, 'draft')
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -82,7 +86,6 @@ export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: Varian
 }
 
 export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
-    const methodName = 'combineData'
     try {
         return await Promise.all(allVariantData.map(async variantData => {
 
@@ -125,7 +128,7 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
             }
         })).then(data => data.filter(isDefined))
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -213,7 +216,6 @@ export async function calculateShipping(shippingRateId: string, aggregate: Aggre
 }
 
 export async function calculateVoucherDiscount(uid: string, voucherId: string, allProductData: ProductInterface[], allDataCalculated: OrderDataCalc[], allDataAggregated: AggregateType, shipping: number) {
-    const methodName = 'calculateVoucherDiscount'
     try {
         let shippingCharge = shipping
         const now = Date.now()
@@ -302,13 +304,12 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
             voucherDiscount, shippingCharge, voucherData
         }
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
 export async function placeOrder(orderData: OrderInterface) {
-    const methodName = 'placeOrder'
     try {
         const { variants, userId, orderId, voucherId } = orderData
         orderData.orderStatus = 'unfullfilled'
@@ -319,14 +320,16 @@ export async function placeOrder(orderData: OrderInterface) {
         await Promise.all(variants.map(async v => {
             try {
                 const { variantId, quantity } = v
-                const variantData = await variant.get(variantId)
-                const { trackInventory } = variantData
-                if (trackInventory) {
-                    variantData.bookedQuantity += quantity
-                    await variant.set(variantId, variantData)
-                }
+                await db.runTransaction(async transaction => {
+                    const variantData = await variant.get(variantId, transaction)
+                    const { trackInventory } = variantData
+                    if (trackInventory) {
+                        variantData.bookedQuantity += quantity
+                        variant.transactionSet(transaction, variantId, variantData)
+                    }
+                })
             } catch (err) {
-                console.error(methodName, err)
+                console.error(`${functionPath}/${callerName()}`, err)
                 return
             }
         }))
@@ -343,19 +346,18 @@ export async function placeOrder(orderData: OrderInterface) {
             }
             await user.set(userId, userData)
         } catch (err) {
-            console.error(methodName, err)
+            console.error(`${functionPath}/${callerName()}`, err)
         }
 
         return await sendOrderMail(orderData, 'order')
 
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
 export async function sendOrderMail(orderData: OrderInterface, type: 'order' | 'dispatched', partial = false) {
-    const methodName = 'sendOrderMail'
     const { email } = orderData
     let categoriesData: CategoryInterface[] | null = null
     let collectionData: CollectionInterface | null = null
@@ -365,7 +367,7 @@ export async function sendOrderMail(orderData: OrderInterface, type: 'order' | '
             field: 'updatedAt', direction: 'desc'
         }, 6)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 
     try {
@@ -373,7 +375,7 @@ export async function sendOrderMail(orderData: OrderInterface, type: 'order' | '
             field: 'updatedAt', direction: 'desc'
         })
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 
     try {
@@ -392,7 +394,7 @@ export async function sendOrderMail(orderData: OrderInterface, type: 'order' | '
             })
         }
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 

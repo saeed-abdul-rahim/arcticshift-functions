@@ -1,6 +1,10 @@
+import { MODELS } from '../../config/constants'
 import { shippingRatesRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { setCondition } from '../common'
 import { ShippingRateInterface, ShippingRateType, ShippingRate, ShippingRateCondition } from './schema'
+
+const functionPath = `${MODELS}/shippingRate`
 
 export async function get(shippingRateId: string, transaction?: FirebaseFirestore.Transaction): Promise<ShippingRateInterface> {
     try {
@@ -15,6 +19,7 @@ export async function get(shippingRateId: string, transaction?: FirebaseFirestor
         data.shippingRateId = doc.id
         return new ShippingRate(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -28,6 +33,7 @@ export async function getOneByCondition(conditions: ShippingRateCondition[]): Pr
             return data[0]
         }
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -37,6 +43,7 @@ export async function getByCondition(conditions: ShippingRateCondition[]): Promi
         const ref = setCondition(shippingRatesRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -48,6 +55,7 @@ export async function add(shipping: ShippingRateType): Promise<string> {
         await set(id, shipping)
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -59,6 +67,7 @@ export async function set(shippingRateId: string, shipping: ShippingRateType): P
         await getRef(shippingRateId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -68,6 +77,7 @@ export async function update(shippingRateId: string, shipping: ShippingRateType)
         await getRef(shippingRateId).update({ ...shipping, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -77,6 +87,7 @@ export async function remove(shippingRateId: string): Promise<boolean> {
         await getRef(shippingRateId).delete()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -91,7 +102,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingRateId: st
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(shippingRateId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -100,7 +111,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingRateId:
     try {
         return batch.update(getRef(shippingRateId), { ...shippingRate, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -109,6 +120,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, shippingRateId:
     try {
         return batch.delete(getRef(shippingRateId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -119,7 +131,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, shipp
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(shippingRateId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -128,7 +140,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.update(getRef(shippingRateId), { ...shippingRate, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -137,17 +149,28 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.delete(getRef(shippingRateId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as ShippingRateInterface
-        data.shippingRateId = d.id
-        data = new ShippingRate(data).get()
-        return data
-    })
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as ShippingRateInterface
+            data.shippingRateId = d.id
+            data = new ShippingRate(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
 }

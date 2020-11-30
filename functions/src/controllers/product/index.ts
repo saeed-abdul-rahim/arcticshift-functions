@@ -11,6 +11,10 @@ import { successDeleted, successResponse, successUpdated } from '../../responseH
 import { wordKeys } from '../../utils/strUtils'
 import { removeProductFromAllCategories } from '../category/helper'
 import { organizeProduct, removeFromProductType, organizeProductUpdate } from './helper'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/product/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -38,7 +42,7 @@ export async function create(req: Request, res: Response) {
         await organizeProduct(productData)
         return successResponse(res, { id: productId })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -61,7 +65,7 @@ export async function update(req: Request, res: Response) {
                     variantData.productName = name
                     await variant.set(varId, variantData)
                 } catch (err) {
-                    console.error(err)
+                    console.error(`${functionPath}/${callerName()}`, err)
                 }
             }))
         }
@@ -74,7 +78,7 @@ export async function update(req: Request, res: Response) {
         await organizeProductUpdate(oldProductData, productData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -97,7 +101,7 @@ export async function removeImage(req: Request, res: Response) {
             return badRequest(res, 'Image not found')
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -115,7 +119,7 @@ export async function remove(req: Request, res: Response) {
                         const { path } = content
                         await storage.remove(path)
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }
                 if (thumbnails) {
@@ -125,7 +129,7 @@ export async function remove(req: Request, res: Response) {
                             await storage.remove(thumbPath)
                         }))
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }
             }))
@@ -138,7 +142,7 @@ export async function remove(req: Request, res: Response) {
                 const categoryData = await category.get(categoryId)
                 await removeProductFromAllCategories(productId, categoryData)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         if (collectionId && collectionId.length > 0) {
@@ -151,11 +155,11 @@ export async function remove(req: Request, res: Response) {
                             productId: colProductId.filter(p => p !== productId)
                         })
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }))
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         if (variantId && variantId.length > 0) {
@@ -164,17 +168,17 @@ export async function remove(req: Request, res: Response) {
                     try {
                         await variant.remove(varId)
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }))
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         await product.remove(productId)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { productTypesRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementProductType, incrementProductType } from '../analytics/productType'
 import { setCondition } from '../common'
 import { ProductTypeInterface, ProductTypeType, ProductType, ProductTypeCondition } from './schema'
+
+const functionPath = `${MODELS}/productType`
 
 export async function get(productTypeId: string, transaction?: FirebaseFirestore.Transaction): Promise<ProductTypeInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(productTypeId: string, transaction?: FirebaseFirestore
         data.productTypeId = doc.id
         return new ProductType(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -32,6 +37,7 @@ export async function getByCondition(conditions: ProductTypeCondition[]): Promis
             return data
         })
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -44,6 +50,7 @@ export async function add(productType: ProductTypeType): Promise<string> {
         await incrementProductType()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -55,6 +62,7 @@ export async function set(productTypeId: string, product: ProductTypeType): Prom
         await getRef(productTypeId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -64,6 +72,7 @@ export async function update(productTypeId: string, product: ProductTypeType): P
         await getRef(productTypeId).update({ ...product, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -74,6 +83,7 @@ export async function remove(productTypeId: string): Promise<boolean> {
         await decrementProductType()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -88,7 +98,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, productTypeId: str
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(productTypeId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -97,7 +107,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, productTypeId: 
     try {
         return batch.update(getRef(productTypeId), { ...productType, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -106,6 +116,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, productTypeId: 
     try {
         return batch.delete(getRef(productTypeId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -116,7 +127,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, produ
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(productId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -125,7 +136,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, pr
     try {
         return transaction.update(getRef(productId), { ...productType, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -134,6 +145,7 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, pr
     try {
         return transaction.delete(getRef(productId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

@@ -49,6 +49,6 @@ export async function updateRef(ref: FirebaseFirestore.DocumentReference<Firebas
     try {
         await ref.set(data, { merge: true })
     } catch (err) {
-        console.error(err)
+        console.error('models/common/updateRef', err)
     }
 }

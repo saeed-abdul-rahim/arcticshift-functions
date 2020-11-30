@@ -1,6 +1,10 @@
 import { variantsRef } from '../../config/db'
 import { VariantInterface, VariantType, Variant, VariantCondition } from './schema'
 import { setCondition } from '../common'
+import { callerName } from '../../utils/functionUtils'
+import { MODELS } from '../../config/constants'
+
+const functionPath = `${MODELS}/variant`
 
 export async function get(variantId: string, transaction?: FirebaseFirestore.Transaction): Promise<VariantInterface> {
     try {
@@ -15,6 +19,7 @@ export async function get(variantId: string, transaction?: FirebaseFirestore.Tra
         data.variantId = doc.id
         return new Variant(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -29,15 +34,17 @@ export async function getOneByCondition(conditions: VariantCondition[]): Promise
         data.variantId = doc.docs[0].id
         return new Variant(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
 
-export async function getByCondition(conditions: VariantCondition[]): Promise<VariantInterface[] | null> {
+export async function getByCondition(conditions: VariantCondition[], transaction?: FirebaseFirestore.Transaction): Promise<VariantInterface[] | null> {
     try {
         const ref = setCondition(variantsRef, conditions)
-        return await getAll(ref)
+        return await getAll(ref, transaction)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -49,6 +56,7 @@ export async function add(variant: VariantType): Promise<string> {
         await set(id, variant)
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -60,6 +68,7 @@ export async function set(variantId: string, variant: VariantType): Promise<bool
         await getRef(variantId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -69,6 +78,7 @@ export async function update(variantId: string, variant: VariantType): Promise<b
         await getRef(variantId).update({ ...variant, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -78,6 +88,7 @@ export async function remove(variantId: string): Promise<boolean> {
         await getRef(variantId).delete()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -93,7 +104,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, variantId: string,
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(variantId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -102,7 +113,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, variantId: stri
     try {
         return batch.update(getRef(variantId), { ...variant, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -111,6 +122,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, variantId: stri
     try {
         return batch.delete(getRef(variantId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -121,7 +133,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, varia
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(variantId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -130,7 +142,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, va
     try {
         return transaction.update(getRef(variantId), { ...variant, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -139,17 +151,43 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, va
     try {
         return transaction.delete(getRef(variantId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as VariantInterface
-        data.variantId = d.id
-        data = new Variant(data).get()
-        return data
-    })
+export async function transactionGetAll(transaction: FirebaseFirestore.Transaction, variantIds: string[]) {
+    try {
+        const refs = variantIds.map(variantId => getRef(variantId))
+        const allDocs = await transaction.getAll(...refs)
+        return allDocs.map(doc => {
+            if (!doc.exists) throw new Error('Variant not found')
+            const data = <VariantInterface>doc.data()
+            return new Variant(data).get()
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
+}
+
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as VariantInterface
+            data.variantId = d.id
+            data = new Variant(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
 }

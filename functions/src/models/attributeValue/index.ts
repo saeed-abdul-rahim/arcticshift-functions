@@ -1,6 +1,10 @@
+import { MODELS } from '../../config/constants'
 import { attributeValuesRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { setCondition } from '../common'
 import { AttributeValueInterface, AttributeValueType, AttributeValue, AttributeValueCondition } from './schema'
+
+const functionPath = `${MODELS}/attributeValue`
 
 export async function get(attributeValueId: string, transaction?: FirebaseFirestore.Transaction): Promise<AttributeValueInterface> {
     try {
@@ -15,6 +19,7 @@ export async function get(attributeValueId: string, transaction?: FirebaseFirest
         data.attributeValueId = doc.id
         return new AttributeValue(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -24,6 +29,7 @@ export async function getByCondition(conditions: AttributeValueCondition[]): Pro
         const ref = setCondition(attributeValuesRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -35,6 +41,7 @@ export async function add(attributeValue: AttributeValueType): Promise<string> {
         await set(id, attributeValue)
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -46,6 +53,7 @@ export async function set(attributeValueId: string, attributeValue: AttributeVal
         await getRef(attributeValueId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -55,6 +63,7 @@ export async function update(attributeValueId: string, attributeValue: Attribute
         await getRef(attributeValueId).update({ ...attributeValue, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -64,6 +73,7 @@ export async function remove(attributeValueId: string): Promise<boolean> {
         await getRef(attributeValueId).delete()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -78,7 +88,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, attributeId: strin
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(attributeId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -87,7 +97,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, attributeId: st
     try {
         return batch.update(getRef(attributeId), { ...attributeValue, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -96,6 +106,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, attributeId: st
     try {
         return batch.delete(getRef(attributeId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -106,7 +117,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, attri
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(attributeValueId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -115,7 +126,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, at
     try {
         return transaction.update(getRef(attributeValueId), { ...attributeValue, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -124,12 +135,18 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, at
     try {
         return transaction.delete(getRef(attributeValueId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    let doc
+    if (transaction) {
+        doc = await transaction.get(ref)
+    } else {
+        doc = await ref.get()
+    }
     if (doc.empty) return null
     return doc.docs.map(d => {
         let data = d.data() as AttributeValueInterface

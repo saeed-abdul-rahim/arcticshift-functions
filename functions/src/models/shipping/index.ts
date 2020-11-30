@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { shippingsRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementShipping, incrementShipping } from '../analytics/shipping'
 import { setCondition } from '../common'
 import { ShippingInterface, ShippingType, Shipping, ShippingCondition } from './schema'
+
+const functionPath = `${MODELS}/shipping`
 
 export async function get(shippingId: string, transaction?: FirebaseFirestore.Transaction): Promise<ShippingInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(shippingId: string, transaction?: FirebaseFirestore.Tr
         data.shippingId = doc.id
         return new Shipping(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -29,6 +34,7 @@ export async function getOneByCondition(conditions: ShippingCondition[]): Promis
             return data[0]
         }
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -38,6 +44,7 @@ export async function getByCondition(conditions: ShippingCondition[]): Promise<S
         const ref = setCondition(shippingsRef, conditions)
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -50,6 +57,7 @@ export async function add(shipping: ShippingType): Promise<string> {
         await incrementShipping()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -61,6 +69,7 @@ export async function set(shippingId: string, shipping: ShippingType): Promise<b
         await getRef(shippingId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -70,6 +79,7 @@ export async function update(shippingId: string, shipping: ShippingType): Promis
         await getRef(shippingId).update({ ...shipping, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -80,6 +90,7 @@ export async function remove(shippingId: string): Promise<boolean> {
         await decrementShipping()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -94,7 +105,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, shippingId: string
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(shippingId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -103,7 +114,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shippingId: str
     try {
         return batch.update(getRef(shippingId), { ...shipping, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -112,6 +123,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, shippingId: str
     try {
         return batch.delete(getRef(shippingId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -122,7 +134,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, shipp
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(shippingId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -131,7 +143,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.update(getRef(shippingId), { ...shipping, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -140,17 +152,28 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.delete(getRef(shippingId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as ShippingInterface
-        data.shippingId = d.id
-        data = new Shipping(data).get()
-        return data
-    })
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as ShippingInterface
+            data.shippingId = d.id
+            data = new Shipping(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
 }

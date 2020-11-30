@@ -1,6 +1,10 @@
+import { MODELS } from '../../config/constants'
 import { shopsRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { setCondition } from '../common'
 import { ShopInterface, ShopType, Shop, ShopCondition } from './schema'
+
+const functionPath = `${MODELS}/shop`
 
 export async function get(shopId: string, transaction?: FirebaseFirestore.Transaction): Promise<ShopInterface> {
     try {
@@ -15,6 +19,7 @@ export async function get(shopId: string, transaction?: FirebaseFirestore.Transa
         data.shopId = doc.id
         return new Shop(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -31,6 +36,7 @@ export async function getByCondition(conditions: ShopCondition[]): Promise<ShopI
             return data
         })
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -42,6 +48,7 @@ export async function set(shopId: string, shop: ShopType): Promise<boolean> {
         await getRef(shopId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -52,6 +59,7 @@ export async function update(shop: ShopType): Promise<boolean> {
         await getRef(shopId).update({ ...shop, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -66,7 +74,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, shopId: string, sh
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(shopId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -75,7 +83,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, shopId: string,
     try {
         return batch.update(getRef(shopId), { ...shop, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -86,7 +94,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, shopI
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(shopId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -95,7 +103,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.update(getRef(shopId), { ...shop, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -104,6 +112,7 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, sh
     try {
         return transaction.delete(getRef(shopId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -112,6 +121,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, shopId: string)
     try {
         return batch.delete(getRef(shopId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

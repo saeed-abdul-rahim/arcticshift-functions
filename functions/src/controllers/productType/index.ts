@@ -6,6 +6,10 @@ import { ProductTypeType } from '../../models/productType/schema'
 import * as productType from '../../models/productType'
 import * as product from '../../models/product'
 import * as variant from '../../models/variant'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/productType/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -23,7 +27,7 @@ export async function create(req: Request, res: Response) {
         const id = await productType.add(data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -43,7 +47,7 @@ export async function update(req: Request, res: Response) {
         await productType.set(productTypeId, data)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -63,7 +67,7 @@ export async function remove(req: Request, res: Response) {
         await productType.remove(productTypeId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

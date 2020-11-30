@@ -145,8 +145,13 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, vo
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    let doc
+    if (transaction) {
+        doc = await transaction.get(ref)
+    } else {
+        doc = await ref.get()
+    }
     if (doc.empty) return null
     return doc.docs.map(d => {
         let data = d.data() as VoucherInterface

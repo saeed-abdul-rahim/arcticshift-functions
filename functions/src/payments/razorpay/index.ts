@@ -1,6 +1,10 @@
 import { IRazorOrder } from 'razorpay-typescript/dist/resources/order'
 import { razorpay, razorpayWebhookSecret } from '../../config'
 import * as crypto from "crypto";
+import { callerName } from '../../utils/functionUtils';
+import { PAYMENT } from '../../config/constants';
+
+const functionPath = `${PAYMENT}/razorpay`
 
 export async function createCustomer(uid: string, name = '', email?: string, contact?: string) {
     try {
@@ -13,6 +17,7 @@ export async function createCustomer(uid: string, name = '', email?: string, con
             }
         })
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -29,6 +34,7 @@ export async function createOrder(amount: number, currency: string, orderId: str
         }
         return await razorpay.orders.create(options)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -39,6 +45,7 @@ export async function createRefund(paymentId: string, amount: number) {
             amount: Math.round(amount * 100)
         })
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -47,6 +54,7 @@ export function validateWebhook(body: any, signature: any) {
     try {
         return getSHA256(body, razorpayWebhookSecret) === signature
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

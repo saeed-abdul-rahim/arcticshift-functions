@@ -6,6 +6,10 @@ import { ShopType } from '../../models/shop/schema'
 import { VariantType } from '../../models/variant/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/variant/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -50,7 +54,7 @@ export async function create(req: Request, res: Response) {
         await product.set(productId, productData)
         return successResponse(res, { id: variantId })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -86,7 +90,7 @@ export async function update(req: Request, res: Response) {
         await variant.set(variantId, data)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -110,7 +114,7 @@ export async function removeImage(req: Request, res: Response) {
             return badRequest(res, 'Image not found')
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -130,7 +134,7 @@ export async function remove(req: Request, res: Response) {
                         const { path } = content
                         await storage.remove(path)
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }
                 if (thumbnails) {
@@ -140,7 +144,7 @@ export async function remove(req: Request, res: Response) {
                             await storage.remove(thumbPath)
                         }))
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }
             }))
@@ -149,7 +153,7 @@ export async function remove(req: Request, res: Response) {
         await variant.remove(variantId)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

@@ -1,5 +1,3 @@
-// IMAGE SIZES
-
 export const IMAGE_FONT: 18 = 18;
 export const IMAGE_XXS: 48 = 48;
 export const IMAGE_XS: 72 = 72;
@@ -10,6 +8,11 @@ export const IMAGE_M: 152 = 152;
 export const IMAGE_ML: 192 = 192;
 export const IMAGE_L: 384 = 384;
 export const IMAGE_XL: 512 = 512;
+
+export const CONTROLLERS: 'controllers' = 'controllers'
+export const MODELS: 'models' = 'models'
+export const STORAGE: 'storage' = 'storage'
+export const PAYMENT: 'payment' = 'payment'
 
 export const USER: USER = 'user'
 export const PRODUCT: PRODUCT = 'product'

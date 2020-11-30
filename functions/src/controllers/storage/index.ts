@@ -28,9 +28,12 @@ import {
     IMAGE_XL,
     IMAGE_XS,
     IMAGE_XXS,
-    IMAGE_FONT, SETTINGS
+    IMAGE_FONT, SETTINGS, CONTROLLERS
 } from '../../config/constants'
 import { db } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/storage/index`
 
 export async function generateThumbnails(object: functions.storage.ObjectMetadata) {
     try {
@@ -101,6 +104,7 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
         })
 
         const allUploads = await Promise.all(uploadPromises)
+        await fs.remove(workingDir)
 
         let images: Content[] = []
 
@@ -146,7 +150,7 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
                             try {
                                 await remove(image.content.path)
                             } catch (err) {
-                                console.error(err)
+                                console.error(`${functionPath}/${callerName()}`, err)
                             }
                         }
                         if (image.thumbnails && image.thumbnails.length > 0) {
@@ -154,7 +158,7 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
                                 try {
                                     await remove(thumbnail.path)
                                 } catch (err) {
-                                    console.error(err)
+                                    console.error(`${functionPath}/${callerName()}`, err)
                                 }
                             }))
                         }
@@ -188,8 +192,6 @@ export async function generateThumbnails(object: functions.storage.ObjectMetadat
             }
             return
         })
-
-        await fs.remove(workingDir)
 
         return true
 

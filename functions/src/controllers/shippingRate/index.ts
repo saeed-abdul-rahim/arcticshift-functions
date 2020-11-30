@@ -4,6 +4,10 @@ import { successDeleted, successResponse, successUpdated } from '../../responseH
 import { ShippingRateType } from '../../models/shippingRate/schema'
 import * as shippingRate from '../../models/shippingRate'
 import * as shipping from '../../models/shipping'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/shippingRate/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -25,7 +29,7 @@ export async function create(req: Request, res: Response) {
         await shipping.set(shippingId, shippingData)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -45,7 +49,7 @@ export async function update(req: Request, res: Response) {
         await shippingRate.set(shippingRateId, data)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -61,7 +65,7 @@ export async function remove(req: Request, res: Response) {
         await shippingRate.remove(shippingRateId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

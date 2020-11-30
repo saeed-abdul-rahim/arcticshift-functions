@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { ordersRef, draftsRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementOrder, incrementOrder } from '../analytics/order'
 import { setCondition } from '../common'
 import { OrderInterface, OrderType, Order, OrderCondition, OrderOrderBy } from './schema'
+
+const functionPath = `${MODELS}/order`
 
 export async function get(orderId: string, type: OrderDraft, transaction?: FirebaseFirestore.Transaction): Promise<OrderInterface> {
     try {
@@ -16,7 +20,7 @@ export async function get(orderId: string, type: OrderDraft, transaction?: Fireb
         data.orderId = doc.id
         return new Order(data).get()
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -31,7 +35,7 @@ export async function getOneByCondition(type: OrderDraft, conditions: OrderCondi
             return data[0]
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -41,7 +45,7 @@ export async function getByCondition(type: OrderDraft, conditions: OrderConditio
         const ref = setCondition(getCollectionRef(type), conditions, orderBy, limit)
         return await getAll(ref)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -56,7 +60,7 @@ export async function add(order: OrderType, type: OrderDraft): Promise<string> {
         }
         return id
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -68,7 +72,7 @@ export async function set(orderId: string, order: OrderType, type: OrderDraft): 
         await getRef(orderId, type).set(dataToInsert)
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -78,7 +82,7 @@ export async function update(orderId: string, order: OrderType, type: OrderDraft
         await getRef(orderId, type).update({ ...order, updatedAt: Date.now() })
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -91,7 +95,7 @@ export async function remove(orderId: string, type: OrderDraft): Promise<boolean
         }
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -106,7 +110,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, orderId: string, o
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(orderId, type), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -115,7 +119,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, orderId: string
     try {
         return batch.update(getRef(orderId, type), { ...order, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -124,6 +128,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, orderId: string
     try {
         return batch.delete(getRef(orderId, type))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -134,7 +139,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, order
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(orderId, type), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -143,7 +148,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, or
     try {
         return transaction.update(getRef(orderId, type), { ...order, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -152,13 +157,19 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, or
     try {
         return transaction.delete(getRef(orderId, type))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
     try {
-        const doc = await ref.get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
         if (doc.empty) return null
         return doc.docs.map(d => {
             let data = d.data() as OrderInterface
@@ -167,7 +178,7 @@ async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentDat
             return data
         })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

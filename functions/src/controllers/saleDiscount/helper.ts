@@ -3,6 +3,10 @@ import * as saleDiscount from '../../models/saleDiscount'
 import * as category from '../../models/category'
 import * as collection from '../../models/collection'
 import * as product from '../../models/product'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/saleDiscount/helper`
 
 export async function checkIfSaleDiscountExists(name: string) {
     try {
@@ -44,7 +48,7 @@ export async function updateCatalog(saleDiscountId: string, catalog: CatalogType
             await updateProduct(productId, saleDiscountId)
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
     }
 }
 
@@ -58,7 +62,7 @@ async function updateProduct(productId: string[], saleDiscountId: string) {
                 }
                 await product.update(pId, { saleDiscountId })
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
     } catch (err) {
@@ -90,7 +94,7 @@ async function updateCategory(categoryId: string[], saleDiscountId: string) {
                     await updateCategory(subCategoryId, saleDiscountId)
                 }
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
     } catch(err) {

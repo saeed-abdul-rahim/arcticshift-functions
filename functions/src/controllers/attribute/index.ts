@@ -8,6 +8,10 @@ import { AttributeType } from '../../models/attribute/schema'
 import { serverError, missingParam, badRequest } from '../../responseHandler/errorHandler'
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { AttributeValue } from '../../models/attributeValue/schema'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/attribute/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -25,7 +29,7 @@ export async function create(req: Request, res: Response) {
         const id = await attribute.add(data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -44,7 +48,7 @@ export async function update(req: Request, res: Response) {
         await attribute.set(attributeId, attributeData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -66,13 +70,13 @@ export async function remove(req: Request, res: Response) {
             try {
                 await attributeValue.remove(atvId)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         await attribute.remove(attributeId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -99,7 +103,7 @@ export async function addAttributeValue(req: Request, res: Response) {
         await attribute.set(attributeId, attributeData)
         return successResponse(res, { id: attributeValueId })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -117,7 +121,7 @@ export async function updateAttributeValue(req: Request, res: Response) {
         await attributeValue.update(attributeValueId, { name })
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

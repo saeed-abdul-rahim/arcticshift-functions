@@ -8,6 +8,10 @@ import { serverError, missingParam, badRequest } from '../../responseHandler/err
 import { successUpdated, successDeleted, successResponse } from '../../responseHandler/successHandler'
 import { addProductToAllCategories, removeProductFromAllCategories } from './helper'
 import { isDefined } from '../../utils/isDefined'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/category/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -32,12 +36,12 @@ export async function create(req: Request, res: Response) {
                 await category.update(parentCategoryId, { subCategoryId })
                 await category.update(categoryId, { parentCategoryIds })
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }
         return successResponse(res, { id: categoryId })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -54,7 +58,7 @@ export async function update(req: Request, res: Response) {
         await category.set(categoryId, newData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -71,19 +75,19 @@ export async function remove(req: Request, res: Response) {
                     try {
                         await storage.remove(img.content.path)
                     } catch (err) {
-                        console.error(err)
+                        console.error(`${functionPath}/${callerName()}`, err)
                     }
                 }))
                 await category.remove(subId)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         await Promise.all(images.map(async img => {
             try {
                 await storage.remove(img.content.path)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         await Promise.all(productId.map(async pid => {
@@ -93,7 +97,7 @@ export async function remove(req: Request, res: Response) {
                 productData.allCategoryId = productData.allCategoryId.filter(cid => !subCategoryId.includes(cid))
                 await product.set(pid, productData)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         if (parentCategoryId) {
@@ -104,7 +108,7 @@ export async function remove(req: Request, res: Response) {
         await category.remove(categoryId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -127,7 +131,7 @@ export async function removeImage(req: Request, res: Response) {
             return badRequest(res, 'Image not found')
         }
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -147,7 +151,7 @@ export async function addProduct(req: Request, res: Response) {
             try {
                 return await product.get(pId)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
                 return
             }
         })).then(p => p.filter(isDefined))
@@ -160,12 +164,12 @@ export async function addProduct(req: Request, res: Response) {
                 productData.allCategoryId = cIds
                 await product.set(productData.productId, productData)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -186,7 +190,7 @@ export async function removeProduct(req: Request, res: Response) {
         await product.set(productId, productData)
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

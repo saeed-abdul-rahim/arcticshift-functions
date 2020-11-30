@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { saleDiscountsRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementSaleDiscount, incrementSaleDiscount } from '../analytics/saleDiscount'
 import { setCondition } from '../common'
 import { SaleDiscountInterface, SaleDiscountType, SaleDiscount, SaleDiscountCondition } from './schema'
+
+const functionPath = `${MODELS}/saleDiscount`
 
 export async function get(saleDiscountId: string, transaction?: FirebaseFirestore.Transaction): Promise<SaleDiscountInterface> {
     try {
@@ -16,7 +20,7 @@ export async function get(saleDiscountId: string, transaction?: FirebaseFirestor
         data.saleDiscountId = doc.id
         return new SaleDiscount(data).get()
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -31,7 +35,7 @@ export async function getOneByCondition(conditions: SaleDiscountCondition[]): Pr
         data.saleDiscountId = doc.docs[0].id
         return new SaleDiscount(data).get()
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -41,7 +45,7 @@ export async function getByCondition(conditions: SaleDiscountCondition[]): Promi
         const ref = setCondition(saleDiscountsRef, conditions)
         return await getAll(ref)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -54,7 +58,7 @@ export async function add(saleDiscount: SaleDiscountType): Promise<string> {
         await incrementSaleDiscount()
         return id
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -66,7 +70,7 @@ export async function set(saleDiscountId: string, saleDiscount: SaleDiscountType
         await getRef(saleDiscountId).set(dataToInsert)
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -76,7 +80,7 @@ export async function update(saleDiscountId: string, saleDiscount: SaleDiscountT
         await getRef(saleDiscountId).update({ ...saleDiscount, updatedAt: Date.now() })
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -87,7 +91,7 @@ export async function remove(saleDiscountId: string): Promise<boolean> {
         await decrementSaleDiscount()
         return true
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -102,7 +106,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, saleDiscountId: st
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(saleDiscountId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -111,7 +115,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, saleDiscountId:
     try {
         return batch.update(getRef(saleDiscountId), { ...saleDiscount, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -120,6 +124,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, saleDiscountId:
     try {
         return batch.delete(getRef(saleDiscountId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -130,7 +135,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, saleD
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(saleDiscountId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -139,7 +144,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, sa
     try {
         return transaction.update(getRef(saleDiscountId), { ...saleDiscount, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -148,13 +153,19 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, sa
     try {
         return transaction.delete(getRef(saleDiscountId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
     try {
-        const doc = await ref.get()
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
         if (doc.empty) return null
         return doc.docs.map(d => {
             let data = d.data() as SaleDiscountInterface
@@ -163,7 +174,7 @@ async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentDat
             return data
         })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

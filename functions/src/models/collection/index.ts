@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { collectionsRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementCollection, incrementCollection } from '../analytics/collection'
 import { setCondition } from '../common'
 import { CollectionInterface, CollectionType, Collection, CollectionCondition, CollectionOrderBy } from './schema'
+
+const functionPath = `${MODELS}/collection`
 
 export async function get(collectionId: string, transaction?: FirebaseFirestore.Transaction): Promise<CollectionInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(collectionId: string, transaction?: FirebaseFirestore.
         data.collectionId = doc.id
         return new Collection(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -31,6 +36,7 @@ export async function getOneByCondition(conditions: CollectionCondition[], colle
         }
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -41,6 +47,7 @@ export async function getByCondition(conditions: CollectionCondition[], collecti
         return await getAll(ref)
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -53,6 +60,7 @@ export async function add(collection: CollectionType): Promise<string> {
         await incrementCollection()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -64,6 +72,7 @@ export async function set(collectionId: string, collection: CollectionType): Pro
         await getRef(collectionId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -73,6 +82,7 @@ export async function update(collectionId: string, collection: CollectionType): 
         await getRef(collectionId).update({ ...collection, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -83,6 +93,7 @@ export async function remove(collectionId: string): Promise<boolean> {
         await decrementCollection()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -98,6 +109,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, collectionId: stri
         return batch.set(getRef(collectionId), dataToInsert)
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -107,6 +119,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, collectionId: s
         return batch.update(getRef(collectionId), { ...collection, updatedAt: Date.now() })
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -115,6 +128,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, collectionId: s
     try {
         return batch.delete(getRef(collectionId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -125,7 +139,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, colle
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(collectionId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -134,7 +148,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, co
     try {
         return transaction.update(getRef(collectionId), { ...collection, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -143,12 +157,18 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, co
     try {
         return transaction.delete(getRef(collectionId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    let doc
+    if (transaction) {
+        doc = await transaction.get(ref)
+    } else {
+        doc = await ref.get()
+    }
     if (doc.empty) return null
     return doc.docs.map(d => {
         let data = d.data() as CollectionInterface

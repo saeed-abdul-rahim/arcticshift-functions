@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { categoriesRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementCategory, incrementCategory } from '../analytics/category'
 import { setCondition } from '../common'
 import { CategoryInterface, CategoryType, Category, CategoryCondition, CategoryOrderBy } from './schema'
+
+const functionPath = `${MODELS}/category`
 
 export async function get(categoryId: string, transaction?: FirebaseFirestore.Transaction): Promise<CategoryInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(categoryId: string, transaction?: FirebaseFirestore.Tr
         data.categoryId = doc.id
         return new Category(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -31,6 +36,7 @@ export async function getOneByCondition(conditions: CategoryCondition[], categor
         }
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -41,6 +47,7 @@ export async function getByCondition(conditions: CategoryCondition[], categoryBy
         return await getAll(ref)
     } catch (err) {
         console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -53,6 +60,7 @@ export async function add(category: CategoryType): Promise<string> {
         await incrementCategory()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -64,6 +72,7 @@ export async function set(categoryId: string, category: CategoryType): Promise<b
         await getRef(categoryId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -73,6 +82,7 @@ export async function update(categoryId: string, category: CategoryType): Promis
         await getRef(categoryId).update({ ...category, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -83,6 +93,7 @@ export async function remove(categoryId: string): Promise<boolean> {
         await decrementCategory()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -97,7 +108,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, categoryId: string
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(categoryId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -106,7 +117,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, categoryId: str
     try {
         return batch.update(getRef(categoryId), { ...data, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -115,6 +126,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, categoryId: str
     try {
         return batch.delete(getRef(categoryId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -126,7 +138,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, categ
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(categoryId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -135,7 +147,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, ca
     try {
         return transaction.update(getRef(categoryId), { ...category, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -144,12 +156,18 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, ca
     try {
         return transaction.delete(getRef(categoryId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
-async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>) {
-    const doc = await ref.get()
+async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
+    let doc
+    if (transaction) {
+        doc = await transaction.get(ref)
+    } else {
+        doc = await ref.get()
+    }
     if (doc.empty) return null
     return doc.docs.map(d => {
         let data = d.data() as CategoryInterface

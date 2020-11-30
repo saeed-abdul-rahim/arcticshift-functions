@@ -1,6 +1,10 @@
+import { MODELS } from '../../config/constants'
 import { taxesRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementTax, incrementTax } from '../analytics/tax'
 import { TaxInterface, TaxType, Tax, TaxObjectType } from './schema'
+
+const functionPath = `${MODELS}/tax`
 
 export async function get(taxId: string, transaction?: FirebaseFirestore.Transaction): Promise<TaxInterface> {
     try {
@@ -15,6 +19,7 @@ export async function get(taxId: string, transaction?: FirebaseFirestore.Transac
         data.taxId = doc.id
         return new Tax(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -27,6 +32,7 @@ export async function add(tax: TaxType): Promise<string> {
         await incrementTax()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -38,6 +44,7 @@ export async function set(taxId: string, tax: TaxType): Promise<boolean> {
         await getRef(taxId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -47,6 +54,7 @@ export async function update(taxId: string, tax: TaxType): Promise<boolean> {
         await getRef(taxId).update({ ...tax, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -57,6 +65,7 @@ export async function remove(taxId: string): Promise<boolean> {
         await decrementTax()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -71,7 +80,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, taxId: string, tax
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(taxId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -80,7 +89,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, taxId: string, 
     try {
         return batch.update(getRef(taxId), { ...tax, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -89,6 +98,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, taxId: string) 
     try {
         return batch.delete(getRef(taxId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -99,7 +109,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, taxId
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(taxId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -108,7 +118,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, ta
     try {
         return transaction.update(getRef(taxId), { ...tax, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -117,6 +127,7 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, ta
     try {
         return transaction.delete(getRef(taxId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }

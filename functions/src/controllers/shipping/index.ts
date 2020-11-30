@@ -7,6 +7,10 @@ import * as shipping from '../../models/shipping'
 import * as shippingRate from '../../models/shippingRate'
 import * as warehouse from '../../models/warehouse'
 import { isBothArrEqual } from '../../utils/arrayUtils'
+import { callerName } from '../../utils/functionUtils'
+import { CONTROLLERS } from '../../config/constants'
+
+const functionPath = `${CONTROLLERS}/shipping/index`
 
 export async function create(req: Request, res: Response) {
     try {
@@ -37,7 +41,7 @@ export async function create(req: Request, res: Response) {
         }
         return successResponse(res, { id })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -64,7 +68,7 @@ export async function update(req: Request, res: Response) {
                     warehouseData.shippingId.push(shippingId)
                     await warehouse.set(wId, warehouseData)
                 } catch (err) {
-                    console.error(err)
+                    console.error(`${functionPath}/${callerName()}`, err)
                     await shipping.update(shippingId, {
                         warehouseId: warehouseId.filter(id => id !== wId)
                     })
@@ -83,7 +87,7 @@ export async function update(req: Request, res: Response) {
         }
         return successUpdated(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
@@ -105,7 +109,7 @@ export async function remove(req: Request, res: Response) {
                     wd.shippingId = wd.shippingId.filter(id => id !== shippingId)
                     await warehouse.set(warehouseId, wd)
                 } catch (err) {
-                    console.error(err)
+                    console.error(`${functionPath}/${callerName()}`, err)
                 }
             }))
         }
@@ -113,13 +117,13 @@ export async function remove(req: Request, res: Response) {
             try {
                 await shippingRate.remove(rateId)
             } catch (err) {
-                console.error(err)
+                console.error(`${functionPath}/${callerName()}`, err)
             }
         }))
         await shipping.remove(shippingId)
         return successDeleted(res)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }

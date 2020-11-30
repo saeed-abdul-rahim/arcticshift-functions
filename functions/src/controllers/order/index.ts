@@ -21,9 +21,12 @@ import { db } from '../../config/db'
 import { Role } from '../../models/common/schema'
 import * as voucherHelper from "../voucher/helper"
 import { isDefined } from '../../utils/isDefined'
+import { CONTROLLERS } from '../../config/constants'
+import { callerName } from '../../utils/functionUtils'
+
+const functionPath = `${CONTROLLERS}/order/index`
 
 export async function create(req: Request, res: Response) {
-    const methodName = 'createOrder'
     try {
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
@@ -31,13 +34,12 @@ export async function create(req: Request, res: Response) {
         const id = await createDraft(userData, data)
         return successResponse(res, { id })
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function calculateDraft(req: Request, res: Response) {
-    const methodName = 'calculateDraft'
     try {
         const { uid } = res.locals
         const now = Date.now()
@@ -109,13 +111,12 @@ export async function calculateDraft(req: Request, res: Response) {
         await batch.commit()
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function addVoucher(req: Request, res: Response, next: NextFunction) {
-    const methodName = 'addVoucher'
     try {
         const { id: draftId } = req.params
         const { data }: { data: { code: string } } = req.body
@@ -163,13 +164,12 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
         next()
         return
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function addVariant(req: Request, res: Response) {
-    const methodName = 'addVariant'
     try {
         const { uid } = res.locals
         const { data }: { data: OrderType } = req.body
@@ -191,13 +191,12 @@ export async function addVariant(req: Request, res: Response) {
             return successResponse(res, { id })
         }
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function updateShipping(req: Request, res: Response, next: NextFunction) {
-    const methodName = 'updateShipping'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -231,13 +230,12 @@ export async function updateShipping(req: Request, res: Response, next: NextFunc
         next()
         return
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function removeVariant(req: Request, res: Response, next: NextFunction) {
-    const methodName = 'removeVariant'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { variantId: string } } = req.body
@@ -256,13 +254,12 @@ export async function removeVariant(req: Request, res: Response, next: NextFunct
         next()
         return
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function updateVariants(req: Request, res: Response, next: NextFunction) {
-    const methodName = 'updateVariants'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -276,13 +273,12 @@ export async function updateVariants(req: Request, res: Response, next: NextFunc
         next()
         return
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function finalize(req: Request, res: Response) {
-    const methodName = 'finalizeOrder'
     try {
         const batch = db.batch()
         const { uid } = res.locals
@@ -391,13 +387,12 @@ export async function finalize(req: Request, res: Response) {
             return successResponse(res, gatewayOrderId)
         }
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function orderCOD(req: Request, res: Response) {
-    const methodName = 'orderCOD'
     try {
         const { id: orderId } = req.params
         const orderData = await order.get(orderId, 'draft')
@@ -405,13 +400,12 @@ export async function orderCOD(req: Request, res: Response) {
         await placeOrder(orderData)
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function capturePayment(req: Request, res: Response) {
-    const methodName = 'capturePayment'
     try {
         const { id: orderId } = req.params
         const { data }: { data: OrderType } = req.body
@@ -437,13 +431,12 @@ export async function capturePayment(req: Request, res: Response) {
         await order.set(orderId, orderData, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function addTrackingCode(req: Request, res: Response) {
-    const methodName = 'addTrackingCode'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { warehouseId?: string, trackingCode?: string } } = req.body
@@ -469,18 +462,16 @@ export async function addTrackingCode(req: Request, res: Response) {
         }, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function fullfill(req: Request, res: Response) {
-    const methodName = 'fullfill'
     try {
         const { id: orderId } = req.params
         const { data, sendEmail }: { data: OrderType, sendEmail: boolean } = req.body
         const { fullfilled } = data
-        const batch = db.batch()
 
         if (!orderId) {
             return missingParam(res, 'Order ID')
@@ -530,50 +521,50 @@ export async function fullfill(req: Request, res: Response) {
             }
         })
 
-        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
-        const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
-
-        // UPDATE QUANTITY
-        variantsToTrackInventory.forEach(variantData => {
-            const { warehouseQuantity, variantId } = variantData
-            let { bookedQuantity } = variantData
-            if (!warehouseQuantity) {
-                throw new Error(`Warehouses not found for variant: ${variantId}`)
-            }
-
-            const variantFullfillNew = fullfilled.filter(f => f.variantId === variantId)
-            const totalNewQuantity = variantFullfillNew.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
-
-            // REDUCE BOOKED QUANTITY
-            if (variantFullfillNew.length > 0) {
-                bookedQuantity -= totalNewQuantity
-            }
-
-            // REDUCE WAREHOUSE QUANTITY
-            Object.keys(warehouseQuantity).forEach(wId => {
-                const newWarehouseQty = variantFullfillNew.find(f => f.warehouseId === wId)
-                if (variantFullfillNew.length > 0 && newWarehouseQty) {
-                    warehouseQuantity[wId] -= newWarehouseQty.quantity
+        await db.runTransaction(async transaction => {
+            const variantsData = await variant.transactionGetAll(transaction, variantIds)
+            const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
+    
+            // UPDATE INVENTORY
+            variantsToTrackInventory.forEach(variantData => {
+                const { warehouseQuantity, variantId } = variantData
+                let { bookedQuantity } = variantData
+                if (!warehouseQuantity) {
+                    throw new Error(`Warehouses not found for variant: ${variantId}`)
                 }
+    
+                const variantFullfillNew = fullfilled.filter(f => f.variantId === variantId)
+                const totalNewQuantity = variantFullfillNew.map(o => o.quantity).reduce((sum, curr) => sum + curr, 0)
+    
+                // REDUCE BOOKED QUANTITY
+                if (variantFullfillNew.length > 0) {
+                    bookedQuantity -= totalNewQuantity
+                }
+    
+                // REDUCE WAREHOUSE QUANTITY
+                Object.keys(warehouseQuantity).forEach(wId => {
+                    const newWarehouseQty = variantFullfillNew.find(f => f.warehouseId === wId)
+                    if (variantFullfillNew.length > 0 && newWarehouseQty) {
+                        warehouseQuantity[wId] -= newWarehouseQty.quantity
+                    }
+                })
+    
+                variant.transactionSet(transaction, variantId, {
+                    ...variantData,
+                    bookedQuantity,
+                    warehouseQuantity
+                })
+                
             })
-
-            variant.batchSet(batch, variantId, {
-                ...variantData,
-                bookedQuantity,
-                warehouseQuantity
-            })
-            
+    
+            orderStatus = getFullfillmentStatus(fullfillUpdate, variantQty)
+    
+            order.transactionSet(transaction, orderId, {
+                ...orderData,
+                fullfilled: fullfillUpdate,
+                orderStatus
+            }, 'order')
         })
-
-        orderStatus = getFullfillmentStatus(fullfillUpdate, variantQty)
-
-        order.batchSet(batch, orderId, {
-            ...orderData,
-            fullfilled: fullfillUpdate,
-            orderStatus
-        }, 'order')
-
-        await batch.commit()
 
         if (sendEmail) {
             let partialFullfillment = false
@@ -621,19 +612,17 @@ export async function fullfill(req: Request, res: Response) {
 
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function cancelFullfillment(req: Request, res: Response) {
-    const methodName = 'cancelFullfillment'
     try {
         const { id: orderId } = req.params
         const { data } = req.body
         const { warehouseId }: { warehouseId: string } = data
         const orderData = await order.get(orderId, 'order')
-        const batch = db.batch()
         const { fullfilled, variants: variantQty } = orderData
         let { orderStatus } = orderData
         const warehouseFiltered = fullfilled.filter(f => f.warehouseId === warehouseId)
@@ -641,49 +630,48 @@ export async function cancelFullfillment(req: Request, res: Response) {
             return badRequest(res, 'No items found')
         }
         const variantIds = warehouseFiltered.map(w => w.variantId)
-        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
-        const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
-
-        // UPDATE QUANTITY
-        variantsToTrackInventory.forEach(variantData => {
-            const { warehouseQuantity, variantId } = variantData
-            let { bookedQuantity } = variantData
-            if (!warehouseQuantity) {
-                throw new Error(`Warehouses not found for variant: ${variantId}`)
-            }
-            const orderedInWarehouse = warehouseFiltered.find(w => w.variantId === variantId)!
-            bookedQuantity += orderedInWarehouse.quantity
-            warehouseQuantity[warehouseId] += orderedInWarehouse.quantity
-            variant.batchSet(batch, variantId, {
-                ...variantData,
-                bookedQuantity,
-                warehouseQuantity
+        await db.runTransaction(async transaction => {
+            const variantsData = await variant.transactionGetAll(transaction, variantIds)
+            const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
+    
+            // UPDATE QUANTITY
+            variantsToTrackInventory.forEach(variantData => {
+                const { warehouseQuantity, variantId } = variantData
+                let { bookedQuantity } = variantData
+                if (!warehouseQuantity) {
+                    throw new Error(`Warehouses not found for variant: ${variantId}`)
+                }
+                const orderedInWarehouse = warehouseFiltered.find(w => w.variantId === variantId)!
+                bookedQuantity += orderedInWarehouse.quantity
+                warehouseQuantity[warehouseId] += orderedInWarehouse.quantity
+                variant.transactionSet(transaction, variantId, {
+                    ...variantData,
+                    bookedQuantity,
+                    warehouseQuantity
+                })
             })
+    
+            const updatedFullfilled = fullfilled.filter(f => f.warehouseId !== warehouseId)
+            orderStatus = getFullfillmentStatus(updatedFullfilled, variantQty)
+    
+            order.transactionSet(transaction, orderId, {
+                ...orderData,
+                fullfilled: updatedFullfilled,
+                orderStatus
+            }, 'order')
         })
 
-        const updatedFullfilled = fullfilled.filter(f => f.warehouseId !== warehouseId)
-        orderStatus = getFullfillmentStatus(updatedFullfilled, variantQty)
-
-        order.batchSet(batch, orderId, {
-            ...orderData,
-            fullfilled: updatedFullfilled,
-            orderStatus
-        }, 'order')
-
-        await batch.commit()
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function cancelOrder(req: Request, res: Response) {
-    const methodName = 'cancelOrder'
     try {
         const { role }: Record<string, Role> = res.locals
         const { orderId } = req.params
-        const batch = db.batch()
         const orderData = await order.get(orderId, 'order')
         const { variants, fullfilled } = orderData
         let { orderStatus } = orderData
@@ -696,53 +684,53 @@ export async function cancelOrder(req: Request, res: Response) {
         }
 
         const variantIds = variants.map(v => v.variantId)
-        const variantsData = await Promise.all(variantIds.map(async variantId => await variant.get(variantId)))
-        const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
+        await db.runTransaction(async transaction => {
+            const variantsData = await variant.transactionGetAll(transaction, variantIds)
+            const variantsToTrackInventory = variantsData.filter(v => v.trackInventory)
 
-        if (role && (orderStatus === 'fullfilled' || orderStatus === 'partiallyFullfilled')) {
-            variantsToTrackInventory.forEach(variantData => {
-                const { variantId, warehouseQuantity } = variantData
-                if (!warehouseQuantity) {
-                    return
-                }
-                const fullfilledVariant = fullfilled.filter(f => f.variantId === variantId)
-                Object.keys(warehouseQuantity).forEach(wId => {
-                    const warehouseData = fullfilledVariant.find(f => f.warehouseId === wId)
-                    if (warehouseData) {
-                        warehouseQuantity[wId] += warehouseData.quantity
-                    }
-                })
-                variant.batchSet(batch, variantId, { ...variantData, warehouseQuantity })
-            })
-        }
-
-        if (orderStatus === 'unfullfilled') {
-            if (variantsToTrackInventory.length > 0) {
+            if (role && (orderStatus === 'fullfilled' || orderStatus === 'partiallyFullfilled')) {
                 variantsToTrackInventory.forEach(variantData => {
-                    const { variantId } = variantData
-                    let { bookedQuantity } = variantData
-                    const orderedVariant = variants.filter(v => v.variantId === variantId)
-                    const totalOrdered = orderedVariant.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
-                    bookedQuantity -= totalOrdered
-                    variant.batchSet(batch, variantId, { ...variantData, bookedQuantity })
+                    const { variantId, warehouseQuantity } = variantData
+                    if (!warehouseQuantity) {
+                        return
+                    }
+                    const fullfilledVariant = fullfilled.filter(f => f.variantId === variantId)
+                    Object.keys(warehouseQuantity).forEach(wId => {
+                        const warehouseData = fullfilledVariant.find(f => f.warehouseId === wId)
+                        if (warehouseData) {
+                            warehouseQuantity[wId] += warehouseData.quantity
+                        }
+                    })
+                    variant.transactionSet(transaction, variantId, { ...variantData, warehouseQuantity })
                 })
             }
-        }
 
-        orderStatus = 'cancelled'
-        order.batchSet(batch, orderId, { ...orderData, orderStatus}, 'order')
-        await batch.commit()
+            if (orderStatus === 'unfullfilled') {
+                if (variantsToTrackInventory.length > 0) {
+                    variantsToTrackInventory.forEach(variantData => {
+                        const { variantId } = variantData
+                        let { bookedQuantity } = variantData
+                        const orderedVariant = variants.filter(v => v.variantId === variantId)
+                        const totalOrdered = orderedVariant.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
+                        bookedQuantity -= totalOrdered
+                        variant.transactionSet(transaction, variantId, { ...variantData, bookedQuantity })
+                    })
+                }
+            }
+
+            orderStatus = 'cancelled'
+            order.transactionSet(transaction, orderId, { ...orderData, orderStatus}, 'order')
+        })
 
         return successUpdated(res)
 
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
 
 export async function refund(req: Request, res: Response) {
-    const methodName = 'refund'
     try {
         const { id: orderId } = req.params
         const { data }: { data: { amount: number }} = req.body
@@ -781,7 +769,7 @@ export async function refund(req: Request, res: Response) {
         }, 'order')
         return successUpdated(res)
     } catch (err) {
-        console.error(methodName, err)
+        console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)
     }
 }
