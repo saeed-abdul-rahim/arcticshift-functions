@@ -300,6 +300,8 @@ export async function finalize(req: Request, res: Response) {
 
         let userData = await user.get(uid)
         if (billingAddress && isValidAddress(billingAddress)) {
+            billingAddress.email = email || ''
+            billingAddress.phone = phone || ''
             orderData.billingAddress = billingAddress
             userData = setUserBillingAddress(userData, billingAddress)
         } else {
@@ -309,6 +311,8 @@ export async function finalize(req: Request, res: Response) {
             orderData.shippingAddress = billingAddress
             userData = setUserShippingAddress(userData, billingAddress)
         } else if (shippingAddress && isValidAddress(shippingAddress)) {
+            shippingAddress.email = email || ''
+            shippingAddress.phone = phone || ''
             orderData.shippingAddress = shippingAddress
             userData = setUserShippingAddress(userData, billingAddress)
         } else {

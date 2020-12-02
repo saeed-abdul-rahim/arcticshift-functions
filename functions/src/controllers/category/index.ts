@@ -49,11 +49,14 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: CategoryType } = req.body
-        const { categoryId } = data 
+        const { categoryId, images } = data 
         if (!categoryId) {
             return missingParam(res, 'ID')
         }
         const categoryData = await category.get(categoryId)
+        if (images && images.length > 0) {
+            categoryData.images = images
+        }
         const newData = { ...categoryData, ...data }
         await category.set(categoryId, newData)
         return successUpdated(res)

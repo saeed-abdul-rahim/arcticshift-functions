@@ -150,7 +150,7 @@ export async function update(req: Request, res: Response) {
 
 export async function addToWishlist(req: Request, res: Response) {
     try {
-        const { uid } = res.locals
+        const { id: uid } = req.params
         const { data } = req.body
         const { productId } = data
         if (!productId) {

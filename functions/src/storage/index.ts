@@ -30,15 +30,27 @@ export async function removeMultiple(contents: ContentStorage[]) {
     }))
 }
 
-export async function upload(localPath: string, destination: string): Promise<string> {
+export async function upload(localPath: string, destination: string) {
     try {
         return await bucket.upload(localPath, {
             destination,
-            metadata: {
-                metadata: {
-                    firebaseStorageDownloadTokens: uuidv4()
-                }
-            }
+            ...getMetadata()
+        }).then(_ => {
+            return getUrl(destination)
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        return ''
+    }
+}
+
+export async function uploadText(destination: string, text: string) {
+    try {
+        const file = bucket.file(destination)
+        return await file.save(text, {
+            gzip: true,
+            contentType: 'application/octet-stream',
+            ...getMetadata(),
         }).then(_ => {
             return getUrl(destination)
         })
@@ -60,4 +72,14 @@ export async function download(remotePath: string, destination: string) {
 export function getUrl(path: string) {
     const urlPath = encodeURIComponent(path)
     return storageUrl + `${urlPath}?alt=media`
+}
+
+function getMetadata() {
+    return {
+        metadata: {
+            metadata: {
+                firebaseStorageDownloadTokens: uuidv4()
+            }
+        }
+    }
 }

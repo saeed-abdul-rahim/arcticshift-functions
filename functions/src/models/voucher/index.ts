@@ -1,7 +1,11 @@
+import { MODELS } from '../../config/constants'
 import { vouchersRef } from '../../config/db'
+import { callerName } from '../../utils/functionUtils'
 import { decrementVoucher, incrementVoucher } from '../analytics/voucher'
 import { setCondition } from '../common'
 import { VoucherInterface, VoucherType, Voucher, VoucherCondition, VoucherOrderBy } from './schema'
+
+const functionPath = `${MODELS}/voucher`
 
 export async function get(voucherId: string, transaction?: FirebaseFirestore.Transaction): Promise<VoucherInterface> {
     try {
@@ -16,6 +20,7 @@ export async function get(voucherId: string, transaction?: FirebaseFirestore.Tra
         data.voucherId = doc.id
         return new Voucher(data).get()
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -30,6 +35,7 @@ export async function getOneByCondition(conditions: VoucherCondition[], voucherB
             return data[0]
         }
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -39,6 +45,7 @@ export async function getByCondition(conditions: VoucherCondition[], voucherBy?:
         const ref = setCondition(vouchersRef, conditions, voucherBy, limit);
         return await getAll(ref)
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err;
     }
 }
@@ -51,6 +58,7 @@ export async function add(voucher: VoucherType): Promise<string> {
         await incrementVoucher()
         return id
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -62,6 +70,7 @@ export async function set(voucherId: string, voucher: VoucherType): Promise<bool
         await getRef(voucherId).set(dataToInsert)
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -71,6 +80,7 @@ export async function update(voucherId: string, voucher: VoucherType): Promise<b
         await getRef(voucherId).update({ ...voucher, updatedAt: Date.now() })
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -81,6 +91,7 @@ export async function remove(voucherId: string): Promise<boolean> {
         await decrementVoucher()
         return true
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -95,7 +106,7 @@ export function batchSet(batch: FirebaseFirestore.WriteBatch, voucherId: string,
         dataToInsert.updatedAt = Date.now()
         return batch.set(getRef(voucherId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -104,7 +115,7 @@ export function batchUpdate(batch: FirebaseFirestore.WriteBatch, voucherId: stri
     try {
         return batch.update(getRef(voucherId), { ...voucher, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -113,6 +124,7 @@ export function batchDelete(batch: FirebaseFirestore.WriteBatch, voucherId: stri
     try {
         return batch.delete(getRef(voucherId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -123,7 +135,7 @@ export function transactionSet(transaction: FirebaseFirestore.Transaction, vouch
         dataToInsert.updatedAt = Date.now()
         return transaction.set(getRef(voucherId), dataToInsert)
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -132,7 +144,7 @@ export function transactionUpdate(transaction: FirebaseFirestore.Transaction, vo
     try {
         return transaction.update(getRef(voucherId), { ...voucher, updatedAt: Date.now() })
     } catch (err) {
-        console.error(err)
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
@@ -141,22 +153,28 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, vo
     try {
         return transaction.delete(getRef(voucherId))
     } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
         throw err
     }
 }
 
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
-    let doc
-    if (transaction) {
-        doc = await transaction.get(ref)
-    } else {
-        doc = await ref.get()
+    try {
+        let doc
+        if (transaction) {
+            doc = await transaction.get(ref)
+        } else {
+            doc = await ref.get()
+        }
+        if (doc.empty) return null
+        return doc.docs.map(d => {
+            let data = d.data() as VoucherInterface
+            data.voucherId = d.id
+            data = new Voucher(data).get()
+            return data
+        })
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
     }
-    if (doc.empty) return null
-    return doc.docs.map(d => {
-        let data = d.data() as VoucherInterface
-        data.voucherId = d.id
-        data = new Voucher(data).get()
-        return data
-    })
 }

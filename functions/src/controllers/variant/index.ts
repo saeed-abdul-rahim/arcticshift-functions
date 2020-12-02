@@ -6,7 +6,7 @@ import { ShopType } from '../../models/shop/schema'
 import { VariantType } from '../../models/variant/schema'
 import { badRequest, serverError, missingParam } from '../../responseHandler/errorHandler'
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { CONTROLLERS } from '../../config/constants'
+import { CONTROLLERS, PRODUCT } from '../../config/constants'
 import { callerName } from '../../utils/functionUtils'
 
 const functionPath = `${CONTROLLERS}/variant/index`
@@ -21,9 +21,15 @@ export async function create(req: Request, res: Response) {
             return missingParam(res, 'Product ID')
         }
         const productData = await product.get(productId)
+        const { name: productName, images: productImages } = productData
+        const variantImages = productImages.map(image => {
+            image.id = PRODUCT
+            return image
+        })
         data = {
             ...data,
-            productName: productData.name
+            productName,
+            images: variantImages
         }
         if (sku) {
             const prevVariant = await variant.getOneByCondition([{
@@ -62,7 +68,7 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: VariantType } = req.body
-        const { variantId, sku, trackInventory } = data
+        const { variantId, sku, trackInventory, images } = data
         if (!variantId) {
             return missingParam(res, 'ID')
         }
@@ -80,6 +86,9 @@ export async function update(req: Request, res: Response) {
             }
         }
         const oldVariantData = await variant.get(variantId)
+        if (images && images.length > 0) {
+            oldVariantData.images = images
+        }
         if (trackInventory === false) {
             data.bookedQuantity = 0
         }
@@ -104,9 +113,11 @@ export async function removeImage(req: Request, res: Response) {
         let { images } = variantData
         const image = images.find(img => img.content.path === path)
         if (image) {
-            const { content, thumbnails } = image
-            await storage.remove(content.path)
-            await storage.removeMultiple(thumbnails)
+            if (image.id && image.id !== PRODUCT) {
+                const { content, thumbnails } = image
+                await storage.remove(content.path)
+                await storage.removeMultiple(thumbnails)
+            }
             images = images.filter(img => img.content.path !== path)
             await variant.update(variantId, { images })
             return successDeleted(res)

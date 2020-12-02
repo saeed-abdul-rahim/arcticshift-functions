@@ -29,7 +29,8 @@ import {
     SETTINGS
 } from './constants'
 
-export const db = admin.firestore()
+export const firestore = admin.firestore
+export const db = firestore()
 
 export const dbRef = db.collection(DBVERSION).doc(DBNAME)
 

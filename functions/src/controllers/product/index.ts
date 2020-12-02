@@ -50,7 +50,7 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: ProductType } = req.body
-        const { productId, name } = data
+        const { productId, name, images } = data
         if (!productId) {
             return missingParam(res, 'ID')
         }
@@ -68,6 +68,9 @@ export async function update(req: Request, res: Response) {
                     console.error(`${functionPath}/${callerName()}`, err)
                 }
             }))
+        }
+        if (images && images.length > 0) {
+            oldProductData.images = images
         }
         data = {
             ...oldProductData,
@@ -88,6 +91,7 @@ export async function removeImage(req: Request, res: Response) {
         const { id: productId } = req.params
         const { path }: { path: string } = req.body
         const productData = await product.get(productId)
+        const { variantId } = productData
         let { images } = productData
         const image = images.find(img => img.content.path === path)
         if (image) {
@@ -96,6 +100,21 @@ export async function removeImage(req: Request, res: Response) {
             await storage.removeMultiple(thumbnails)
             images = images.filter(img => img.content.path !== path)
             await product.update(productId, { images })
+            if (variantId && variantId.length > 0) {
+                await Promise.all(variantId.map(async vId => {
+                    try {
+                        const variantData = await variant.get(vId)
+                        let { images: variantImages } = variantData
+                        const variantImage = variantImages.find(img => img.content.path === path)
+                        if (variantImage) {
+                            variantImages = variantImages.filter(img => img.content.path !== path)
+                            await variant.update(vId, { images: variantImages })
+                        }
+                    } catch (err) {
+                        console.error(`${functionPath}/${callerName()}`, err)
+                    }
+                }))
+            }
             return successDeleted(res)
         } else {
             return badRequest(res, 'Image not found')

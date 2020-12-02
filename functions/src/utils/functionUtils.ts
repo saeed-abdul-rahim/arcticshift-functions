@@ -1,3 +1,5 @@
 export function callerName() {
-    return callerName.caller.name;
+    const stack = new Error().stack,
+    caller = stack?.split('\n')[2].trim();
+    return caller || ''
 }

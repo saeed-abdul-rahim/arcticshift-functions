@@ -1,33 +1,35 @@
 import { Timestamp, TimestampInterface, TimestampType } from "../../common/schema"
 
 export type SaleAnalyticsGroupType = {
-    sales?: SaleAnalyticsInterface[]
+    sale?: SaleAnalyticsInterface[]
 }
 
 export interface SaleAnalyticsGroupInterface {
-    sales: SaleAnalyticsInterface[]
+    sale: SaleAnalyticsInterface[]
 }
 
 export type SaleAnalyticsType = TimestampType & {
     variantId?: string[],
     sale?: number
+    orderId?: string
 }
 
 export interface SaleAnalyticsInterface extends TimestampInterface {
     variantId: string[]
     sale: number
+    orderId: string
 }
 
 export class SaleAnalyticsGroup implements SaleAnalyticsGroupInterface {
-    sales: SaleAnalyticsInterface[]
+    sale: SaleAnalyticsInterface[]
 
     constructor(data: SaleAnalyticsGroupType) {
-        this.sales = data.sales && data.sales.length > 0 ? data.sales.map(sale => new SaleAnalytics(sale)) : []
+        this.sale = data.sale && data.sale.length > 0 ? data.sale.map(sale => new SaleAnalytics(sale)) : []
     }
 
     get(): SaleAnalyticsGroupInterface {
         return {
-            sales: this.sales
+            sale: this.sale
         }
     }
 }
@@ -35,18 +37,21 @@ export class SaleAnalyticsGroup implements SaleAnalyticsGroupInterface {
 export class SaleAnalytics extends Timestamp implements SaleAnalyticsType {
     variantId: string[]
     sale: number
+    orderId: string
 
     constructor(data: SaleAnalyticsType) {
         super(data)
         this.variantId = data.variantId ? data.variantId : []
         this.sale = data.sale ? data.sale : 0
+        this.orderId = data.orderId ? data.orderId : ''
     }
 
     get(): SaleAnalyticsInterface {
         return {
             ...super.get(),
             variantId: this.variantId,
-            sale: this.sale
+            sale: this.sale,
+            orderId: this.orderId
         }
     }
 }

@@ -37,11 +37,14 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         const { data }: { [data: string]: CollectionType } = req.body
-        const { collectionId } = data 
+        const { collectionId, images } = data 
         if (!collectionId) {
             return missingParam(res, 'ID')
         }
         const collectionData = await collection.get(collectionId)
+        if (images && images.length > 0) {
+            collectionData.images = images
+        }
         const newData = { ...collectionData, ...data }
         await collection.set(collectionId, newData)
         return successUpdated(res)

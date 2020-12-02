@@ -1,4 +1,4 @@
-import * as admin from 'firebase-admin'
+import { firestore } from '../../config/db';
 import { Role, Condition, ValueType, AddressKey, OrderBy, Address } from './schema'
 
 export const roles: Role[] = ['admin', 'staff']
@@ -14,7 +14,7 @@ export function isValidAddress(object: any): boolean {
         if (!isOfTypeAddress(key)) { valid = false }
     });
     const address = object as Address
-    if (!address.country || !address.city || !address.zip || !address.line1 || !address.name) {
+    if (!address.country || !address.city || !address.zip || !address.line1) {
         valid = false
     }
     return valid
@@ -42,7 +42,7 @@ export function setCondition(collectionRef: FirebaseFirestore.CollectionReferenc
 }
 
 export function incrementValue(value: number) {
-    return admin.firestore.FieldValue.increment(value)
+    return firestore.FieldValue.increment(value)
 }
 
 export async function updateRef(ref: FirebaseFirestore.DocumentReference<FirebaseFirestore.DocumentData>, data: any) {

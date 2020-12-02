@@ -20,7 +20,7 @@ export function userHandler(app: Application) {
         user.createStaff
     )
 
-    app.put(`${userRoute}/wishlist`,
+    app.put(`${userRoute}/:id/wishlist`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true }),
         user.addToWishlist

@@ -9,6 +9,7 @@ import * as category from "../../models/category"
 import * as collection from "../../models/collection"
 import * as variant from "../../models/variant"
 import * as settings from "../../models/settings"
+import * as orderAnalytics from "../../models/analytics/order"
 import { isDefined } from "../../utils/isDefined"
 import { ValueType } from "../../models/common/schema"
 import { getDiscountValue, getTax } from "../../utils/calculation"
@@ -312,9 +313,13 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
 export async function placeOrder(orderData: OrderInterface) {
     try {
         const { variants, userId, orderId, voucherId } = orderData
+        const variantIds = variants.map(v => v.variantId)
         orderData.orderStatus = 'unfullfilled'
 
-        await order.add(orderData, 'order')
+        delete orderData.createdAt
+        delete orderData.updatedAt
+
+        const newOrderId = await order.add(orderData, 'order')
         await order.remove(orderId, 'draft')
 
         await Promise.all(variants.map(async v => {
@@ -345,6 +350,25 @@ export async function placeOrder(orderData: OrderInterface) {
                 userData.voucherUsed = { [voucherId]: 1 }
             }
             await user.set(userId, userData)
+        } catch (err) {
+            console.error(`${functionPath}/${callerName()}`, err)
+        }
+
+        try {
+            const startDate = new Date();
+            startDate.setUTCHours(0, 0, 0, 0);
+            const analyticsId = startDate.getTime().toString()
+            await db.runTransaction(async transaction => {
+                try {
+                    orderAnalytics.transactionSet(transaction, analyticsId, {
+                        variantId: variantIds,
+                        sale: orderData.capturedAmount,
+                        orderId: newOrderId
+                    })
+                } catch (err) { 
+                    console.error(`${functionPath}/${callerName()}`, err)
+                }
+            })
         } catch (err) {
             console.error(`${functionPath}/${callerName()}`, err)
         }
