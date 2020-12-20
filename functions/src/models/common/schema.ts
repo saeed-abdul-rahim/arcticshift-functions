@@ -29,12 +29,6 @@ export type ObjNumber = {
     [key: string]: number
 } | null
 
-export type Tax = {
-    name: string
-    value: number
-    type: ValueType
-}
-
 export type ContentStorage = {
     path: string
     url: string

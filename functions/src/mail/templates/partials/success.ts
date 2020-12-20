@@ -1,4 +1,4 @@
-export const success = (title: string, subtitle?: string) => {
+export const success = (title: string, titleSecond?: string, subtitle?: string) => {
     return `
     <div style="background-color:transparent;">
         <div class="block-grid"
@@ -82,8 +82,7 @@ export const success = (title: string, subtitle?: string) => {
                                         <strong><span style="font-size: 18px;">${title}</span></strong></p>
                                     <p
                                         style="font-size: 14px; line-height: 1.2; text-align: center; word-break: break-word; mso-line-height-alt: 17px; margin: 0;">
-                                        <strong><span style="font-size: 18px;">with our
-                                                store!</span></strong></p>
+                                        <strong><span style="font-size: 18px;">${titleSecond}</span></strong></p>
                                 </div>
                             </div>
                             <!--[if mso]></td></tr></table><![endif]-->

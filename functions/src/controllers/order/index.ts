@@ -368,10 +368,10 @@ export async function finalize(req: Request, res: Response) {
 
         const setData = {
             ...orderData,
-            email,
-            phone,
             notes
         }
+        setData.email = email ? email : orderData.email
+        setData.phone = phone ? phone : orderData.phone
 
         if (cod) {
             order.batchSet(batch, orderId, {
@@ -609,7 +609,7 @@ export async function fullfill(req: Request, res: Response) {
                         return
                     }).filter(isDefined)
                     orderData.data!.productsData = newProductsData
-                    await sendOrderMail(orderData, 'dispatched', true)
+                    await sendOrderMail(orderData, 'dispatched')
                 }
             }
         }

@@ -46,6 +46,9 @@ build/Release
 # Dependency directories
 node_modules/
 
+# compiled
+lib/
+
 # Optional npm cache directory
 .npm
 
@@ -63,3 +66,9 @@ node_modules/
 
 # dotenv environment variables file
 .env
+
+# System Files
+.DS_Store
+Thumbs.db
+functions/.DS_Store
+functions/src/.DS_Store

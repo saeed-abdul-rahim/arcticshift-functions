@@ -42,7 +42,9 @@ export async function createDraft(userData: UserInterface, orderdata: OrderType)
             orderStatus,
             customerName,
             email: userData.email || userData.billingAddress?.email,
-            phone: userData.phone || userData.billingAddress?.email
+            phone: userData.phone || userData.billingAddress?.email,
+            billingAddress: userData.billingAddress,
+            shippingAddress: userData.shippingAddress,
         }
         return await order.add(orderData, 'draft')
     } catch (err) {
@@ -413,7 +415,7 @@ export async function sendOrderMail(orderData: OrderInterface, type: 'order' | '
         if (orderMail) {
             return await sendMail({
                 to: email,
-                subject: 'Order Placed!',
+                subject: 'Order ' + type === 'order' ? 'Placed!' : 'Dispatched!',
                 html: orderMail
             })
         }

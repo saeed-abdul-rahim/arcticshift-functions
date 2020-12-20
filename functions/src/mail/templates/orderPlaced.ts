@@ -97,7 +97,7 @@ export const orderPlacedHTML = (settings: GeneralSettingInterface, order: OrderI
                         <!-- DIVIDER -->
                         ${divider(true)}
 
-                        ${success('Thank you for placing your order with our store!', 'This email is to confirm your recent order.')}
+                        ${success('Thank you for placing your order', 'with our store!', 'This email is to confirm your recent order.')}
 
                         <div style="background-color:transparent;">
                             <div class="block-grid mixed-two-up"

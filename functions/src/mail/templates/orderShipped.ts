@@ -79,7 +79,7 @@ export const orderShippedHTML = (settings: GeneralSettingInterface, order: Order
                         <!-- DIVIDER -->
                         ${divider(true)}
 
-                        ${success(partial ? 'Your order has been dispatched!' : 'Your order has been partially dispatched', 'This email is to inform you the status of the order.')}
+                        ${success(partial ? 'Your order has been dispatched' : 'Your order has been partially dispatched', 'from our store!', 'This email is to inform you the status of the order.')}
 
                         <div style="background-color:transparent;">
                             <div class="block-grid mixed-two-up"

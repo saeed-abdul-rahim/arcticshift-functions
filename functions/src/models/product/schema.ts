@@ -1,4 +1,4 @@
-import { Common, CommonInterface, CommonType, Status, Condition, Tax, Content, ObjString } from '../common/schema'
+import { Common, CommonInterface, CommonType, Status, Condition, Content, ObjString } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
 
 export interface ProductInterface extends CommonInterface {
@@ -17,7 +17,6 @@ export interface ProductInterface extends CommonInterface {
     prices: Price[]
     price: number
     chargeTax: boolean
-    tax: Tax | null
     variantId: string[]
     saleDiscountId: string
     voucherId: string
@@ -42,7 +41,6 @@ export type ProductType = CommonType & {
     prices?: Price[]
     price?: number
     chargeTax?: boolean
-    tax?: Tax | null
     variantId?: string[]
     saleDiscountId?: string
     voucherId?: string
@@ -67,7 +65,6 @@ export class Product extends Common implements ProductInterface {
     prices: Price[]
     price: number
     chargeTax: boolean
-    tax: Tax | null
     variantId: string[]
     saleDiscountId: string
     voucherId: string
@@ -92,7 +89,6 @@ export class Product extends Common implements ProductInterface {
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0
         this.chargeTax = data.chargeTax ? data.chargeTax : false
-        this.tax = data.tax ? data.tax : null
         this.variantId = data.variantId ? uniqueArr(data.variantId) : []
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
         this.voucherId = data.voucherId ? data.voucherId : ''
@@ -119,7 +115,6 @@ export class Product extends Common implements ProductInterface {
             prices: this.prices,
             price: this.price,
             chargeTax: this.chargeTax,
-            tax: this.tax,
             variantId: this.variantId,
             saleDiscountId: this.saleDiscountId,
             voucherId: this.voucherId,
