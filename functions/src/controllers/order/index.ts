@@ -675,7 +675,7 @@ export async function cancelFullfillment(req: Request, res: Response) {
 export async function cancelOrder(req: Request, res: Response) {
     try {
         const { role }: Record<string, Role> = res.locals
-        const { orderId } = req.params
+        const { id: orderId } = req.params
         const orderData = await order.get(orderId, 'order')
         const { variants, fullfilled } = orderData
         let { orderStatus } = orderData
@@ -707,6 +707,7 @@ export async function cancelOrder(req: Request, res: Response) {
                     })
                     variant.transactionSet(transaction, variantId, { ...variantData, warehouseQuantity })
                 })
+                orderData.fullfilled = []
             }
 
             if (orderStatus === 'unfullfilled') {
