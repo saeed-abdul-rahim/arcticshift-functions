@@ -40,7 +40,7 @@ export function userHandler(app: Application) {
 
     app.patch(`${userRoute}/:id`,
         isAuthenticated,
-        isAuthorized({ allowSameUser: true }),
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
         user.update
     )
 

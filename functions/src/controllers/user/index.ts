@@ -105,8 +105,9 @@ export async function linkWithEmail(req: Request, res: Response) {
 }
 
 export async function update(req: Request, res: Response) {
-    const { uid } = res.locals
-    const { name, dob, gender, image, shippingAddress, billingAddress } = req.body as UserType
+    const { id: uid } = req.params
+    const { data }: { [data: string]: UserType } = req.body
+    const { name, firstName, lastName, email, phone, phoneCode, dob, gender, image, shippingAddress, billingAddress } = data
     try {
         const userData = await user.get(uid)
         if (image && image.path && image.url) {
@@ -122,6 +123,21 @@ export async function update(req: Request, res: Response) {
         }
         if (name) {
             userData.name = name
+        }
+        if (firstName) {
+            userData.firstName = firstName
+        }
+        if (lastName) {
+            userData.lastName = lastName
+        }
+        if (phone) {
+            userData.phone = phone
+        }
+        if (phoneCode) {
+            userData.phoneCode = phoneCode
+        }
+        if (email) {
+            userData.email = email
         }
         if (dob && typeof(dob) === 'number' && dob > 0) {
             userData.dob = dob
