@@ -9,7 +9,7 @@ export function shopHandler(app: Application) {
 
     const shopRoute = routes.shop
 
-    // ONE TIME USE ONLY
+    // COMMENT OUT IN PRODUCTION !!!
     app.post(`${shopRoute}`,
         shop.create
     )

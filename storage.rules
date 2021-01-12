@@ -1,8 +1,30 @@
 rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
-    match /{allPaths=**} {
-      allow read, write: if request.auth!=null;
+    
+    match /manifest.webmanifest {
+    	allow read: if true;
+      allow write: if false
     }
+    
+    match /{shopId}/{any=**} {
+      allow read: if true;
+			allow create: if canCreate(shopId);
+    }
+    
+    match /{userId}/{any=**} {
+      allow read, write: if userId() == userId
+    }
+  }
+  
+  function userId() {
+    return request.auth.uid;
+  }
+    
+  function canCreate(shopId) {
+    return request.auth.token.claims.hasAny([
+      { 'shopId': shopId, 'role': 'admin' },
+      { 'shopId': shopId, 'role': 'staff' }
+    ])
   }
 }
