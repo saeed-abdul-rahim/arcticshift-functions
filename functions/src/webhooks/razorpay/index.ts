@@ -4,6 +4,7 @@ import { forbidden, serverError } from '../../responseHandler/errorHandler'
 import { successUpdated } from '../../responseHandler/successHandler'
 import { orderPaid } from './orderPaid'
 
+// Webhooks for razorpay -> Activate Webhook from Razorpay Dashboard (order.paid)
 export async function handleEvent(req: Request, res: Response) {
     const methodName = 'handleEvent'
     try {

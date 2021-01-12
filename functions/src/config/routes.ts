@@ -20,6 +20,7 @@ import {
     SETTINGS
 } from "./constants"
 
+// API routes
 const v1 = '/v1'
 const webhooks = {
     razorpay: `${v1}/${WEBHOOK}/razorpay`,

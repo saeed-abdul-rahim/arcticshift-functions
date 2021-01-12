@@ -39,6 +39,7 @@ export async function create(req: Request, res: Response) {
     }
 }
 
+// Method used for calcultion when the draft is created OR updated
 export async function calculateDraft(req: Request, res: Response) {
     try {
         const { uid } = res.locals
@@ -116,6 +117,7 @@ export async function calculateDraft(req: Request, res: Response) {
     }
 }
 
+// Add voucher to the Draft order
 export async function addVoucher(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: draftId } = req.params
@@ -169,6 +171,7 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
     }
 }
 
+// Add variant to the draft order
 export async function addVariant(req: Request, res: Response) {
     try {
         const { uid } = res.locals
@@ -196,6 +199,7 @@ export async function addVariant(req: Request, res: Response) {
     }
 }
 
+// Add / Update shipping of the draft order
 export async function updateShipping(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: orderId } = req.params
@@ -235,6 +239,7 @@ export async function updateShipping(req: Request, res: Response, next: NextFunc
     }
 }
 
+// Remove Product variant from draft order
 export async function removeVariant(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: orderId } = req.params
@@ -259,6 +264,7 @@ export async function removeVariant(req: Request, res: Response, next: NextFunct
     }
 }
 
+// Update variant from draft order
 export async function updateVariants(req: Request, res: Response, next: NextFunction) {
     try {
         const { id: orderId } = req.params
@@ -278,6 +284,7 @@ export async function updateVariants(req: Request, res: Response, next: NextFunc
     }
 }
 
+// Finalize the order and get Order ID from payment gateway
 export async function finalize(req: Request, res: Response) {
     try {
         const batch = db.batch()
@@ -295,7 +302,7 @@ export async function finalize(req: Request, res: Response) {
             return badRequest(res, 'Not a draft')
         }
         if (!shippingId) {
-            return badRequest(res, 'Shipping Details required')
+            return badRequest(res, 'Not deliverable')
         }
 
         let userData = await user.get(uid)
@@ -382,6 +389,7 @@ export async function finalize(req: Request, res: Response) {
             await placeOrder(orderData)
             return successCreated(res)
         } else {
+            // Create order from payment gateway
             const gatewayOrderId = await payments.createOrder(paymentGateway, total, currency, orderId, notes)
             order.batchSet(batch, orderId, {
                 ...setData,
@@ -396,6 +404,7 @@ export async function finalize(req: Request, res: Response) {
     }
 }
 
+// Create Order (Cash on Delivery)
 export async function orderCOD(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params
@@ -440,6 +449,7 @@ export async function capturePayment(req: Request, res: Response) {
     }
 }
 
+// Add Tracking Code to the Order Document
 export async function addTrackingCode(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params
@@ -471,6 +481,7 @@ export async function addTrackingCode(req: Request, res: Response) {
     }
 }
 
+// Fullfill the order
 export async function fullfill(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params
@@ -621,6 +632,7 @@ export async function fullfill(req: Request, res: Response) {
     }
 }
 
+// Cancel the fullfillment
 export async function cancelFullfillment(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params
@@ -672,6 +684,7 @@ export async function cancelFullfillment(req: Request, res: Response) {
     }
 }
 
+// cancel order and update warehouse if necessary
 export async function cancelOrder(req: Request, res: Response) {
     try {
         const { role }: Record<string, Role> = res.locals
@@ -735,6 +748,7 @@ export async function cancelOrder(req: Request, res: Response) {
     }
 }
 
+// refund the amount of an order partial or full
 export async function refund(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params

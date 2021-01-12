@@ -33,6 +33,7 @@ import { CONTROLLERS } from "../../config/constants"
 
 const functionPath = `${CONTROLLERS}/order/helper`
 
+// Create Draft Order
 export async function createDraft(userData: UserInterface, orderdata: OrderType) {
     try {
         const orderStatus: OrderStatus = 'draft'
@@ -53,6 +54,7 @@ export async function createDraft(userData: UserInterface, orderdata: OrderType)
     }
 }
 
+// Add Product variant to Draft Order
 export function addVariantToOrder(orderData: OrderInterface, variants: VariantQuantity[]) {
     if (orderData.orderStatus === 'draft') {
         // Existing variants
@@ -88,6 +90,7 @@ export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: Varian
     }
 }
 
+// Combine all order related Data for calculation (This is pre calculation)
 export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
     try {
         return await Promise.all(allVariantData.map(async variantData => {
@@ -136,6 +139,7 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
     }
 }
 
+// Calculate the total amount of the order
 export function calculateData(allData: ProductData[]): OrderDataCalc[] {
     try {
         return allData.map(data => {
@@ -179,6 +183,7 @@ export function calculateData(allData: ProductData[]): OrderDataCalc[] {
     }
 }
 
+// Sum all the numbers
 export function aggregateData(allDataCalculated: OrderDataCalc[]): AggregateType {
     try {
         const allDataTotals = allDataCalculated.map(dt => {
@@ -191,6 +196,7 @@ export function aggregateData(allDataCalculated: OrderDataCalc[]): AggregateType
     }
 }
 
+// Calculate shipping based on price OR weight (If both available -> weight is prefered)
 export async function calculateShipping(shippingRateId: string, aggregate: AggregateType) {
     try {
         let shippingCharge = 0
@@ -218,6 +224,7 @@ export async function calculateShipping(shippingRateId: string, aggregate: Aggre
     }
 }
 
+// Caculate voucher discount (check eligibility and calculate)
 export async function calculateVoucherDiscount(uid: string, voucherId: string, allProductData: ProductInterface[], allDataCalculated: OrderDataCalc[], allDataAggregated: AggregateType, shipping: number) {
     try {
         let shippingCharge = shipping
@@ -312,6 +319,7 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
     }
 }
 
+// Place the order (Remove draft and create new order Document)
 export async function placeOrder(orderData: OrderInterface) {
     try {
         const { variants, userId, orderId, voucherId } = orderData
@@ -415,7 +423,7 @@ export async function sendOrderMail(orderData: OrderInterface, type: 'order' | '
         if (orderMail) {
             return await sendMail({
                 to: email,
-                subject: 'Order ' + type === 'order' ? 'Placed!' : 'Dispatched!',
+                subject: type === 'order' ? 'Order Placed!' : 'Order Dispatched!',
                 html: orderMail
             })
         }

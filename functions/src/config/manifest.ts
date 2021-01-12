@@ -1,5 +1,6 @@
 import { ContentStorage } from "../models/common/schema"
 
+// Create manifest for the PWA application
 export function createManifest(name: string, images: ContentStorage[]): string {
     return JSON.stringify({
         name,

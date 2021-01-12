@@ -8,6 +8,8 @@ export const URL = {
     base: 'https://articshift-7f9cd.web.app'
 }
 export const appId = config().app.id
+
+// For OAuth2 -> nodemailer
 export const gmail = config().gmail.email
 export const clientId = config().gmail.id
 export const clientSecret = config().gmail.secret

@@ -22,6 +22,7 @@ import { callerName } from '../../utils/functionUtils'
 
 const functionPath = `${CONTROLLERS}/user/index`
 
+// Create user document on firebase signup
 export async function createUserDb(userRecord: admin.auth.UserRecord, context: functions.EventContext) {
     const { uid, email, phoneNumber, displayName } = userRecord
     await user.set(uid, {
@@ -148,6 +149,7 @@ export async function update(req: Request, res: Response) {
     }
 }
 
+// Add product (pid) to user wishlist Array
 export async function addToWishlist(req: Request, res: Response) {
     try {
         const { id: uid } = req.params
@@ -166,6 +168,7 @@ export async function addToWishlist(req: Request, res: Response) {
     }
 }
 
+// Remove product (pid) to user wishlist Array
 export async function removeFromWishlist(req: Request, res: Response) {
     try {
         const { uid } = res.locals
