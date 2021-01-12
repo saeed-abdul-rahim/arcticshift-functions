@@ -9,7 +9,7 @@ export function userHandler(app: Application) {
 
     const userRoute = routes.user
 
-    // ONE TIME USE ONLY
+    // Create Admin - COMMENT OUT IN PRODUCTION !!!
     app.post(`${userRoute}/admin`,
         user.createAdmin
     )
