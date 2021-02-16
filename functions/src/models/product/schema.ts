@@ -1,5 +1,6 @@
-import { Common, CommonInterface, CommonType, Status, Condition, Content, ObjString } from '../common/schema'
+import { Common, CommonInterface, CommonType, Status, Condition, Content, ObjString, Price } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
+import { SaleDiscountInterface } from '../saleDiscount/schema'
 
 export interface ProductInterface extends CommonInterface {
     shopId: string
@@ -19,6 +20,7 @@ export interface ProductInterface extends CommonInterface {
     chargeTax: boolean
     variantId: string[]
     saleDiscountId: string
+    saleDiscount: SaleDiscountInterface | null
     voucherId: string
     status: Status
     like: number
@@ -43,6 +45,7 @@ export type ProductType = CommonType & {
     chargeTax?: boolean
     variantId?: string[]
     saleDiscountId?: string
+    saleDiscount?: SaleDiscountInterface | null
     voucherId?: string
     status?: Status
     like?: number
@@ -67,6 +70,7 @@ export class Product extends Common implements ProductInterface {
     chargeTax: boolean
     variantId: string[]
     saleDiscountId: string
+    saleDiscount: SaleDiscountInterface | null
     voucherId: string
     status: Status
     like: number
@@ -91,6 +95,7 @@ export class Product extends Common implements ProductInterface {
         this.chargeTax = data.chargeTax ? data.chargeTax : false
         this.variantId = data.variantId ? uniqueArr(data.variantId) : []
         this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
+        this.saleDiscount = data.saleDiscount ? data.saleDiscount : null
         this.voucherId = data.voucherId ? data.voucherId : ''
         this.status = data.status ? data.status : 'active'
         this.like = data.like ? data.like : 0
@@ -117,6 +122,7 @@ export class Product extends Common implements ProductInterface {
             chargeTax: this.chargeTax,
             variantId: this.variantId,
             saleDiscountId: this.saleDiscountId,
+            saleDiscount: this.saleDiscount,
             voucherId: this.voucherId,
             status: this.status,
             like: this.like,
@@ -132,8 +138,3 @@ export type ProductCondition = Condition & {
 }
 
 type ProductFields = keyof (ProductType & Price) | string
-
-type Price = {
-    name: string
-    value: string
-}

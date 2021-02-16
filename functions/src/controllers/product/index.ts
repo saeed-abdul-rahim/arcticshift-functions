@@ -13,6 +13,7 @@ import { removeProductFromAllCategories } from '../category/helper'
 import { organizeProduct, removeFromProductType, organizeProductUpdate } from './helper'
 import { callerName } from '../../utils/functionUtils'
 import { CONTROLLERS } from '../../config/constants'
+import { Price } from '../../models/common/schema'
 
 const functionPath = `${CONTROLLERS}/product/index`
 
@@ -32,10 +33,15 @@ export async function create(req: Request, res: Response) {
         }
         const keywords = wordKeys(name)
         const { shopId } = shopData
+        const prices: Price[] = [
+            { name: 'original', value: price },
+            { name: 'store', value: price }
+        ]
         data = {
             ...data,
             keywords,
-            shopId
+            shopId,
+            prices
         }
         const productData = await product.add(data)
         const { productId } = productData
@@ -63,6 +69,7 @@ export async function update(req: Request, res: Response) {
                 try {
                     const variantData = await variant.get(varId)
                     variantData.productName = name
+                    variantData.keywords = wordKeys(`${name} ${variantData.name} ${variantData.sku ?? ''}`)
                     await variant.set(varId, variantData)
                 } catch (err) {
                     console.error(`${functionPath}/${callerName()}`, err)

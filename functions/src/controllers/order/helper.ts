@@ -5,6 +5,8 @@ import * as voucher from "../../models/voucher"
 import * as order from "../../models/order"
 import * as user from "../../models/user"
 import * as tax from "../../models/tax"
+import * as product from "../../models/product"
+import * as productType from "../../models/productType"
 import * as category from "../../models/category"
 import * as collection from "../../models/collection"
 import * as variant from "../../models/variant"
@@ -78,6 +80,31 @@ export function addVariantToOrder(orderData: OrderInterface, variants: VariantQu
     }
 }
 
+export async function getProductDataByVariant(variants: VariantQuantity[]) {
+    try {
+        const variantIds = variants.map(v => v.variantId)
+        const allVariantData = await Promise.all(variantIds.map(async variantId => {
+            return await variant.get(variantId)
+        }))
+
+        const productIds = uniqueArr(allVariantData.map(v => v.productId))
+        const allProductData = await Promise.all(productIds.map(async productId => {
+            return await product.get(productId)
+        }))
+
+        const productTypeIds = uniqueArr(allProductData.map(p => p.productTypeId))
+        const allProductTypeData = await Promise.all(productTypeIds.map(productTypeId => {
+            return productType.get(productTypeId)
+        }))
+        return {
+            allVariantData, allProductData, allProductTypeData
+        }
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
+}
+
 export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: VariantQuantity[]): OrderStatus {
     const totalFullfilled = fullfulled.map(f => f.quantity).reduce((sum, curr) => sum + curr, 0)
     const toFullfill = variantQty.map(v => v.quantity).reduce((sum, curr) => sum + curr, 0)
@@ -91,7 +118,7 @@ export function getFullfillmentStatus(fullfulled: Fullfill[], variantQty: Varian
 }
 
 // Combine all order related Data for calculation (This is pre calculation)
-export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null): Promise<ProductData[]> {
+export async function combineData(orderVariants: VariantQuantity[], allVariantData: VariantInterface[], allProductData: ProductInterface[], allProductTypeData: ProductTypeInterface[], saleDiscounts: SaleDiscountInterface[] | null = null): Promise<ProductData[]> {
     try {
         return await Promise.all(allVariantData.map(async variantData => {
 
@@ -140,10 +167,17 @@ export async function combineData(orderVariants: VariantQuantity[], allVariantDa
 }
 
 // Calculate the total amount of the order
-export function calculateData(allData: ProductData[]): OrderDataCalc[] {
+export function calculateData(allData: ProductData[], priceName: string = ''): OrderDataCalc[] {
     try {
         return allData.map(data => {
-            const { price, orderQuantity, saleDiscount, baseProductType, taxData } = data
+            let { price } = data
+            const { orderQuantity, saleDiscount, baseProductType, taxData, prices } = data
+            if (priceName) {
+                const selectedPrice = prices.find(p => p.name === priceName)
+                if (selectedPrice) {
+                    price = selectedPrice.value
+                }
+            }
             const { weight } = baseProductType
             const subTotal = price * orderQuantity
             let total = subTotal
@@ -319,6 +353,19 @@ export async function calculateVoucherDiscount(uid: string, voucherId: string, a
     }
 }
 
+export async function getCalculatedData(variants: VariantQuantity[], saleDiscounts: SaleDiscountInterface[] | null = null, priceName: string = '') {
+    try {
+        const { allVariantData, allProductData, allProductTypeData } = await getProductDataByVariant(variants)
+        const allData = await combineData(variants, allVariantData, allProductData, allProductTypeData, saleDiscounts)
+        const allDataCalculated = calculateData(allData, priceName)
+        const allDataAggregated = aggregateData(allDataCalculated)
+        return { allData, allDataCalculated, allDataAggregated, allVariantData, allProductData, allProductTypeData }
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
+}
+
 // Place the order (Remove draft and create new order Document)
 export async function placeOrder(orderData: OrderInterface) {
     try {
@@ -383,7 +430,11 @@ export async function placeOrder(orderData: OrderInterface) {
             console.error(`${functionPath}/${callerName()}`, err)
         }
 
-        return await sendOrderMail(orderData, 'order')
+        if (orderData.email) {
+            await sendOrderMail(orderData, 'order')
+        }
+
+        return newOrderId
 
     } catch (err) {
         console.error(`${functionPath}/${callerName()}`, err)

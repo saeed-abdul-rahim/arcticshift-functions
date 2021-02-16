@@ -158,6 +158,25 @@ export function transactionDelete(transaction: FirebaseFirestore.Transaction, sa
     }
 }
 
+export async function getActiveSalesDiscounts(): Promise<SaleDiscountInterface[] | null> {
+    try {
+        const now = Date.now()
+        let saleDiscounts = await getByCondition([
+            { field: 'status', type: '==', value: 'active' },
+            { field: 'startDate', type: '<=', value: now },
+            { field: 'startDate', type: '>', value: 0 }
+        ])
+        if (saleDiscounts) {
+            saleDiscounts = saleDiscounts.filter(sd => sd.endDate < now)
+            saleDiscounts = saleDiscounts.length > 0 ? saleDiscounts : null
+        }
+        return saleDiscounts
+    } catch(err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        throw err
+    }
+}
+
 async function getAll(ref: FirebaseFirestore.Query<FirebaseFirestore.DocumentData>, transaction?: FirebaseFirestore.Transaction) {
     try {
         let doc

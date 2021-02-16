@@ -4,17 +4,14 @@ import * as settings from '../../models/settings'
 import * as user from '../../models/user'
 import * as voucher from '../../models/voucher'
 import * as saleDiscount from '../../models/saleDiscount'
-import * as productType from '../../models/productType'
-import * as product from '../../models/product'
 import * as variant from '../../models/variant'
 import * as order from '../../models/order'
 import * as shipping from '../../models/shipping'
 import * as shippingRate from '../../models/shippingRate'
-import { Fullfill, Fullfillment, OrderType } from '../../models/order/schema'
+import { Fullfill, Fullfillment, OrderInterface, OrderType } from '../../models/order/schema'
 import { badRequest, missingParam, serverError } from '../../responseHandler/errorHandler'
 import { successCreated, successResponse, successUpdated } from '../../responseHandler/successHandler'
-import { addVariantToOrder, aggregateData, calculateData, calculateShipping, calculateVoucherDiscount, combineData, createDraft, getFullfillmentStatus, placeOrder, sendOrderMail } from './helper'
-import { uniqueArr } from '../../utils/arrayUtils'
+import { addVariantToOrder, calculateShipping, calculateVoucherDiscount, createDraft, getCalculatedData, getFullfillmentStatus, placeOrder, sendOrderMail } from './helper'
 import { isValidAddress } from '../../models/common'
 import { setUserBillingAddress, setUserShippingAddress } from '../user/helper'
 import { db } from '../../config/db'
@@ -43,43 +40,40 @@ export async function create(req: Request, res: Response) {
 export async function calculateDraft(req: Request, res: Response) {
     try {
         const { uid } = res.locals
-        const now = Date.now()
-        const orderData = await order.getOneByCondition('draft', [
-            { field: 'userId', type: '==', value: uid }
-        ])
+        const { role }: { [role: string]: Role } = res.locals
+        const { id: orderId } = req.params
+        let orderData: OrderInterface | null
+        const { data } = req.body
+        let hasShippingRate: boolean = true
+        let hasSaleDiscount: boolean = true
+        let priceName: string = ''
+        if (data) {
+            hasShippingRate = data.hasShippingRate
+            hasSaleDiscount = data.hasSaleDiscount
+            priceName = data.priceName
+        }
+        if (orderId) {
+            orderData = await order.get(orderId, 'draft')
+        } else {
+            orderData = await order.getOneByCondition('draft', [
+                { field: 'userId', type: '==', value: uid }
+            ])
+        }
         if (!orderData) {
             return badRequest(res, 'No draft found')
         }
+        if (hasShippingRate === false && role && (role === 'admin' || role === 'staff')) {
+            orderData.shippingRateId = ''
+        }
         const { variants, shippingRateId, voucherId } = orderData
 
-        let saleDiscounts = await saleDiscount.getByCondition([
-            { field: 'status', type: '==', value: 'active' },
-            { field: 'startDate', type: '<=', value: now },
-            { field: 'startDate', type: '>', value: 0 }
-        ])
-        if (saleDiscounts) {
-            saleDiscounts = saleDiscounts.filter(sd => sd.endDate < now)
-            saleDiscounts = saleDiscounts.length > 0 ? saleDiscounts : null
+        let saleDiscounts
+        if (hasSaleDiscount === false && role && (role === 'admin' || role === 'staff')) {
+            saleDiscounts = null
+        } else {
+            saleDiscounts = await saleDiscount.getActiveSalesDiscounts()
         }
-
-        const variantIds = variants.map(v => v.variantId)
-        const allVariantData = await Promise.all(variantIds.map(async variantId => {
-            return await variant.get(variantId)
-        }))
-
-        const productIds = uniqueArr(allVariantData.map(v => v.productId))
-        const allProductData = await Promise.all(productIds.map(async productId => {
-            return await product.get(productId)
-        }))
-
-        const productTypeIds = uniqueArr(allProductData.map(p => p.productTypeId))
-        const allProductTypeData = await Promise.all(productTypeIds.map(productTypeId => {
-            return productType.get(productTypeId)
-        }))
-
-        const allData = await combineData(variants, allVariantData, allProductData, allProductTypeData, saleDiscounts)
-        const allDataCalculated = calculateData(allData)
-        const allDataAggregated = aggregateData(allDataCalculated)
+        const { allData, allDataCalculated, allDataAggregated, allProductData } = await getCalculatedData(variants, saleDiscounts, priceName)
         
         const shippingCalculated = await calculateShipping(shippingRateId, allDataAggregated)
         let { shippingCharge } = shippingCalculated
@@ -98,7 +92,6 @@ export async function calculateDraft(req: Request, res: Response) {
             shippingCharge,
             total: grandTotal >= 0 ? grandTotal : 0
         }
-        const batch = db.batch()
         const updatedOrderData = {
             ...orderData,
             ...result,
@@ -108,8 +101,7 @@ export async function calculateDraft(req: Request, res: Response) {
                 voucherData
             }
         }
-        order.batchSet(batch, orderData.orderId, updatedOrderData, 'draft')
-        await batch.commit()
+        await order.set(orderData.orderId, updatedOrderData, 'draft')
         return successUpdated(res)
     } catch (err) {
         console.error(`${functionPath}/${callerName()}`, err)
@@ -134,8 +126,7 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
             return badRequest(res, 'Invalid code')
         }
         const { data: orderCalcData, userId } = orderData
-        const { voucherId } = voucherData
-        const { startDate, endDate, status } = voucherData
+        const { voucherId, startDate, endDate, status, orderType } = voucherData
         const now = Date.now()
         if (status === 'inactive') {
             return badRequest(res, 'Voucher Expired')
@@ -149,7 +140,7 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
         if (orderData.voucherId === voucherId) {
             return badRequest(res, 'Voucher already applied')
         }
-        if (orderCalcData) {
+        if (orderCalcData && orderType === 'specificProducts') {
             const { productsData } = orderCalcData
             const areProductsEligible = productsData.map(p => {
                 return voucherHelper.isProductEligible(voucherData, p.baseProduct)
@@ -171,18 +162,38 @@ export async function addVoucher(req: Request, res: Response, next: NextFunction
     }
 }
 
+export async function removeVoucher(req: Request, res: Response, next: NextFunction) {
+    try {
+        const { id: draftId } = req.params
+        const orderData = await order.get(draftId, 'draft')
+        orderData.voucherId = ''
+        await order.set(draftId, orderData, 'draft')
+        next()
+        return
+    } catch (err) {
+        console.error(`${functionPath}/${callerName()}`, err)
+        return serverError(res, err)
+    }
+}
+
 // Add variant to the draft order
 export async function addVariant(req: Request, res: Response) {
     try {
         const { uid } = res.locals
+        const { id: draftId } = req.params
         const { data }: { data: OrderType } = req.body
         const { variants, userId } = data
         if (!variants || !Array.isArray(variants) || variants.length <= 0) {
             return missingParam(res, 'Variant')
         }
-        let orderData = await order.getOneByCondition('draft', [
-            { field: 'userId', type: '==', value: userId || uid }
-        ]);
+        let orderData: OrderInterface | null
+        if (!draftId) {
+            orderData = await order.getOneByCondition('draft', [
+                { field: 'userId', type: '==', value: userId || uid }
+            ]);
+        } else {
+            orderData = await order.get(draftId, 'draft')
+        }
         if (orderData) {
             const { orderId } = orderData
             orderData = addVariantToOrder(orderData, variants)
@@ -405,13 +416,13 @@ export async function finalize(req: Request, res: Response) {
 }
 
 // Create Order (Cash on Delivery)
-export async function orderCOD(req: Request, res: Response) {
+export async function createOrder(req: Request, res: Response) {
     try {
         const { id: orderId } = req.params
         const orderData = await order.get(orderId, 'draft')
         orderData.paymentStatus = 'notCharged'
-        await placeOrder(orderData)
-        return successUpdated(res)
+        const id = await placeOrder(orderData)
+        return successResponse(res, { id })
     } catch (err) {
         console.error(`${functionPath}/${callerName()}`, err)
         return serverError(res, err)

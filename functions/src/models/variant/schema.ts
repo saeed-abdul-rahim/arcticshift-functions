@@ -1,5 +1,6 @@
 import { ObjString, Common, CommonInterface, CommonType, Condition, Content, ObjNumber, Price } from '../common/schema'
 import { uniqueArr } from '../../utils/arrayUtils'
+import { SaleDiscountInterface } from '../saleDiscount/schema'
 
 export interface VariantInterface extends CommonInterface {
     shopId: string
@@ -16,6 +17,8 @@ export interface VariantInterface extends CommonInterface {
     attributes: ObjString
     prices: Price[]
     price: number
+    saleDiscountId: string
+    saleDiscount: SaleDiscountInterface | null
     variantIds: string[]
     like: number
     rating: number
@@ -40,6 +43,8 @@ export type VariantType = CommonType & {
     attributes?: ObjString
     prices?: Price[]
     price?: number
+    saleDiscountId?: string
+    saleDiscount?: SaleDiscountInterface | null
     variantIds?: string[]
     like?: number
     rating?: number
@@ -64,6 +69,8 @@ export class Variant extends Common implements VariantInterface {
     attributes: ObjString
     prices: Price[]
     price: number
+    saleDiscountId: string
+    saleDiscount: SaleDiscountInterface | null
     variantIds: string[]
     like: number
     rating: number
@@ -88,6 +95,8 @@ export class Variant extends Common implements VariantInterface {
         this.attributes = data.attributes ? data.attributes : null
         this.prices = data.prices ? data.prices : []
         this.price = data.price ? data.price : 0
+        this.saleDiscountId = data.saleDiscountId ? data.saleDiscountId : ''
+        this.saleDiscount = data.saleDiscount ? data.saleDiscount : null
         this.variantIds = data.variantIds ? uniqueArr(data.variantIds) : []
         this.like = data.like ? data.like : 0
         this.rating = data.rating ? data.rating : 0
@@ -114,6 +123,8 @@ export class Variant extends Common implements VariantInterface {
             attributes: this.attributes,
             prices: this.prices,
             price: this.price,
+            saleDiscountId: this.saleDiscountId,
+            saleDiscount: this.saleDiscount,
             variantIds: this.variantIds,
             like: this.like,
             rating: this.rating,

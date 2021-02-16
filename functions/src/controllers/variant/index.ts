@@ -8,6 +8,7 @@ import { badRequest, serverError, missingParam } from '../../responseHandler/err
 import { successDeleted, successResponse, successUpdated } from '../../responseHandler/successHandler'
 import { CONTROLLERS, PRODUCT } from '../../config/constants'
 import { callerName } from '../../utils/functionUtils'
+import { wordKeys } from '../../utils/strUtils'
 
 const functionPath = `${CONTROLLERS}/variant/index`
 
@@ -15,7 +16,7 @@ export async function create(req: Request, res: Response) {
     try {
         const { shopData }: { [shopData: string]: ShopType } = res.locals
         let { data }: { data: VariantType } = req.body
-        const { sku, productId } = data
+        const { sku, productId, name } = data
         let { price, prices } = data
         if (!productId) {
             return missingParam(res, 'Product ID')
@@ -39,6 +40,12 @@ export async function create(req: Request, res: Response) {
             }])
             if (prevVariant) {
                 return badRequest(res, 'SKU exists')
+            }
+        }
+        if (name) {
+            data.keywords = wordKeys(`${productName} ${name}`)
+            if (sku) {
+                data.keywords = wordKeys(`${productName} ${name} ${sku}`)
             }
         }
         const { shopId } = shopData
@@ -68,7 +75,7 @@ export async function create(req: Request, res: Response) {
 export async function update(req: Request, res: Response) {
     try {
         let { data }: { data: VariantType } = req.body
-        const { variantId, sku, trackInventory, images } = data
+        const { variantId, sku, trackInventory, images, name } = data
         if (!variantId) {
             return missingParam(res, 'ID')
         }
@@ -91,6 +98,12 @@ export async function update(req: Request, res: Response) {
         }
         if (trackInventory === false) {
             data.bookedQuantity = 0
+        }
+        if (name) {
+            data.keywords = wordKeys(`${oldVariantData.productName} ${name}`)
+            if (sku) {
+                data.keywords = wordKeys(`${oldVariantData.productName} ${name} ${sku}`)
+            }
         }
         data = {
             ...oldVariantData,

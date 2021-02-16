@@ -15,10 +15,22 @@ export function orderHandler(app: Application) {
         order.calculateDraft
     )
 
+    app.post(`${orderRoute}/total/:id`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.calculateDraft
+    )
+
     app.post(orderRoute,
         isAuthenticated,
         isAuthorized({ hasRole: ['admin', 'staff'] }),
         order.create
+    )
+
+    app.put(`${orderRoute}/:id/variant`,
+        isAuthenticated,
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.addVariant
     )
 
     app.put(`${orderRoute}/:id/${VOUCHER}`,
@@ -85,10 +97,10 @@ export function orderHandler(app: Application) {
         order.calculateDraft
     )
 
-    app.patch(`${orderRoute}/:id/cod`,
+    app.patch(`${orderRoute}/:id/create`,
         isAuthenticated,
-        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
-        order.orderCOD
+        isAuthorized({ hasRole: ['admin', 'staff'] }),
+        order.createOrder
     )
 
     app.patch(orderRoute,
@@ -97,10 +109,18 @@ export function orderHandler(app: Application) {
         order.finalize
     )
 
-    app.delete(`${orderRoute}/:id/cancel`,
+    app.delete(`${orderRoute}/:id/${VOUCHER}`,
         isAuthenticated,
         isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
-        order.cancelOrder
+        order.removeVoucher,
+        order.calculateDraft
+    )
+
+    app.delete(`${orderRoute}/:id`,
+        isAuthenticated,
+        isAuthorized({ allowSameUser: true, hasRole: ['admin', 'staff'] }),
+        order.cancelOrder,
+        order.calculateDraft
     )
 
 }
